@@ -411,7 +411,12 @@ pub fn AudioSettings(cx: Scope) -> Element {
                 aria_label: "call-timer-section".into(),
                 section_label: get_local_text("settings-audio.call-timer"),
                 section_description: get_local_text("settings-audio.call-timer-description"),
-                Switch {}
+                Switch {
+                    active: state.read().ui.call_timer,
+                    onflipped: move |e| {
+                        state.write().ui.call_timer = e;
+                    }
+                }
             }
         }
     ))
