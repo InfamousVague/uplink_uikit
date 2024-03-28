@@ -230,7 +230,7 @@ pub fn AddFriend() -> Element {
                                     ch.send((friend_input().to_string(), state.read().outgoing_fr_identities()));
                                 }
                             },
-                            onchange: |(s, is_valid)| {
+                            onchange: move |(s, is_valid)| {
                                 friend_input.set(s);
                                 friend_input_valid.set(is_valid);
                             },

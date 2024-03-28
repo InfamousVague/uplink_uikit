@@ -215,7 +215,7 @@ pub fn Friends() -> Element {
                     },
                     disable_onblur: true,
                     reset: reset_filter.clone(),
-                    onchange: |(s, _)| {
+                    onchange: move |(s, _)| {
                         friend_filter.set(s);
                     },
                     aria_label: "Search Friend".to_string()
@@ -407,6 +407,7 @@ pub struct FriendProps {
 pub fn ShareFriendsModal(props: FriendProps) -> Element {
     let mut state = use_context::<Signal<State>>();
     let mut chats_selected = use_signal(|| Vec::new());
+    let mut did_signal = props.did.clone();
     let ch = use_coroutine(|mut rx: UnboundedReceiver<(DID, Vec<Uuid>)>| async move {
         let warp_cmd_tx = WARP_CMD_CH.tx.clone();
         while let Some((id, uuid)) = rx.next().await {
@@ -436,8 +437,8 @@ pub fn ShareFriendsModal(props: FriendProps) -> Element {
         .cloned()
         .collect();
     rsx!(Modal {
-        open: props.did.read().is_some(),
-        onclose: move |_| props.did.set(None),
+        open: did_signal().is_some(),
+        onclose: move |_| did_signal.set(None),
         show_close_button: false,
         transparent: false,
         close_on_click_inside_modal: false,
@@ -460,7 +461,7 @@ pub fn ShareFriendsModal(props: FriendProps) -> Element {
                         disabled: chats_selected.read().is_empty(),
                         onpress: move |_| {
                             ch.send((props.did.as_ref().unwrap().clone(), chats_selected.read().clone()));
-                            props.did.set(None);
+                            did_signal.set(None);
                         },
                     },
                 }

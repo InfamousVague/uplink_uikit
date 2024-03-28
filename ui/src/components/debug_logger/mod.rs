@@ -191,7 +191,7 @@ pub fn DebugLogger() -> Element {
                     div {
                         class: "body-scroll",
                         {logs_to_show.iter().filter(
-                            |&x| x.level == filter_level() || filter_level() == Level::Debug
+                            |x| x.level == filter_level() || filter_level() == Level::Debug
                         ).map(|log| {
                             let log_datetime = log.datetime;
                             let log_level = log.level;

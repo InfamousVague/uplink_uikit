@@ -125,7 +125,7 @@ fn RenderGlobalShortCuts<'a>(props: GlobalShortcutProps) -> Element {
         return None;
     }
 
-    use_global_shortcut(modifiers_and_keys.as_str(), {
+    let _ = use_global_shortcut(modifiers_and_keys.as_str(), {
         to_owned![command_pressed];
         move || {
             *CALL_COUNT.write() += 1;

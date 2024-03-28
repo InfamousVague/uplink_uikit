@@ -66,7 +66,7 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn CallControl(props: Props) -> Element {
     let mut state = use_context::<Signal<State>>();
-    match state.read().ui.call_info.active_call() {
+    match state().ui.call_info.active_call() {
         Some(call) => rsx!(ActiveCallControl {
             active_call: call,
             in_chat: props.in_chat,
@@ -103,19 +103,19 @@ pub struct ActiveCallProps {
 fn ActiveCallControl(props: ActiveCallProps) -> Element {
     log::trace!("Rendering active call window");
     let mut state = use_context::<Signal<State>>();
-    let active_call: &ActiveCall = &props.active_call;
+    let active_call: ActiveCall = props.active_call.clone();
     let active_call_id = active_call.call.id;
     let active_call_answer_time = active_call.answer_time;
     let scope_id = current_scope_id();
     let outgoing = active_call.call.participants_joined.is_empty();
-    let update_fn = schedule_update_any();
+    let update_fn = use_signal(|| schedule_update_any());
 
     let mut recording = use_signal(|| false);
 
     let mut scope_id_signal = use_signal(|| scope_id);
     let mut answer_time_signal = use_signal(|| active_call_answer_time);
 
-    use_future(|| async move {
+    use_resource(move || async move {
         loop {
             let dur_sec = Duration::from_secs(1);
             let dur_min = Duration::from_secs(60);
@@ -136,7 +136,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
 
             tokio::time::sleep(to_sleep).await;
             // TODO(Migration_0.5): Look into this unwrap later
-            update_fn(scope_id_signal().unwrap());
+            update_fn()(scope_id_signal().unwrap());
         }
     });
 
@@ -325,8 +325,8 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
         };
     }
 
-    let call = &active_call.call;
-    let participants = state.read().get_identities_from_call(call);
+    let call = active_call.call.clone();
+    let participants = state.read().get_identities_from_call(&call);
     let other_participants = state.read().remove_self(&participants);
     let participants_name = State::join_usernames(&other_participants);
     let self_id = build_user_from_identity(&state.read().get_own_identity());
@@ -563,7 +563,7 @@ fn PendingCallDialog(props: PendingCallProps) -> Element {
         }
     });
 
-    let call = &props.call;
+    let call = props.call.clone();
     if state.read().ui.current_layout == Layout::Compose {
         match state.read().get_active_chat() {
             None => {
@@ -583,7 +583,7 @@ fn PendingCallDialog(props: PendingCallProps) -> Element {
         to_owned![alive];
         spawn(async move { PlayUntil(ContinuousSound::RingTone, alive.read().clone()) });
     });
-    let mut participants = state.read().get_identities_from_call(call);
+    let mut participants = state.read().get_identities_from_call(&call);
     participants = state.read().remove_self(&participants);
     let usernames = match state.read().get_chat_by_id(call.id) {
         Some(c) => match c.conversation_name {

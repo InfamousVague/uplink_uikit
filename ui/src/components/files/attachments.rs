@@ -20,60 +20,67 @@ pub struct AttachmentProps {
 pub fn Attachments(props: AttachmentProps) -> Element {
     let mut state = use_context::<Signal<State>>();
     let files_attached_to_send = props.files_to_attach.clone();
-    let files_attached_to_send3 = files_attached_to_send;
+    let files_attached_to_send3 = files_attached_to_send.clone();
+    let files_attached_to_send4 = props.files_to_attach.clone();
+    let files_attached_to_send5 = props.files_to_attach.clone();
+    let files_signal = use_signal(|| files_attached_to_send5.clone());
 
     // todo: pick an icon based on the file extension
     let attachments = rsx!({
-        props.files_to_attach.iter().map(|location| {
-            let (filename, filepath, thumbnail) = match &location {
-                Location::Constellation { path } => {
-                    let filename = PathBuf::from(&path)
-                        .file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                        .to_string();
+        files_attached_to_send4
+            .clone()
+            .iter()
+            .cloned()
+            .map(|location| {
+                let (filename, filepath, thumbnail) = match &location {
+                    Location::Constellation { path } => {
+                        let filename = PathBuf::from(&path)
+                            .file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string();
 
-                    let warp_file = state
-                        .read()
-                        .storage
-                        .files
-                        .iter()
-                        .find(|x| x.name() == filename)
-                        .cloned();
+                        let warp_file = state
+                            .read()
+                            .storage
+                            .files
+                            .iter()
+                            .find(|x| x.name() == filename)
+                            .cloned();
 
-                    let thumbnail = match warp_file {
-                        Some(f) => thumbnail_to_base64(&f),
-                        None => String::new(),
-                    };
+                        let thumbnail = match warp_file {
+                            Some(f) => thumbnail_to_base64(&f),
+                            None => String::new(),
+                        };
 
-                    (filename, PathBuf::from(&path), thumbnail)
-                }
-                Location::Disk { path } => (
-                    path.file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                        .to_string(),
-                    path.clone(),
-                    String::new(),
-                ),
-            };
-
-            rsx!(FileEmbed {
-                filename: filename,
-                filepath: filepath,
-                remote: false,
-                is_from_attachments: true,
-                thumbnail: thumbnail,
-                button_icon: icons::outline::Shape::Minus,
-                on_press: move |pathbuf: Option<PathBuf>| {
-                    if pathbuf.is_none() {
-                        let mut attachments = props.files_to_attach.clone();
-                        attachments.retain(|location2| location2 != location);
-                        props.on_remove.call(attachments);
+                        (filename, PathBuf::from(&path), thumbnail)
                     }
-                },
+                    Location::Disk { path } => (
+                        path.file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string(),
+                        path.clone(),
+                        String::new(),
+                    ),
+                };
+
+                rsx!(FileEmbed {
+                    filename: filename,
+                    filepath: filepath,
+                    remote: false,
+                    is_from_attachments: true,
+                    thumbnail: thumbnail,
+                    button_icon: icons::outline::Shape::Minus,
+                    on_press: move |pathbuf: Option<PathBuf>| {
+                        if pathbuf.is_none() {
+                            let mut attachments = files_signal();
+                            attachments.retain(|location2| *location2 != location);
+                            props.on_remove.call(attachments);
+                        }
+                    },
+                })
             })
-        })
     });
 
     let attachments_vec = files_attached_to_send3;
