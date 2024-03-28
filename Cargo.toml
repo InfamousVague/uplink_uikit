@@ -35,7 +35,7 @@ dioxus-router = { git = "https://github.com/DioxusLabs/dioxus", rev = "e923c6462
 dioxus-desktop = { git = "https://github.com/DioxusLabs/dioxus", rev = "e923c6462c497a55388a62b93373fba972847594", features = [
     "transparent",
 ] }
-muda = "0.12.1"
+muda = "0.11.5"
 raw-window-handle = "0.6"
 # dioxus-core = { git = "https://github.com/satellite-im/dioxus", rev = "fe2c17f7922eccba1a3de1528c703e564270468c" }
 fermi = { git = "https://github.com/satellite-im/dioxus", rev = "e923c6462c497a55388a62b93373fba972847594" }
