@@ -320,14 +320,31 @@ pub fn get_app_style(state: &State) -> String {
         format!(
             ":root {{
                     --primary: rgb({},{},{});
+                    --text-color-primary: {};
                 }}",
-            color.0, color.1, color.2,
+            color.0,
+            color.1,
+            color.2,
+            get_text_color(color.0, color.1, color.2)
         )
     } else {
         "".into()
     };
 
     format!("{UIKIT_STYLES} {APP_STYLE} {PRISM_STYLE} {PRISM_THEME} {theme} {accent_color} {font_style} {open_dyslexic} {font_scale}")
+}
+
+// Decide if text should be dark or bright
+fn get_text_color(r: u8, g: u8, b: u8) -> &'static str {
+    // See https://en.wikipedia.org/wiki/Relative_luminance
+    let luminance: f64 = 0.2126729 * (r as f64 / 255.).powf(2.2)
+        + 0.7151522 * (g as f64 / 255.).powf(2.2)
+        + 0.0721750 * (b as f64 / 255.).powf(2.2);
+    if luminance > 0.5 {
+        "var(--text-color-dark)"
+    } else {
+        "var(--text-color)"
+    }
 }
 
 fn use_auto_updater(cx: &ScopeState) -> Option<()> {

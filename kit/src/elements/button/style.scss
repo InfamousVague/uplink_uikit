@@ -5,7 +5,7 @@
   height: var(--height-input);
   border-radius: var(--border-radius-more);
   background-color: var(--primary);
-  color: var(--text-color);
+  color: var(--text-color-primary);
   gap: var(--gap);
   padding: 0 var(--padding);
   justify-content: center;
@@ -19,7 +19,7 @@
   }
 
   svg {
-    stroke: var(--text-color);
+    stroke: var(--text-color-primary);
     fill: transparent;
     height: 1.1rem;
     width: 1.1rem;

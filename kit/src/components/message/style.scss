@@ -1,6 +1,6 @@
 .message {
 	background: var(--primary);
-	color: var(--text-color);
+	color: var(--text-color-primary);
 	border-radius: var(--border-radius-more);
 	border-bottom-right-radius: var(--border-radius);
 	min-height: var(--height-input);
@@ -20,7 +20,7 @@
 	}
 
 	.text {
-		color: var(--text-color);
+		color: var(--text-color-primary);
 		display: flex;
 		flex-direction: column;
 		white-space: pre-wrap;
@@ -123,7 +123,7 @@
 
 .emoji-reaction-self {
 	background-color: var(--primary);
-	color: var(--text-color);
+	color: var(--text-color-primary);
 }
 
 .attachment-list {

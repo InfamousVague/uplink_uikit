@@ -52,7 +52,7 @@ use crate::{
     components::emoji_group::EmojiGroup,
     layouts::{
         chats::{
-            data::{self, ChatData, MessagesToSend, ScrollBtn},
+            data::{self, ChatData, MessagesToEdit, MessagesToSend, ScrollBtn},
             scripts,
         },
         storage::files_layout::file_preview::open_file_preview_modal,
@@ -343,7 +343,7 @@ struct MessagesProps<'a> {
 }
 fn wrap_messages_in_context_menu<'a>(cx: Scope<'a, MessagesProps<'a>>) -> Element<'a> {
     let state = use_shared_state::<State>(cx)?;
-    let edit_msg: &UseState<Option<Uuid>> = use_state(cx, || None);
+    let edit_msg = use_shared_state::<MessagesToEdit>(cx)?;
     // see comment in ContextMenu about this variable.
     let reacting_to: &UseState<Option<Uuid>> = use_state(cx, || None);
 
@@ -362,7 +362,7 @@ fn wrap_messages_in_context_menu<'a>(cx: Scope<'a, MessagesProps<'a>>) -> Elemen
 
         // WARNING: these keys are required to prevent a bug with the context menu, which manifests when deleting messages.
         let is_editing = edit_msg
-            .get()
+            .read().edit
             .map(|id| !cx.props.is_remote && (id == message.inner.id()))
             .unwrap_or(false);
         let message_key = format!("{}-{:?}", &message.key, is_editing);
@@ -376,7 +376,7 @@ fn wrap_messages_in_context_menu<'a>(cx: Scope<'a, MessagesProps<'a>>) -> Elemen
                 message: grouped_message,
                 is_remote: cx.props.is_remote,
                 message_key: message_key,
-                edit_msg: edit_msg.clone(),
+                edit_msg: edit_msg,
                 pending: cx.props.pending
             });
         }
@@ -390,7 +390,7 @@ fn wrap_messages_in_context_menu<'a>(cx: Scope<'a, MessagesProps<'a>>) -> Elemen
                 message: grouped_message,
                 is_remote: cx.props.is_remote,
                 message_key: message_key,
-                edit_msg: edit_msg.clone(),
+                edit_msg: edit_msg,
                 pending: cx.props.pending
             })),
             items: cx.render(rsx!(
@@ -482,9 +482,9 @@ fn wrap_messages_in_context_menu<'a>(cx: Scope<'a, MessagesProps<'a>>) -> Elemen
                     aria_label: "messages-edit".into(),
                     text: get_local_text("messages.edit"),
                     should_render: !cx.props.is_remote
-                        && edit_msg.get().map(|id| id != msg_uuid).unwrap_or(true),
+                        && edit_msg.read().edit.map(|id| id != msg_uuid).unwrap_or(true),
                     onpress: move |_| {
-                        edit_msg.set(Some(msg_uuid));
+                        edit_msg.write().edit = Some(msg_uuid);
                         state.write().ui.ignore_focus = true;
                     }
                 },
@@ -493,9 +493,9 @@ fn wrap_messages_in_context_menu<'a>(cx: Scope<'a, MessagesProps<'a>>) -> Elemen
                     aria_label: "messages-cancel-edit".into(),
                     text: get_local_text("messages.cancel-edit"),
                     should_render: !cx.props.is_remote
-                        && edit_msg.get().map(|id| id == msg_uuid).unwrap_or(false),
+                        && edit_msg.read().edit.map(|id| id == msg_uuid).unwrap_or(false),
                     onpress: move |_| {
-                        edit_msg.set(None);
+                        edit_msg.write().edit = None;
                         state.write().ui.ignore_focus = false;
                     }
                 },
@@ -522,7 +522,7 @@ struct MessageProps<'a> {
     message: &'a data::MessageGroupMsg,
     is_remote: bool,
     message_key: String,
-    edit_msg: UseState<Option<Uuid>>,
+    edit_msg: &'a UseSharedState<MessagesToEdit>,
     pending: bool,
 }
 fn render_message<'a>(cx: Scope<'a, MessageProps<'a>>) -> Element<'a> {
@@ -548,7 +548,8 @@ fn render_message<'a>(cx: Scope<'a, MessageProps<'a>>) -> Element<'a> {
     } = cx.props;
     let message = &grouped_message.message;
     let is_editing = edit_msg
-        .current()
+        .read()
+        .edit
         .map(|id| !cx.props.is_remote && (id == message.inner.id()))
         .unwrap_or(false);
 
@@ -693,7 +694,7 @@ fn render_message<'a>(cx: Scope<'a, MessageProps<'a>>) -> Element<'a> {
                     }
                 },
                 on_edit: move |update: String| {
-                    edit_msg.set(None);
+                    edit_msg.write().edit = None;
                     state.write().ui.ignore_focus = false;
                     let msg = update.split('\n').map(|x| x.to_string()).collect::<Vec<String>>();
                     if  message.inner.lines() == msg || !msg.iter().any(|x| !x.trim().is_empty()) {

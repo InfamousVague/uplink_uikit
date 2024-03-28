@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use common::warp_runner::ui_adapter;
 use std::collections::{HashMap, HashSet, VecDeque};
 use uuid::Uuid;
+use warp::crypto::DID;
 
 use crate::layouts::chats::data::DEFAULT_MESSAGES_TO_TAKE;
 
@@ -15,13 +16,19 @@ pub struct Messages {
     pub loaded: HashSet<Uuid>,
     // used for displayed_messages
     pub times: HashMap<Uuid, DateTime<Utc>>,
+    pub last_user_msg: Option<Uuid>,
 }
 
 impl Messages {
-    pub fn new(mut m: VecDeque<ui_adapter::Message>) -> Self {
+    pub fn new(own: DID, mut m: VecDeque<ui_adapter::Message>) -> Self {
         let mut message_times = HashMap::new();
         let mut messages = VecDeque::new();
         let displayed = VecDeque::new();
+        let last_user_msg = m
+            .iter()
+            .rev()
+            .find(|msg| msg.inner.sender().eq(&own))
+            .map(|msg| msg.inner.id());
         for msg in m.drain(..) {
             message_times.insert(msg.inner.id(), msg.inner.date());
             messages.push_back(msg);
@@ -32,6 +39,7 @@ impl Messages {
             displayed,
             loaded: HashSet::new(),
             times: message_times,
+            last_user_msg,
         }
     }
 
@@ -46,7 +54,7 @@ impl Messages {
         self.displayed.clear();
     }
 
-    pub fn insert_messages(&mut self, m: Vec<ui_adapter::Message>) {
+    pub fn insert_messages(&mut self, own: DID, m: Vec<ui_adapter::Message>) {
         if m.is_empty() {
             return;
         }
@@ -69,19 +77,19 @@ impl Messages {
 
         if self.all.is_empty() {
             log::trace!("appending messages");
-            return self.append_messages(m);
+            return self.append_messages(own, m);
         }
 
         // latest last
         if m.last().unwrap().inner.date() <= self.all.front().unwrap().inner.date() {
             log::trace!("appending messages");
-            return self.prepend_messages(m);
+            return self.prepend_messages(own, m);
         }
 
         // earliest first
         if m.first().unwrap().inner.date() >= self.all.back().unwrap().inner.date() {
             log::trace!("appending messages");
-            return self.append_messages(m);
+            return self.append_messages(own, m);
         }
 
         log::warn!("insert_messages: invalid insert");
@@ -189,7 +197,12 @@ impl Messages {
 }
 
 impl Messages {
-    fn append_messages(&mut self, mut m: Vec<ui_adapter::Message>) {
+    fn append_messages(&mut self, own: DID, mut m: Vec<ui_adapter::Message>) {
+        self.last_user_msg = m
+            .iter()
+            .rev()
+            .find(|msg| msg.inner.sender().eq(&own))
+            .map(|msg| msg.inner.id());
         m.retain(|x| !self.times.contains_key(&x.inner.id()));
         for msg in m.iter() {
             self.times.insert(msg.inner.id(), msg.inner.date());
@@ -205,7 +218,15 @@ impl Messages {
         }
     }
 
-    fn prepend_messages(&mut self, mut m: Vec<ui_adapter::Message>) {
+    fn prepend_messages(&mut self, own: DID, mut m: Vec<ui_adapter::Message>) {
+        // Calculate last user message
+        if self.last_user_msg.is_none() {
+            self.last_user_msg = m
+                .iter()
+                .rev()
+                .find(|msg| msg.inner.sender().eq(&own))
+                .map(|msg| msg.inner.id());
+        }
         m.retain(|x| !self.times.contains_key(&x.inner.id()));
         for msg in m.iter() {
             self.times.insert(msg.inner.id(), msg.inner.date());
