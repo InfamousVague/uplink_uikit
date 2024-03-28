@@ -76,7 +76,7 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>) -> Element {
     }
 
     // this will be needed later
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![account_exists];
         async move {
             if account_exists().is_some() {

@@ -77,7 +77,7 @@ pub fn ChatLayout() -> Element {
     let show_slimbar = state.read().show_slimbar();
 
     // #[cfg(target_os = "windows")]
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![state, window, drag_event];
         async move {
             // ondragover function from div does not work on windows

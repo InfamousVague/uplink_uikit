@@ -57,7 +57,7 @@ use crate::{
     },
 };
 
-pub fn get_chatbar<'a>(props: ChatProps) -> Element {
+pub fn get_chatbar(props: ChatProps) -> Element {
     log::trace!("get_chatbar");
     let mut state = use_context::<Signal<State>>();
     let chat_data = use_context::<Signal<ChatData>>();
@@ -152,7 +152,7 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
     let local_typing_ch1 = local_typing_ch;
     let enable_paste_shortcut = use_signal(|| true);
 
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![enable_paste_shortcut];
         async move {
             loop {
@@ -181,7 +181,7 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
 
     let current_chat = use_signal(|| active_chat_id);
 
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         loop {
             tokio::time::sleep(Duration::from_secs(STATIC_ARGS.typing_indicator_refresh)).await;
             if !current_chat.read().is_nil() {

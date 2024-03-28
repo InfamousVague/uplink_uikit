@@ -19,7 +19,7 @@ pub fn FileLocation(props: FileLocationProps) -> Element {
     let id = props.id.clone();
     let update_script_signal = props.update_script;
 
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         let script = update_script_signal.read();
         if !script.is_empty() {
             let _ = eval(script.to_string().as_str());

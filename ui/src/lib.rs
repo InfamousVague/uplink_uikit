@@ -22,11 +22,7 @@ use common::{get_extras_dir, warp_runner, STATIC_ARGS, WARP_CMD_CH, WARP_EVENT_C
 use dioxus::prelude::*;
 use dioxus_desktop::tao::dpi::{LogicalPosition, PhysicalPosition, PhysicalSize};
 
-
-use dioxus_desktop::{
-    tao::{dpi::LogicalSize},
-    use_window,
-};
+use dioxus_desktop::{tao::dpi::LogicalSize, use_window};
 
 use dioxus_router::prelude::{use_navigator, Outlet, Routable, Router};
 use extensions::UplinkExtension;
@@ -66,7 +62,7 @@ use crate::misc_scripts::*;
 use crate::utils::async_task_queue::{ListenerAction, ACTION_LISTENER};
 use crate::utils::keyboard::KeyboardShortcuts;
 
-use dioxus_desktop::{DesktopService};
+use dioxus_desktop::DesktopService;
 use tokio::sync::{mpsc, Mutex};
 use tokio::time::{sleep, Duration};
 use tracing::log::{self};
@@ -497,7 +493,7 @@ fn use_app_coroutines() -> Option<()> {
     // });
 
     // update state in response to warp events
-    use_resource(move || {
+    let _ = use_resource(move || {
         let schedule: Arc<dyn Fn(ScopeId) + Send + Sync> = schedule_update_any();
         async move {
             // don't process warp events until friends and chats have been loaded
@@ -542,7 +538,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // focus handler for notifications
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         let channel = common::notifications::FOCUS_SCHEDULER.rx.clone();
         let mut ch = channel.lock().await;
         while (ch.recv().await).is_some() {
@@ -551,7 +547,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // Listen to profile updates
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         while !state.read().initialized {
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
@@ -584,7 +580,7 @@ fn use_app_coroutines() -> Option<()> {
     let file_tracker = use_context::<Signal<TransferTracker>>();
 
     // Listen to async tasks actions that should be handled on main thread
-    use_resource(move || {
+    let _ = use_resource(move || {
         let schedule: Arc<dyn Fn(ScopeId) + Send + Sync> = schedule_update_any();
         async move {
             let channel = ACTION_LISTENER.rx.clone();
@@ -669,7 +665,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // clear toasts
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         loop {
             sleep(Duration::from_secs(1)).await;
             if !state.read().has_toasts() {
@@ -681,7 +677,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     //Update active call
-    use_resource(move || {
+    let _ = use_resource(move || {
         async move {
             loop {
                 sleep(Duration::from_secs(1)).await;
@@ -694,7 +690,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // clear typing indicator
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         loop {
             sleep(Duration::from_secs(STATIC_ARGS.typing_indicator_timeout)).await;
             if state.write_silent().clear_typing_indicator(Instant::now()) {
@@ -705,7 +701,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // periodically refresh message timestamps and friend's status messages
-    use_resource(move || {
+    let _ = use_resource(move || {
         async move {
             loop {
                 // simply triggering an update will refresh the message timestamps
@@ -717,7 +713,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // check for updates
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         loop {
             let latest_release = match utils::auto_updater::check_for_release().await {
                 Ok(opt) => match opt {
@@ -743,7 +739,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // control child windows
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         let window_cmd_rx = WINDOW_CMD_CH.rx.clone();
         let mut ch = window_cmd_rx.lock().await;
         while let Some(cmd) = ch.recv().await {
@@ -753,7 +749,7 @@ fn use_app_coroutines() -> Option<()> {
 
     // init state from warp
     // also init extensions
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![state];
         async move {
             if state.read().initialized {
@@ -1076,7 +1072,7 @@ fn AppLogger() -> Element {
     let state = use_context::<Signal<State>>();
 
     if !state.read().initialized {
-        return rsx!({  });
+        return rsx!({});
     }
 
     rsx!({
@@ -1133,7 +1129,7 @@ fn use_router_notification_listener() -> Option<()> {
     // this use_future replaces the notification_action_handler.
     let state = use_context::<Signal<State>>();
     let navigator = use_navigator();
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![state, navigator];
         async move {
             let mut ch = NOTIFICATION_LISTENER.tx.subscribe();

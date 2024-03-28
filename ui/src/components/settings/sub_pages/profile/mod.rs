@@ -871,7 +871,7 @@ fn get_input_options(validation_options: Validation) -> Options {
     }
 }
 
-fn get_status_option<'a>(status: &IdentityStatus) -> (String, Element) {
+fn get_status_option(status: &IdentityStatus) -> (String, Element) {
     let indicator = Status::from(*status);
     (
         serde_json::to_string::<IdentityStatus>(status).unwrap_or_default(),

@@ -1,4 +1,3 @@
-
 use common::{
     icons::outline::Shape, language::get_local_text, utils::lifecycle::use_component_lifecycle,
     STATIC_ARGS,
@@ -54,7 +53,7 @@ pub fn CropRectImageModal(props: Props) -> Element {
         crop_image.set(false);
     }
 
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![image_dimensions];
         async move {
             while image_dimensions.read().width == 0 && image_dimensions.read().height == 0 {

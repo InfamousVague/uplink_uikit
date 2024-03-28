@@ -63,7 +63,7 @@ pub fn Layout(page: Signal<AuthPages>, seed_words: Signal<String>) -> Element {
 #[component]
 fn SeedWords(page: Signal<AuthPages>, words: Vec<String>) -> Element {
     let mut copied = use_signal(|| false);
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         if *copied.read() {
             sleep(Duration::from_secs(3)).await;
             *copied.write() = false;

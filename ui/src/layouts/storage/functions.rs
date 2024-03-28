@@ -71,7 +71,7 @@ pub fn run_verifications_and_update_storage(
 }
 
 pub fn get_items_from_current_directory(ch: Coroutine<ChanCmd>) {
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![ch];
         async move {
             sleep(Duration::from_secs(1)).await;
@@ -232,7 +232,7 @@ pub enum ChanCmd {
     DeleteItems(Item),
 }
 
-pub fn init_coroutine<'a>(
+pub fn init_coroutine(
     controller: Signal<StorageController>,
     state: Signal<State>,
     file_tracker: Signal<TransferTracker>,

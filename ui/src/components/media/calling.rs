@@ -82,7 +82,7 @@ pub fn CallControl(props: Props) -> Element {
                 call: call.clone(),
                 in_chat: props.in_chat,
             }),
-            None => rsx!({  }),
+            None => rsx!({}),
         },
     }
 }
@@ -115,7 +115,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
     let scope_id_signal = use_signal(|| scope_id);
     let answer_time_signal = use_signal(|| active_call_answer_time);
 
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         loop {
             let dur_sec = Duration::from_secs(1);
             let dur_min = Duration::from_secs(60);
@@ -314,12 +314,12 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
         match state.read().get_active_chat() {
             None => {
                 if props.in_chat {
-                    return rsx!({  });
+                    return rsx!({});
                 }
             }
             Some(c) => {
                 if active_call.call.conversation_id.eq(&c.id) != props.in_chat {
-                    return rsx!({  });
+                    return rsx!({});
                 }
             }
         };
@@ -568,12 +568,12 @@ fn PendingCallDialog(props: PendingCallProps) -> Element {
         match state.read().get_active_chat() {
             None => {
                 if props.in_chat {
-                    return rsx!({  });
+                    return rsx!({});
                 }
             }
             Some(c) => {
                 if call.conversation_id.eq(&c.id) != props.in_chat {
-                    return rsx!({  });
+                    return rsx!({});
                 }
             }
         };

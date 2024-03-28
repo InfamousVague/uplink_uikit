@@ -65,10 +65,9 @@ pub fn FilesLayout() -> Element {
 
     functions::use_allow_block_folder_nav(files_in_queue_to_upload);
 
-    let ch: Coroutine<ChanCmd> =
-        functions::init_coroutine(storage_controller, state, file_tracker);
+    let ch: Coroutine<ChanCmd> = functions::init_coroutine(storage_controller, state, file_tracker);
 
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![files_been_uploaded, files_in_queue_to_upload];
         async move {
             // Remove load progress bar if anythings goes wrong

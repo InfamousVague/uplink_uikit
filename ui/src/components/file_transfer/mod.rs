@@ -14,7 +14,7 @@ pub struct Props {
     modal: Option<bool>,
 }
 
-pub fn FileTransferModal<'a>(props: Props) -> Element {
+pub fn FileTransferModal(props: Props) -> Element {
     let file_tracker = use_context::<Signal<TransferTracker>>();
     // TODO(Migration_0.5): See this unwrap later
     props.state.write_silent().scope_ids.file_transfer = Some(current_scope_id().unwrap().0);
@@ -24,7 +24,7 @@ pub fn FileTransferModal<'a>(props: Props) -> Element {
         tracker.get_tracker(TrackerType::FileDownload),
     );
     if file_progress_upload.is_empty() && file_progress_download.is_empty() {
-        return rsx!({  });
+        return rsx!({});
     }
     let modal = props.modal.unwrap_or_default();
     rsx!(div {
