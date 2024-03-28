@@ -17,6 +17,8 @@ pub fn ColorSwatch<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
 
     cx.render(rsx!(div {
         class: "color-swatch {active}",
+        aria_label:
+            "color-swatch-button-rgb-{cx.props.color.0}-{cx.props.color.1}-{cx.props.color.2}",
         style: "background-color: rgb({cx.props.color.0}, {cx.props.color.1}, {cx.props.color.2})",
         onclick: |_| cx.props.onpress.call(()),
     }))
