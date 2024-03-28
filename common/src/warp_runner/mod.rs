@@ -331,7 +331,6 @@ async fn init_tesseract(overwrite_old_account: bool) -> Result<Tesseract, Error>
 
     // open existing file or create new one
     Tesseract::open_or_create(&STATIC_ARGS.warp_path, &STATIC_ARGS.tesseract_file)
-        .map_err(Into::into)
 }
 
 impl From<&DiscoveryMode> for Discovery {
