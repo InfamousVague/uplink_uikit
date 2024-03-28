@@ -32,7 +32,7 @@
 	.text {
 		display: flex;
     	flex-direction: column;
-		color: var(--text-color);
+		color: var(--text-color-primary);
 		background-color: var(--primary);
 		padding: var(--gap) var(--padding);
 		font-size: var(--text-size-less);

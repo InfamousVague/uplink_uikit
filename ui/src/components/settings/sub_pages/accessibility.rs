@@ -15,7 +15,7 @@ pub fn AccessibilitySettings(cx: Scope) -> Element {
     cx.render(rsx!(
         div {
             id: "settings-general",
-            aria_label: "settings-general",
+            aria_label: "settings-accessibility",
             div {
                 class: format_args!("{}", if state.read().configuration.general.dyslexia_support {"open-dyslexic-activated"} else {"open-dyslexic"}),
                 SettingSection {
