@@ -33,8 +33,6 @@ use crate::utils::{
 
 use super::files_layout::controller::{StorageController, UploadFileController};
 
-pub type UseEvalFn = Rc<dyn Fn(&str) -> Result<UseEval, EvalError>>;
-
 static ALLOW_FOLDER_NAVIGATION: &str = r#"
     var folders_element = document.getElementById('files-list');
     folders_element.style.pointerEvents = '$POINTER_EVENT';
@@ -506,7 +504,7 @@ pub fn start_upload_file_listener(
     let files_been_uploaded = upload_file_controller.files_been_uploaded;
     let files_in_queue_to_upload = upload_file_controller.files_in_queue_to_upload;
 
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![
             state,
             controller,

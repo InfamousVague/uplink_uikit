@@ -59,7 +59,7 @@ pub struct Props {
 }
 
 #[allow(non_snake_case)]
-pub fn UploadProgressBar<'a>(props: Props) -> Element {
+pub fn UploadProgressBar(props: Props) -> Element {
     let are_files_hovering_app = props.are_files_hovering_app;
     let files_ready_to_upload: Signal<Vec<PathBuf>> = use_signal(Vec::new);
     let called_drag_and_drop_function: Signal<bool> = use_signal(|| false);

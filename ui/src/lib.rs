@@ -802,7 +802,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // initialize files
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![items_init, state];
         async move {
             if *items_init.read() {
@@ -833,7 +833,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // detect when new extensions are placed in the "extensions" folder, and load them.
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![state];
         async move {
             let (tx, mut rx) = futures::channel::mpsc::unbounded();

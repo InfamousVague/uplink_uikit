@@ -24,8 +24,6 @@ use dioxus_desktop::{use_window, wry::FileDropEvent, DesktopContext};
 use dioxus_html::input_data::keyboard_types::Code;
 use dioxus_html::input_data::keyboard_types::Modifiers;
 
-type UseEvalFn = Rc<dyn Fn(&str) -> Result<UseEval, EvalError>>;
-
 pub const FEEDBACK_TEXT_SCRIPT: &str = r#"
     const feedback_element = document.getElementById('overlay-text');
     feedback_element.textContent = '$TEXT';

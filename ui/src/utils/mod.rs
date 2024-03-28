@@ -19,8 +19,6 @@ pub mod get_font_sizes;
 pub mod keyboard;
 pub mod verify_valid_paths;
 
-pub type EvalProvider = Rc<dyn Fn(&str) -> Result<UseEval, EvalError>>;
-
 pub fn unzip_prism_langs() {
     if !STATIC_ARGS.production_mode || !cfg!(target_os = "windows") {
         return;
