@@ -66,6 +66,15 @@ if ($AUTOFOCUS) {
     addEventListener("focus", () => { editor.codemirror.focus() });
 }
 
+// Replace the focus function of the textarea to delegate to the rich editor
+text.focus = _opt => {
+    var line = editor.codemirror.state.doc.line(editor.codemirror.state.doc.lines);
+    editor.codemirror.dispatch({
+        selection: { head: line.to, anchor: line.to },
+    });
+    editor.codemirror.focus();
+}
+
 editor.registerListener("input", ({ _element, _codemirror, value }) => {
     // Sync value to uplink
     dioxus.send(`{\"Input\":\"${value}\"}`)
@@ -75,3 +84,7 @@ editor.registerListener("selection", ({ _element, _codemirror, selection }) => {
     // Sync cursor to uplink
     dioxus.send(`{\"Cursor\":${selection.main.to}}`)
 });
+
+setTimeout(()=>{
+    dioxus.send(`\"Init\"`)
+}, 100);

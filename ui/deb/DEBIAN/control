@@ -1,7 +1,7 @@
 Package: {{package}}
 Version: {{version}}
 Vendor: Satellite IM Inc
-Description: (Pre-Release Software) Secure, Encrypted, P2P chat written atop Warp, IPFS, LibP2P, and many more awesome projects and protocols.
+Description: (Alpha Software) Secure, Encrypted, P2P chat written atop Warp, IPFS, LibP2P, and many more awesome projects and protocols.
 Section: net, communication
 Priority: required
 Depends: libwebkit2gtk-4.1-0, libopus0, ffmpeg

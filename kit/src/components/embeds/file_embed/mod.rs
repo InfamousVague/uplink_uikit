@@ -60,6 +60,10 @@ pub struct Props {
     // called shen the icon is clicked
     on_press: EventHandler<Option<PathBuf>>,
 
+    on_resend_msg: Option<EventHandler<()>>,
+
+    on_delete_msg: Option<EventHandler<()>>,
+
     progress: Option<FileProgression>,
 }
 
@@ -99,6 +103,7 @@ pub fn FileEmbed(props: Props) -> Element {
     let is_pending = props.progress.is_some();
 
     let mut file_size_pending = String::new();
+    let mut failed = false;
 
     let perc = if let Some(p) = props_signal.read().clone().progress {
         match p {
@@ -130,6 +135,7 @@ pub fn FileEmbed(props: Props) -> Element {
                 last_size: _,
                 error,
             } => {
+                failed = true;
                 file_size_pending.push_str(&get_upload_error_text(&error.clone()));
                 0
             }
@@ -175,65 +181,86 @@ pub fn FileEmbed(props: Props) -> Element {
     let big_clone2 = props.big;
 
     rsx! (
-        div {
-            class: {
-                format_args!(
-                    "file-embed {} {}",
-                    if remote {
-                        "remote"
-                    } else { "" },
-                    if big_clone.unwrap_or_default() {
-                        "big"
-                    } else { "" }
-                )
-            },
-            aria_label: {
-                format_args!(
-                    "file-embed{}",
-                    if remote {
-                        "-remote"
-                    } else { "" }
-                )
-            },
-                    div {
-                        class: format_args!("{}", if has_thumbnail {""} else {"icon"}),
-                        aria_label: "file-icon",
-                        if has_thumbnail {
-                                div {
-                                    class: "image-container",
-                                    aria_label: "message-image-container",
-                                    img {
-                                        aria_label: "message-image",
-                                        onclick: move |mouse_event_data: Event<MouseData>|
-                                        if mouse_event_data.modifiers() != Modifiers::CONTROL && !is_from_attachments {
-                                            onpress_clone.call(Some(temp_dir.clone()));
-                                        },
-                                        class: format_args!(
-                                            "image {} expandable-image",
-                                            if big_clone2.unwrap_or_default() {
-                                                "big"
-                                            } else { "" }
-                                        ),
-                                        src: "{thumbnail}",
-                                    },
-                                    {show_download_or_minus_button_if_enabled(props_signal.read().clone(), with_download_button, btn_icon)},
-                                   }
-                        } else if let Some(filepath) = props.filepath.clone() {
-                            {let is_image_or_video = is_image(filename.clone()) || is_video;
-                            if is_image_or_video && filepath.exists() {
-                                let fixed_path = get_fixed_path_to_load_local_file(filepath.clone());
-                                rsx!(img {
-                                    class: "image-preview-modal",
-                                    aria_label: "image-preview-modal",
-                                    src: "{fixed_path}",
-                                    onclick: move |e| e.stop_propagation(),
-                                })
-                            } else {
-                                rsx!(
+            div {
+                class: {
+                    format_args!(
+                        "file-embed {} {}",
+                        if remote {
+                            "remote"
+                        } else { "" },
+                        if big_clone.unwrap_or_default() {
+                            "big"
+                        } else { "" }
+                    )
+                },
+                aria_label: {
+                    format_args!(
+                        "file-embed{}",
+                        if remote {
+                            "-remote"
+                        } else { "" }
+                    )
+                },
+                        div {
+                            class: format_args!("{}", if has_thumbnail {""} else {"icon"}),
+                            aria_label: "file-icon",
+                            if has_thumbnail {
                                     div {
+                                        class: "image-container",
+                                        aria_label: "message-image-container",
+                                        img {
+                                            aria_label: "message-image",
+                                            onclick: move |mouse_event_data: Event<MouseData>|
+                                            if mouse_event_data.modifiers() != Modifiers::CONTROL && !is_from_attachments {
+                                                onpress_clone.call(Some(temp_dir.clone()));
+                                            },
+                                            class: format_args!(
+                                                "image {} expandable-image",
+                                                if big_clone2.unwrap_or_default() {
+                                                    "big"
+                                                } else { "" }
+                                            ),
+                                            src: "{thumbnail}",
+                                        },
+                                        {show_download_or_minus_button_if_enabled(props_signal.read().clone(), with_download_button, btn_icon)},
+                                       }
+                            } else if let Some(filepath) = props.filepath.clone() {
+                                {let is_image_or_video = is_image(filename.clone()) || is_video;
+                                if is_image_or_video && filepath.exists() {
+                                    let fixed_path = get_fixed_path_to_load_local_file(filepath.clone());
+                                    rsx!(img {
+                                        class: "image-preview-modal",
+                                        aria_label: "image-preview-modal",
+                                        src: "{fixed_path}",
+                                        onclick: move |e| e.stop_propagation(),
+                                    })
+                                } else {
+                                    rsx!(
+                                        div {
+                                            height: "60px",
+                                            width: "60px",
+                                            margin: "30px 0",
+                                            IconElement {
+                                                icon: props.attachment_icon.unwrap_or(return_correct_icon(&file_name_with_extension.clone()))
+                                            }
+                                            if !file_extension_is_empty {
+                                                 label {
+                                                    class: "file-embed-type",
+                                                    "{file_extension}"
+                                                }
+                                            }
+                                        }
+                                        )
+                                }}
+                            } else {
+                                    div {
+                                        class: "document-container",
                                         height: "60px",
-                                        width: "60px",
-                                        margin: "30px 0",
+                                        onclick: move |mouse_event_data: Event<MouseData>| {
+                                            if mouse_event_data.modifiers() != Modifiers::CONTROL && is_file_available_to_preview && !is_from_attachments {
+                                                onpress_clone2.call(Some(temp_dir.clone()));
+                                            }
+                                        },
                                         IconElement {
                                             icon: props.attachment_icon.unwrap_or(return_correct_icon(&file_name_with_extension.clone()))
                                         }
@@ -243,65 +270,41 @@ pub fn FileEmbed(props: Props) -> Element {
                                                 "{file_extension}"
                                             }
                                         }
-                                    }
-                                    )
-                            }}
-                        } else {
-                                div {
-                                    class: "document-container",
-                                    height: "60px",
-                                    onclick: move |mouse_event_data: Event<MouseData>| {
-                                        if mouse_event_data.modifiers() != Modifiers::CONTROL && is_file_available_to_preview && !is_from_attachments {
-                                            onpress_clone2.call(Some(temp_dir.clone()));
-                                        }
-                                    },
-                                    IconElement {
-                                        icon: props.attachment_icon.unwrap_or(return_correct_icon(&file_name_with_extension.clone()))
-                                    }
-                                    if !file_extension_is_empty {
-                                         label {
-                                            class: "file-embed-type",
-                                            "{file_extension}"
-                                        }
-                                    }
-                                    if !is_from_attachments {
-                                        div {
-                                            class: "button-position",
-                                            {show_download_or_minus_button_if_enabled(props_signal.read().clone(), with_download_button, btn_icon)},
+                                        if !is_from_attachments {
+                                            div {
+                                                class: "button-position",
+                                                {show_download_or_minus_button_if_enabled(props_signal.read().clone(), with_download_button, btn_icon)},
+                                            }
                                         }
                                     }
                                 }
-                        }
-                    }
-                    div {
-                            class: "file-info",
-                            width: "100%",
-                            aria_label: "file-info",
-                            p {
-                                class: "name",
-                                aria_label: "file-name",
-                                "{filename}"
-                            },
-                            p {
-                                class: "meta",
-                                aria_label: "file-meta",
-                                "{file_description}"
+                            }
+                (failed && cx.props.progress.is_some()).then(|| rsx!(div {
+                    class: "control-btn",
+                    Button {
+                        icon: Icon::Trash,
+                        small: true,
+                        appearance: Appearance::Primary,
+                        aria_label: "delete-button".into(),
+                        onpress: move |_| {
+                            if let Some(e) = &cx.props.on_delete_msg {
+                                e.call(())
                             }
                         },
-                        if !has_thumbnail && is_from_attachments {
-                            {show_download_or_minus_button_if_enabled(props, with_download_button, btn_icon)}
-                        }
-                    if is_pending {
-                        div {
-                            class: "upload-bar",
-                            div {
-                                class: "upload-progress",
-                                style: format_args!("width: {}%", perc)
+                    },
+                    Button {
+                        icon: Icon::ArrowRightCircle,
+                        small: true,
+                        appearance: Appearance::Primary,
+                        aria_label: "retry-button".into(),
+                        onpress: move |_| {
+                            if let Some(e) = &cx.props.on_resend_msg {
+                                e.call(())
                             }
-                        }
+                        },
                     }
-        }
-    )
+                })),
+    })
 }
 
 fn is_image(filename: String) -> bool {
@@ -320,7 +323,6 @@ fn is_image(filename: String) -> bool {
     if mime.is_empty() {
         return false;
     }
-
     true
 }
 

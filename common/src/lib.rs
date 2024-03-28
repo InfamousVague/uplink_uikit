@@ -189,7 +189,7 @@ pub static WARP_EVENT_CH: Lazy<WarpEventChannels> = Lazy::new(|| {
     WarpEventChannels { tx, _rx }
 });
 
-pub const MAX_FILES_PER_MESSAGE: usize = 8;
+pub const MAX_FILES_PER_MESSAGE: usize = 32;
 
 pub const ROOT_DIR_NAME: &str = "root";
 

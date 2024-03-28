@@ -24,7 +24,6 @@ common = { workspace = true }
 warp = { workspace = true }
 derive_more = { workspace = true }
 pulldown-cmark = "0.10.0"
-linkify = { workspace = true }
 reqwest = { workspace = true }
 base64 = { workspace = true }
 mime = { workspace = true }

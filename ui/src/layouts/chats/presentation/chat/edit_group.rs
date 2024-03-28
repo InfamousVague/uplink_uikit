@@ -42,6 +42,7 @@ pub fn EditGroup() -> Element {
     log::trace!("rendering edit_group");
     let state = use_context::<Signal<State>>();
     let minimal = state.read().ui.metadata.minimal_view;
+    let own = state.read().did_key();
     // Search Input
     let mut friend_prefix = use_signal(String::new);
 
@@ -61,10 +62,15 @@ pub fn EditGroup() -> Element {
             .map(|id| (id.did_key(), id.clone())),
     );
 
-    let mut friends_group_list = friends_list.clone();
+    let mut group_members = state.read().get_identities(
+        &friends_did_already_in_group
+            .clone()
+            .into_iter()
+            .filter(|id| !id.eq(&own))
+            .collect::<Vec<_>>(),
+    );
     let mut friends_not_in_group_list = friends_list;
 
-    friends_group_list.retain(|did_key, _| friends_did_already_in_group.contains(did_key));
     friends_not_in_group_list.retain(|did_key, _| !friends_did_already_in_group.contains(did_key));
 
     friends_not_in_group_list.retain(|_, friend| {
@@ -73,7 +79,7 @@ pub fn EditGroup() -> Element {
             .to_ascii_lowercase()
             .contains(&friend_prefix().to_ascii_lowercase())
     });
-    friends_group_list.retain(|_, friend| {
+    group_members.retain(|friend| {
         friend
             .username()
             .to_ascii_lowercase()
@@ -84,7 +90,7 @@ pub fn EditGroup() -> Element {
     let mut friends: Vec<Identity> = if edit_group_action() == EditGroupAction::Add {
         friends_not_in_group_list.values().cloned().collect()
     } else {
-        friends_group_list.values().cloned().collect()
+        group_members
     };
 
     friends.sort_by_key(|d| d.username());

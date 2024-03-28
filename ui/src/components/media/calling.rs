@@ -42,7 +42,7 @@ use common::{
 };
 use uuid::Uuid;
 
-enum CallDialogCmd {
+pub enum CallDialogCmd {
     Hangup(Uuid),
     MuteSelf,
     UnmuteSelf,

@@ -16,7 +16,7 @@ use kit::{
 use crate::{
     components::media::calling::CallControl,
     layouts::chats::{
-        data::{self, ChatData, ScrollBtn},
+        data::{self, ChatData, MessagesToEdit, MessagesToSend, ScrollBtn},
         presentation::{
             chat::{edit_group::EditGroup, group_settings::GroupSettings, group_users::GroupUsers},
             chatbar::get_chatbar,
@@ -39,6 +39,8 @@ pub fn Compose() -> Element {
     log::trace!("rendering compose");
     use_context_provider(|| ChatData::default);
     use_context_provider(|| ScrollBtn::new);
+    use_context_provider(|| MessagesToSend::default);
+    use_context_provider(|| MessagesToEdit::default);
     let mut state = use_context::<Signal<State>>();
     let mut chat_data = use_context::<Signal<ChatData>>();
 

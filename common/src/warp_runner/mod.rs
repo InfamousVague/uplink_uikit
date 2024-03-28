@@ -361,7 +361,7 @@ impl From<&DiscoveryMode> for Discovery {
                     .unwrap_or_default();
 
                 let addresses = match env_addrs.is_empty() {
-                    true => Vec::from_iter(["/ip4/104.236.194.35/tcp/34053/p2p/12D3KooWJSes8386p2T1sMeZ2DzsNJThKkZWbj4US6uPMpEgBTHu"
+                    true => Vec::from_iter(["/ip4/159.65.41.31/tcp/8848/p2p/12D3KooWRF2bz3KDRPvBs1FASRDRk7BfdYc1RUcfwKsz7UBEu7mL"
                                 .parse()
                                 .expect("valid addr")]),
                     false => env_addrs

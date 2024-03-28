@@ -1,15 +1,42 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use uuid::Uuid;
-use warp::{constellation::Progression, crypto::DID};
+use warp::{constellation::Progression, crypto::DID, raygun::Location};
 
 use crate::warp_runner::ui_adapter::Message;
 // We can improve message equality detection if warp e.g. can send us their assigned uuid.
 // Else it is just a guesswork
 #[derive(Clone, Debug)]
 pub struct PendingMessage {
-    pub attachments_progress: HashMap<String, FileProgression>,
+    pub attachments_progress: HashMap<FileLocation, FileProgression>,
     pub message: Message,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum FileLocation {
+    /// Use [`Constellation`] to send a file from constellation
+    Constellation { path: String },
+
+    /// Use file from disk
+    Disk { path: PathBuf },
+}
+
+impl From<Location> for FileLocation {
+    fn from(location: Location) -> Self {
+        match location {
+            Location::Constellation { path } => FileLocation::Constellation { path },
+            Location::Disk { path } => FileLocation::Disk { path },
+        }
+    }
+}
+
+impl From<FileLocation> for Location {
+    fn from(location: FileLocation) -> Self {
+        match location {
+            FileLocation::Constellation { path } => Location::Constellation { path },
+            FileLocation::Disk { path } => Location::Disk { path },
+        }
+    }
 }
 
 impl PendingMessage {

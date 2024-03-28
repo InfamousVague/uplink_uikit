@@ -1,5 +1,6 @@
 .message {
 	background: var(--primary);
+	color: var(--text-color-primary);
 	border-radius: var(--border-radius-more);
 	border-bottom-right-radius: var(--border-radius);
 	min-height: var(--height-input);
@@ -12,24 +13,38 @@
 	overflow-wrap: anywhere;
 	flex-direction: column;
 	align-items: flex-end;
-	white-space:pre-wrap;
+	white-space: pre-wrap;
 
 	.context-wrap {
 		align-self: flex-end;
 	}
+
 	.text {
-		color: var(--text-color-dark);
-		display: block;
-		white-space:pre-wrap;
+		color: var(--text-color-primary);
+		display: flex;
+		flex-direction: column;
+		white-space: pre-wrap;
 
 		.big-emoji {
 			font-size: var(--emoji-size);
 		}
 	}
+
 	.pending-text {
 		color: var(--text-color-muted);
 		display: inline-flex;
 		flex-direction: column;
+	}
+
+	.input {
+		padding: 0 var(--padding-less);
+		min-height: 0;
+		background-color: var(--secondary-light);
+		.cm-editor {
+			min-height: 0;
+			margin: 0;
+			padding: 0;
+		}
 	}
 }
 
@@ -44,19 +59,23 @@
 .message.message-loading {
 	opacity: var(--opacity-modifier);
 }
+
 .message.message-first {
 	border-radius: var(--border-radius-more);
 	border-bottom-right-radius: var(--border-radius);
 }
+
 .message.message-last {
 	border-radius: var(--border-radius-more);
 	border-top-right-radius: var(--border-radius);
 }
+
 .message.message-middle {
 	border-radius: var(--border-radius-more);
 	border-top-right-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
 }
+
 .message.remote {
 	align-self: flex-start;
 	align-items: flex-start;
@@ -64,18 +83,22 @@
 	color: var(--text-color);
 	border-radius: var(--border-radius-more);
 	border-bottom-left-radius: var(--border-radius);
+
 	.text {
 		color: var(--text-color);
 	}
 }
+
 .message.remote.message-first {
 	border-radius: var(--border-radius-more);
 	border-bottom-left-radius: var(--border-radius);
 }
+
 .message.remote.message-last {
 	border-radius: var(--border-radius-more);
 	border-top-left-radius: var(--border-radius);
 }
+
 .message.remote.message-middle {
 	border-radius: var(--border-radius-more);
 	border-top-left-radius: var(--border-radius);
@@ -100,7 +123,7 @@
 
 .emoji-reaction-self {
 	background-color: var(--primary);
-	color: var(--text-color-dark);
+	color: var(--text-color-primary);
 }
 
 .attachment-list {
@@ -108,16 +131,17 @@
 	flex-direction: column;
 	gap: var(--gap);
 	margin: var(--gap) 0;
-	
+
 }
 
 .pin-indicator {
-	position: absolute; 
-	right: -6px; 
-	top: -6px; 
-	height: 12px; 
-	width: 12px; 
+	position: absolute;
+	right: -6px;
+	top: -6px;
+	height: 12px;
+	width: 12px;
 	color: var(--text-color);
+
 	svg {
 		fill: transparent;
 		stroke: var(--text-color-link);
@@ -131,6 +155,7 @@
 	.btn-wrap {
 		padding-top: var(--gap);
 		width: 100%;
+
 		.btn {
 			width: 100%;
 		}
@@ -139,11 +164,13 @@
 
 .message-user-tag {
 	background-color: var(--text-color-user-tag);
-	color: var(--text-color-dark);
+	color: var(--text-color);
 	width: fit-content;
 	height: fit-content;
+
 	&:not(.visual-only) {
 		cursor: pointer;
+
 		&:hover {
 			background-color: color-mix(in srgb, var(--text-color-user-tag) 50%, white);
 		}

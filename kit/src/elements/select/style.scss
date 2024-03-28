@@ -1,12 +1,12 @@
 .select select, .fancy-select{
     --webkit-appearance: none;
-    color: var(--text-color-dark);
+    color: var(--text-color-primary);
     appearance: none;
     border-radius: var(--border-radius-more);
     min-width: fit-content;
     width: 100%;
     height: var(--height-input);
-    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='black'><polygon points='0,0 40,0 20,20'/></svg>")
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='white'><polygon points='0,0 40,0 20,20'/></svg>")
     no-repeat;
     background-size: 12px;
     background-position: calc(100% - 16px) 18px;

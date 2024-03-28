@@ -1,5 +1,5 @@
 .file-transfer-wrap {
-    background: var(--background-light);
+    background: var(--secondary-dark);
     border-radius: var(--border-radius);
     display: flex;
     flex-direction: column;
@@ -38,7 +38,7 @@
 
 .file-transfer-file {
     display: flex;
-    background: #8c8c8c;
+    background: var(--secondary);
     margin: var(--padding-lesser);
     padding: var(--padding-less) var(--padding-lesser);
     border-radius: var(--border-radius);
@@ -54,21 +54,14 @@
     width: 100%;
     overflow: hidden;
     gap: var(--gap-less);
-    color: var(--text-color-dark);
+    color: var(--text-color);
 }
 
-.progress-bar-filename-container {
-    display: flex;
-    flex-direction: row;
-    gap: var(--gap);
-    .filename-and-file-queue-text {
-        text-overflow: ellipsis; 
-        white-space: nowrap; 
-        overflow: hidden;
-    }
-    p {
-        font-size: var(--text-size-less);
-    }
+.filename-and-file-queue-text, .transfer-progress-percentage {
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    overflow: hidden;
+    font-size: var(--text-size-less);
 }
 
 .file-transfer-buttons {
@@ -81,7 +74,7 @@
 
 .progress-indicator-wrap {
     width: 100%;
-    height: var(--text-size);
+    height: var(--text-size-less);
     position: relative;
 }
 
@@ -89,7 +82,7 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-more);
     background: var(--background-light);
     overflow: hidden;
 }

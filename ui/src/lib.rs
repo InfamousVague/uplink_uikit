@@ -60,6 +60,7 @@ use crate::layouts::settings::SettingsLayout;
 use crate::layouts::storage::files_layout::FilesLayout;
 use crate::misc_scripts::*;
 use crate::utils::async_task_queue::{ListenerAction, ACTION_LISTENER};
+use crate::utils::keyboard::shortcut_handlers::audio::ToggleType;
 use crate::utils::keyboard::KeyboardShortcuts;
 
 use dioxus_desktop::DesktopService;
@@ -251,8 +252,8 @@ fn app_layout() -> Element {
             KeyboardShortcuts {
                 on_global_shortcut: move |shortcut| {
                     match shortcut {
-                        GlobalShortcut::ToggleMute => utils::keyboard::shortcut_handlers::audio::toggle_mute(),
-                        GlobalShortcut::ToggleDeafen => utils::keyboard::shortcut_handlers::audio::toggle_deafen(),
+                        GlobalShortcut::ToggleMute => utils::keyboard::shortcut_handlers::audio::toggle_mute(ToggleType::Mute),
+                        GlobalShortcut::ToggleDeafen => utils::keyboard::shortcut_handlers::audio::toggle_deafen(ToggleType::Deafen),
                         GlobalShortcut::IncreaseFontSize => utils::keyboard::shortcut_handlers::font::increase_size(state),
                         GlobalShortcut::DecreaseFontSize => utils::keyboard::shortcut_handlers::font::decrease_size(state),
                         GlobalShortcut::OpenCloseDevTools => utils::keyboard::shortcut_handlers::dev::open_close_dev_tools(),
@@ -319,14 +320,31 @@ pub fn get_app_style(state: &State) -> String {
         format!(
             ":root {{
                     --primary: rgb({},{},{});
+                    --text-color-primary: {};
                 }}",
-            color.0, color.1, color.2,
+            color.0,
+            color.1,
+            color.2,
+            get_text_color(color.0, color.1, color.2)
         )
     } else {
         "".into()
     };
 
     format!("{UIKIT_STYLES} {APP_STYLE} {PRISM_STYLE} {PRISM_THEME} {theme} {accent_color} {font_style} {open_dyslexic} {font_scale}")
+}
+
+// Decide if text should be dark or bright
+fn get_text_color(r: u8, g: u8, b: u8) -> &'static str {
+    // See https://en.wikipedia.org/wiki/Relative_luminance
+    let luminance: f64 = 0.2126729 * (r as f64 / 255.).powf(2.2)
+        + 0.7151522 * (g as f64 / 255.).powf(2.2)
+        + 0.0721750 * (b as f64 / 255.).powf(2.2);
+    if luminance > 0.5 {
+        "var(--text-color-dark)"
+    } else {
+        "var(--text-color)"
+    }
 }
 
 fn use_auto_updater() -> Option<()> {
@@ -508,14 +526,17 @@ fn use_app_coroutines() -> Option<()> {
                 // Update only relevant components for attachment progress events
                 if let WarpEvent::Message(MessageEvent::AttachmentProgress {
                     progress,
+                    location,
                     conversation_id,
                     msg,
                 }) = evt
                 {
-                    if state
-                        .write_silent()
-                        .update_outgoing_messages(conversation_id, msg, progress)
-                    {
+                    if state.write_silent().update_outgoing_messages(
+                        conversation_id,
+                        msg,
+                        location,
+                        progress,
+                    ) {
                         state.write();
                     } else {
                         let read = state.read();

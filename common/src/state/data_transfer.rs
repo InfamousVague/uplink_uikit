@@ -1,11 +1,14 @@
 use std::sync::Arc;
 
+use humansize::{format_size, DECIMAL};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use crate::language::get_local_text;
+use crate::language::{get_local_text, get_local_text_with_args};
 
 use super::pending_message::FileProgression;
+
+static SCALE_DECIMAL: [&str; 9] = ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
 // Struct to ease updating/reading from it
 #[derive(Debug, Clone, Default)]
@@ -98,7 +101,7 @@ pub struct FileProgress {
     pub progress: TransferProgress,
     pub size: usize,
     pub total_size: usize,
-    pub description: Option<String>,
+    pub description: String,
     // Flag used to pause or cancel this transfer
     pub state: TransferState,
 }
@@ -133,7 +136,7 @@ impl TransferTracker {
                 progress: TransferProgress::Starting,
                 size: 0,
                 total_size: 0,
-                description: None,
+                description: get_local_text("files.transfer-start"),
                 state,
             }),
             TrackerType::FileDownload => self.file_progress_download.push(FileProgress {
@@ -142,7 +145,7 @@ impl TransferTracker {
                 progress: TransferProgress::Starting,
                 size: 0,
                 total_size: 0,
-                description: None,
+                description: get_local_text("files.transfer-start"),
                 state,
             }),
         }
@@ -154,12 +157,13 @@ impl TransferTracker {
         progression: FileProgression,
         tracker: TrackerType,
     ) {
+        let download = matches!(tracker, TrackerType::FileDownload);
         if let Some(f) = self
             .get_tracker_from(tracker)
             .iter_mut()
             .find(|p| file_id.eq(&p.id))
         {
-            let progress = match progression {
+            match progression {
                 FileProgression::CurrentProgress {
                     name: _,
                     current,
@@ -169,31 +173,49 @@ impl TransferTracker {
                     if let Some(total) = total {
                         f.total_size = total;
                     }
-                    TransferProgress::Progress(
-                        total
-                            .map(|total| current as f64 / total as f64 * 100.)
-                            .unwrap_or_default() as u8,
-                    )
+                    let progress = total
+                        .map(|total| current as f64 / total as f64 * 100.)
+                        .unwrap_or_default() as u8;
+                    let (current_desc, total_desc) = Self::get_size_display(f.size, f.total_size);
+                    f.description = get_local_text_with_args(
+                        if download {
+                            "files.transfer-progress-upload"
+                        } else {
+                            "files.transfer-progress-download"
+                        },
+                        vec![
+                            ("progress", progress.to_string()),
+                            ("size", current_desc),
+                            ("total", total_desc),
+                        ],
+                    );
+                    f.progress = TransferProgress::Progress(progress);
                 }
                 FileProgression::ProgressComplete { name: _, total } => {
                     if let Some(total) = total {
                         f.total_size = total;
                     }
-                    TransferProgress::Finishing
+                    f.description = get_local_text_with_args(
+                        "files.transfer-finishing",
+                        vec![("size", format_size(f.total_size, DECIMAL))],
+                    );
+                    f.progress = TransferProgress::Finishing;
                 }
                 FileProgression::ProgressFailed {
                     name: _,
                     last_size,
                     error,
                 } => {
-                    f.description = Some(error.to_string());
+                    f.description = get_local_text_with_args(
+                        "files.transfer-error",
+                        vec![("error", error.to_string())],
+                    );
                     if let Some(last_size) = last_size {
                         f.total_size = last_size;
                     }
-                    TransferProgress::Error(f.progress.get_progress())
+                    f.progress = TransferProgress::Error(f.progress.get_progress());
                 }
             };
-            f.progress = progress;
         }
     }
 
@@ -208,7 +230,7 @@ impl TransferTracker {
             .iter_mut()
             .find(|p| file_id.eq(&p.id))
         {
-            f.description = Some(description);
+            f.description = description;
         }
     }
 
@@ -218,6 +240,15 @@ impl TransferTracker {
             .iter_mut()
             .find(|p| file_id.eq(&p.id))
         {
+            let (current_desc, total_desc) = Self::get_size_display(f.size, f.total_size);
+            f.description = get_local_text_with_args(
+                "files.transfer-paused",
+                vec![
+                    ("progress", f.progress.get_progress().to_string()),
+                    ("size", current_desc),
+                    ("total", total_desc),
+                ],
+            );
             f.progress = TransferProgress::Paused(f.progress.get_progress());
         }
     }
@@ -228,6 +259,7 @@ impl TransferTracker {
             .iter_mut()
             .find(|p| file_id.eq(&p.id))
         {
+            f.description = get_local_text("files.transfer-cancelling");
             f.progress = TransferProgress::Cancelling(f.progress.get_progress());
         }
     }
@@ -239,7 +271,7 @@ impl TransferTracker {
             .find(|p| file_id.eq(&p.id))
         {
             f.progress = TransferProgress::Error(f.progress.get_progress());
-            f.description = Some(get_local_text("files.error-to-upload"));
+            f.description = get_local_text("files.error-to-upload");
         }
     }
 
@@ -284,5 +316,29 @@ impl TransferTracker {
         } else {
             -1
         }
+    }
+
+    pub fn get_size_display(size: usize, total: usize) -> (String, String) {
+        let divider = 1000.0;
+        let mut total = total as f64;
+        let mut scale_idx = 0;
+        // First format the total size
+        while total.abs() >= divider {
+            total /= divider;
+            scale_idx += 1;
+        }
+        let scale = SCALE_DECIMAL[scale_idx];
+        let places = if total.fract() == 0.0 { 0 } else { 2 };
+        let total_size = format!("{:.*} {}", places, total, scale);
+
+        // Format the current size now using the scale of the total size
+        let mut size = size as f64;
+
+        while scale_idx > 0 {
+            size /= divider;
+            scale_idx -= 1;
+        }
+        let places = if size.fract() == 0.0 { 0 } else { 2 };
+        (format!("{:.*}", places, size), total_size)
     }
 }

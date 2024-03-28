@@ -1,4 +1,4 @@
-mod coroutines;
+pub mod coroutines;
 
 use std::{path::PathBuf, time::Duration};
 
@@ -39,13 +39,15 @@ pub static EMOJI_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(":[^:]{2,}:?$").un
 pub static TAG_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new("@[^@ ]{2,} ?$").unwrap());
 use super::context_menus::FileLocation as FileLocationContext;
 use crate::{
-    components::{
-        files::attachments::Attachments,
-        shortcuts::{self},
-    },
-    layouts::chats::{data::ChatProps, scripts::SHOW_CONTEXT},
+    components::{files::attachments::Attachments, shortcuts},
     layouts::{
-        chats::data::{ChatData, MsgChInput, ScrollBtn, TypingIndicator},
+        chats::{
+            data::{
+                ChatData, ChatProps, MessagesToEdit, MessagesToSend, MsgChInput, ScrollBtn,
+                TypingIndicator,
+            },
+            scripts::SHOW_CONTEXT,
+        },
         storage::send_files_layout::{modal::SendFilesLayoutModal, SendFilesStartLocation},
     },
     utils::{
@@ -62,6 +64,8 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     let mut state = use_context::<Signal<State>>();
     let chat_data = use_context::<Signal<ChatData>>();
     let mut scroll_btn = use_context::<Signal<ScrollBtn>>();
+    let mut to_send = use_context::<Signal<MessagesToSend>>();
+    let mut edit_msg = use_context::<Signal<MessagesToEdit>>();
     state.write_silent().scope_ids.chatbar = Some(current_scope_id().unwrap().0);
 
     let active_chat_id = chat_data.read().active_chat.id();
@@ -147,6 +151,24 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     let msg_ch: Coroutine<MsgChInput> = coroutines::get_msg_ch(&state);
     let local_typing_ch = coroutines::get_typing_ch();
     let local_typing_ch2 = local_typing_ch;
+    let messages_to_send = &to_send.read().messages_to_send.clone();
+    if !messages_to_send.is_empty() {
+        for (txt, files) in messages_to_send {
+            state.write().mutate(Action::SetChatAttachments(
+                active_chat_id,
+                files.iter().map(|f| f.clone().into()).collect(),
+            ));
+            msg_ch.send(MsgChInput {
+                msg: txt
+                    .as_ref()
+                    .map(|t| t.lines().map(|s| s.to_string()).collect())
+                    .unwrap_or_default(),
+                conv_id: active_chat_id,
+                replying_to: None,
+            });
+        }
+        to_send.with_mut(|s| s.messages_to_send.clear())
+    }
 
     // drives the sending of TypingIndicator
     let local_typing_ch1 = local_typing_ch;
@@ -422,6 +444,13 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                     suggestions.set(SuggestionType::None);
                 }
             },
+            onup_down_arrow: move |code|{
+                if code == Code::ArrowUp && edit_msg.read().edit.is_none() {
+                    if let Some(msg) = chat_data.read().active_chat.messages.last_user_msg {
+                        edit_msg.write().edit = Some(msg);
+                    }
+                }
+            },
             controls:
                 rsx!(
                     Button {
@@ -436,7 +465,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                         }),
                     }
                 ),
-
             with_replying_to: {(!disabled).then(|| {
                     rsx!(
                         {chat_data.read().active_chat.replying_to().as_ref().map(|msg| {

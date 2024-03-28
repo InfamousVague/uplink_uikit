@@ -5,14 +5,14 @@ $modRsFilePath = ".\common\src\warp_runner\mod.rs"
 $modRsContent = Get-Content -Path $modRsFilePath -Raw
 
 # Replace the old address with the new address in the mod.rs content
-$newModRsContentFirst = $modRsContent -replace "/ip4/104.236.194.35/tcp/34053/", "/ip4/127.0.0.1/tcp/4444/"
+$newModRsContentFirst = $modRsContent -replace "/ip4/159.65.41.31/tcp/8848/", "/ip4/127.0.0.1/tcp/4444/"
 
 # Set the new address based on the content of peerID.txt
 $peerIDFilePath = ".\warp\peerID.txt"
 $newPeerID = (Get-Content -Path $peerIDFilePath | Select-String -Pattern '/ip4/\d+\.\d+\.\d+\.\d+/tcp/\d+/p2p/(\S+)').Matches.Groups[1].Value
 
 # Define the old address to be replaced
-$oldPeerId = "12D3KooWJSes8386p2T1sMeZ2DzsNJThKkZWbj4US6uPMpEgBTHu"
+$oldPeerId = "12D3KooWRF2bz3KDRPvBs1FASRDRk7BfdYc1RUcfwKsz7UBEu7mL"
 
 # Replace the old address with the new address in the mod.rs content
 $newModRsContentTwo = $newModRsContentFirst -replace $oldPeerId, $newPeerID

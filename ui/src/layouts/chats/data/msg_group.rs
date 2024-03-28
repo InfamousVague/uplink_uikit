@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 
 use common::{
     state::{
-        pending_message::{FileProgression, PendingMessage},
+        pending_message::{FileLocation, FileProgression, PendingMessage},
         Identity,
     },
     warp_runner::ui_adapter,
@@ -38,7 +38,7 @@ pub struct MessageGroupMsg {
     pub is_pending: bool,
     pub is_first: bool,
     pub is_last: bool,
-    pub file_progress: Option<Vec<FileProgression>>,
+    pub file_progress: Option<Vec<(FileLocation, FileProgression)>>,
 }
 
 impl MessageGroupMsg {
@@ -122,7 +122,7 @@ pub fn pending_group_messages(
                 is_pending: true,
                 is_first: false,
                 is_last: true,
-                file_progress: Some(msg.attachments_progress.values().cloned().collect()),
+                file_progress: Some(msg.attachments_progress.clone().into_iter().collect()),
             };
             messages.push(g);
             continue;
@@ -132,7 +132,7 @@ pub fn pending_group_messages(
             is_pending: true,
             is_first: true,
             is_last: true,
-            file_progress: Some(msg.attachments_progress.values().cloned().collect()),
+            file_progress: Some(msg.attachments_progress.clone().into_iter().collect()),
         };
         messages.push(g);
     }

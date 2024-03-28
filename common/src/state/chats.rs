@@ -12,7 +12,7 @@ use warp::{
 
 use crate::{warp_runner::ui_adapter, STATIC_ARGS};
 
-use super::pending_message::{progress_file, FileProgression, PendingMessage};
+use super::pending_message::{FileLocation, FileProgression, PendingMessage};
 
 // let (p = window_bottom) be an index into Chat.messages
 // show messages from (p - window_size) to (p + window_extra)
@@ -157,14 +157,31 @@ impl Chat {
         true
     }
 
-    pub fn update_pending_msg(&mut self, message_id: Uuid, progress: FileProgression) {
-        let file = progress_file(&progress);
+    pub fn update_pending_msg(
+        &mut self,
+        message_id: Uuid,
+        location: Location,
+        progress: FileProgression,
+    ) {
         if let Some(m) = &mut self
             .pending_outgoing_messages
             .iter_mut()
             .find(|m| m.id().eq(&message_id))
         {
-            m.attachments_progress.insert(file, progress);
+            m.attachments_progress.insert(location.into(), progress);
+        }
+    }
+
+    pub fn remove_pending_msg_attachment(&mut self, message_id: Uuid, location: FileLocation) {
+        if let Some(m) = &mut self
+            .pending_outgoing_messages
+            .iter_mut()
+            .find(|m| m.id().eq(&message_id))
+        {
+            m.attachments_progress.remove(&location);
+            if m.attachments_progress.is_empty() {
+                self.remove_pending_msg(message_id);
+            }
         }
     }
 

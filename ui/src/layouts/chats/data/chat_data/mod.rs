@@ -1,4 +1,7 @@
-use common::{state::State, warp_runner::ui_adapter};
+use common::{
+    state::{pending_message::FileLocation, State},
+    warp_runner::ui_adapter,
+};
 use std::collections::{HashMap, VecDeque};
 use uuid::Uuid;
 
@@ -13,6 +16,16 @@ use warp::raygun;
 pub struct ChatData {
     pub active_chat: ActiveChat,
     pub chat_behaviors: HashMap<Uuid, ChatBehavior>,
+}
+
+#[derive(Clone, Default)]
+pub struct MessagesToSend {
+    pub messages_to_send: Vec<(Option<String>, Vec<FileLocation>)>,
+}
+
+#[derive(Clone, Default)]
+pub struct MessagesToEdit {
+    pub edit: Option<Uuid>,
 }
 
 impl PartialEq for ChatData {
@@ -154,7 +167,9 @@ impl ChatData {
             return;
         }
 
-        self.active_chat.messages.insert_messages(messages);
+        self.active_chat
+            .messages
+            .insert_messages(self.active_chat.my_id().did_key(), messages);
     }
 
     pub fn is_loaded(&self, conv_id: Uuid) -> bool {
@@ -183,7 +198,9 @@ impl ChatData {
         }
 
         if should_append_msg {
-            self.active_chat.messages.insert_messages(vec![msg]);
+            self.active_chat
+                .messages
+                .insert_messages(self.active_chat.my_id().did_key(), vec![msg]);
             true
         } else {
             if let Some(behavior) = behavior {

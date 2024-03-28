@@ -531,8 +531,8 @@ async fn handle_upload_progress(
                                 let readable_current = format_size(current, DECIMAL);
                                 let percentage_number = ((current as f64) / (total as f64)) * 100.;
                                 let _ = tx_upload_file.send(UploadFileAction::Uploading((
-                                    Some(current_progress), //format!("{}%", percentage_number as usize),
-                                    get_local_text("files.uploading-file"),
+                                    Some(current_progress),
+                                    None,
                                     file_id,
                                 )));
                                 log::info!(
@@ -540,23 +540,14 @@ async fn handle_upload_progress(
                                     percentage_number as usize
                                 )
                             }
-                            // ConstellationProgressStream only ends (atm) when all files in the queue are done uploading
-                            // This causes pending file count to not be updated which is way we send a message here too
-                            if current_percentage == 100 {
-                                let _ = tx_upload_file.send(UploadFileAction::Finishing(
-                                    file_path.clone(),
-                                    file_id,
-                                    false,
-                                ));
-                            }
                         }
                     }
                     FileProgression::ProgressComplete { name, total } => {
                         let total = total.unwrap_or_default();
                         let readable_total = format_size(total, DECIMAL);
                         let _ = tx_upload_file.send(UploadFileAction::Uploading((
-                            Some(current_progress), //"100%".into(),
-                            get_local_text("files.finishing-upload"),
+                            Some(current_progress),
+                            None,
                             file_id,
                         )));
                         log::info!("{name} has been uploaded with {}", readable_total);
@@ -586,7 +577,7 @@ async fn handle_upload_progress(
 
     let _ = tx_upload_file.send(UploadFileAction::Uploading((
         last_progress.clone(), //"100%".into(),
-        get_local_text("files.checking-thumbnail"),
+        Some(get_local_text("files.checking-thumbnail")),
         file_id,
     )));
 
@@ -607,7 +598,7 @@ async fn handle_upload_progress(
                 log::info!("Video Thumbnail uploaded");
                 let _ = tx_upload_file.send(UploadFileAction::Uploading((
                     last_progress.clone(), //"100%".into(),
-                    get_local_text("files.thumbnail-uploaded"),
+                    Some(get_local_text("files.thumbnail-uploaded")),
                     file_id,
                 )));
             }
@@ -625,7 +616,7 @@ async fn handle_upload_progress(
                 log::info!("Document Thumbnail uploaded");
                 let _ = tx_upload_file.send(UploadFileAction::Uploading((
                     last_progress, //"100%".into(),
-                    get_local_text("files.thumbnail-uploaded"),
+                    Some(get_local_text("files.thumbnail-uploaded")),
                     file_id,
                 )));
             }
@@ -634,7 +625,7 @@ async fn handle_upload_progress(
             }
         };
     }
-    let _ = tx_upload_file.send(UploadFileAction::Finishing(file_path, file_id, true));
+    let _ = tx_upload_file.send(UploadFileAction::Finishing(file_path, file_id));
     log::info!("{:?} file uploaded!", filename);
 }
 

@@ -4,7 +4,7 @@ use uuid::Uuid;
 use warp::{
     crypto::DID,
     error::Error,
-    raygun::{self, MessageEventKind, MessageOptions},
+    raygun::{self, Location, MessageEventKind, MessageOptions},
 };
 
 use super::Message;
@@ -71,6 +71,7 @@ pub enum MessageEvent {
     #[display(fmt = "AttachmentProgress")]
     AttachmentProgress {
         progress: FileProgression,
+        location: Location,
         conversation_id: Uuid,
         msg: Uuid,
     },

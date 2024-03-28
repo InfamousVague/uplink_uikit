@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::{collections::HashSet, str::FromStr};
 
 use common::language::{get_local_text, get_local_text_with_args};
-use common::state::pending_message::FileProgression;
+use common::state::pending_message::{FileLocation, FileProgression};
 use common::state::utils::{mention_replacement_pattern, parse_mentions};
 use common::state::{Action, Identity, State, ToastNotification};
 use common::warp_runner::{thumbnail_to_base64, MultiPassCmd, WarpCmd};
@@ -115,7 +115,9 @@ pub struct Props {
 
     // Progress for attachments which are being uploaded
     #[props(!optional)]
-    attachments_pending_uploads: Option<Vec<FileProgression>>,
+    attachments_pending_uploads: Option<Vec<(FileLocation, FileProgression)>>,
+    on_resend: Option<EventHandler<(Option<String>, FileLocation)>>,
+    on_delete: Option<EventHandler<FileLocation>>,
 
     pinned: bool,
 
@@ -222,8 +224,14 @@ pub fn Message(props: Props) -> Element {
             .collect::<Vec<_>>() // Add this line to collect the cloned values into a new vector
     });
 
-    let pending_attachment_list = props.attachments_pending_uploads.as_ref().map(|vec| {
-        vec.iter().map(|prog| {
+    let single = cx
+        .props
+        .attachments_pending_uploads
+        .map(|v| v.len() < 2)
+        .unwrap_or_default();
+
+    let pending_attachment_list = cx.props.attachments_pending_uploads.as_ref().map(|vec| {
+        vec.iter().map(|(location, prog)| {
             let file = progress_file(prog);
             rsx!(FileEmbed {
                 key: "{file}",
@@ -233,6 +241,25 @@ pub fn Message(props: Props) -> Element {
                 with_download_button: false,
                 progress: prog.clone(),
                 on_press: move |_| {},
+                on_resend_msg: move |_| {
+                    if single {
+                        if let Some(e) = &cx.props.on_resend {
+                            e.call((cx.props.with_text.clone(), location.clone()))
+                        }
+                    } else {
+                        if let Some(e) = &cx.props.on_delete {
+                            e.call(location.clone())
+                        }
+                        if let Some(e) = &cx.props.on_resend {
+                            e.call((None, location.clone()))
+                        }
+                    }
+                },
+                on_delete_msg: move |_| {
+                    if let Some(e) = &cx.props.on_delete {
+                        e.call(location.clone())
+                    }
+                },
             })
         })
     });

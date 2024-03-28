@@ -1,4 +1,4 @@
-#pre-release {
+#alpha {
     padding: 0 var(--gap-less) !important;
 
     cursor: default;
@@ -19,7 +19,7 @@
     cursor: auto;
   }
   @media (max-width: 600px) {
-    #pre-release {
+    #alpha {
         width: min-content;
   }
 }  

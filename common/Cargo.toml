@@ -39,7 +39,6 @@ extensions = { workspace = true }
 regex = { workspace = true }
 
 futures = { workspace = true }
-# do we really want to pull in all of tokio?
 tokio = { workspace = true }
 
 tempfile = { workspace = true }
@@ -52,7 +51,6 @@ warp-blink-wrtc = { workspace = true }
 dioxus = { workspace = true }
 dioxus-desktop = { workspace = true, features = ["transparent"] }
 derive_more = { workspace = true }
-either = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.25.0"

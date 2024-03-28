@@ -5,13 +5,13 @@ use dioxus::prelude::*;
 
 #[allow(non_snake_case)]
 pub fn Release_Info() -> Element {
-    let pre_release_text = get_local_text("uplink.pre-release");
+    let alpha_text = get_local_text("uplink.alpha");
 
     rsx!(
         div {
-            id: "pre-release",
+            id: "alpha",
             class : if cfg!(target_os = "macos") {"topbar-item mac-spacer"}  else {"topbar-item"},
-            aria_label: "pre-release",
+            aria_label: "alpha",
             IconElement {
                 icon: Icon::Beaker,
             },
@@ -20,7 +20,7 @@ pub fn Release_Info() -> Element {
                     onclick: move |_| {
                         let _ = open::that("https://issues.satellite.im");
                     },
-                    "{pre_release_text}"
+                    "{alpha_text}"
                 }
 
             }

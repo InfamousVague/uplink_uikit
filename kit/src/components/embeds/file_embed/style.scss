@@ -7,16 +7,17 @@
   align-self: center;
   cursor: pointer;
   display: inline-flex;
-  align-items: center;  
+  align-items: center;
 }
 
 .file-embed {
   display: inline-flex;
   gap: var(--gap);
   width: 100%;
-  color: var(--text-color-dark);
+  color: var(--text-color-primary);
   align-content: center;
   align-self: flex-end;
+  position: relative;
 
   .image-container {
     display: flex;
@@ -35,7 +36,7 @@
 
       svg {
         margin-top: 0;
-        stroke: var(--text-color-dark);
+        stroke: var(--text-color);
         fill: transparent;
         height: 1.1rem;
         width: 1.1rem;
@@ -54,6 +55,7 @@
     &:hover {
       border-radius: var(--border-radius);
     }
+
     &.big {
       max-height: 700px;
       max-width: 700px;
@@ -82,16 +84,18 @@
   .icon {
     svg {
       transition: stroke var(--animation-time);
-			fill: transparent;
-			stroke: var(--warning-light);
+      fill: transparent;
+      stroke: var(--warning-light);
       width: 60px;
       height: 60px;
       margin-top: var(--gap-less);
     }
   }
 }
+
 .file-embed:hover {
   cursor: pointer;
+
   .btn {
     display: inline-flex;
     border: 1px solid var(--text-color-dark);
@@ -110,6 +114,7 @@
   .meta {
     color: var(--placeholder);
   }
+
   color: var(--text-color);
   align-self: flex-start;
 }
@@ -121,6 +126,7 @@
   height: 10px;
   background-color: var(--background-dark);
   border-radius: var(--border-radius-more);
+
   .upload-progress {
     position: absolute;
     top: 0;
@@ -136,14 +142,26 @@
 }
 
 .file-embed-type {
-	text-transform: none;
-	text-align: center;
+  text-transform: none;
+  text-align: center;
   position: relative;
   right: -35px;
   bottom: 25px;
-	padding:2px;
-	background-color: var(--warning-light);
-	border-radius: 4px;
-	color: var(--text-color-dark);
-	font-size: var(--text-size-less);
+  padding: 2px;
+  background-color: var(--warning-light);
+  border-radius: 4px;
+  color: var(--text-color);
+  font-size: var(--text-size-less);
+}
+
+.control-btn {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: var(--gap-less);
+  bottom: calc(var(--padding-less));
+
+  .btn-wrap {
+    position: unset;
+  }
 }

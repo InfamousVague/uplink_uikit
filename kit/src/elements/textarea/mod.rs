@@ -23,6 +23,7 @@ pub enum Size {
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum JSTextData {
+    Init,
     Input(String),
     Cursor(i64),
     KeyPress(Code),
@@ -405,7 +406,7 @@ pub fn InputRich(props: Props) -> Element {
         }
     });
 
-    if let Some(pending) = listener_data.peek().clone().take() {
+    if let Some(pending) = listener_data.write_silent().take() {
         pending.iter().for_each(|val| match val.to_owned() {
             JSTextData::Input(txt) => {
                 *text_value.write_silent() = txt.clone();
@@ -425,6 +426,10 @@ pub fn InputRich(props: Props) -> Element {
                         e.call(code);
                     };
                 }
+            }
+            JSTextData::Init => {
+                let focus_script = include_str!("./focus.js").replace("$UUID", &id);
+                let _ = eval(&focus_script);
             }
         });
     }
