@@ -385,7 +385,7 @@ let message = use_signal(|| grouped_message.message.clone());
         // WARNING: these keys are required to prevent a bug with the context menu, which manifests when deleting messages.
         let is_editing = edit_msg
             .read().edit
-            .map(|id| !cx.props.is_remote && (id == message().inner.id()))
+            .map(|id| !props.is_remote && (id == message().inner.id()))
             .unwrap_or(false);
         let message_key = format!("{}-{:?}", &message().key, is_editing);
         let message_id = format!("{}-{:?}", &message().inner.id(), is_editing);
@@ -579,7 +579,7 @@ fn render_message(props: MessageProps) -> Element {
     let is_editing = edit_msg
         .read()
         .edit
-        .map(|id| !cx.props.is_remote && (id == message().inner.id()))
+        .map(|id| !props.is_remote && (id == message().inner.id()))
         .unwrap_or(false);
 
     let reactions_list: Vec<ReactionAdapter> = message()
@@ -695,7 +695,7 @@ fn render_message(props: MessageProps) -> Element {
                     pinned: message().inner.pinned(),
                     attachments_pending_uploads: pending_uploads.cloned(),
     =======
-                    pending: cx.props.pending,
+                    pending: props.pending,
                     pinned: message.inner.pinned(),
                     attachments_pending_uploads: pending_uploads,
                     on_resend: move |(txt, file): (Option<String>, FileLocation)|{

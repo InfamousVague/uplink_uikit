@@ -201,142 +201,136 @@ pub fn Chatbar(props: Props) -> Element {
     let mut selected_suggestion: Signal<Option<usize>> = use_signal(|| None);
     let mut arrow_selected = use_signal(|| false);
     let mut is_suggestion_modal_closed: Signal<bool> = use_signal(|| false);
-    let has_value = cx
-        .props
+    let has_value = props
         .value
         .as_ref()
         .map(|s| !s.is_empty())
         .unwrap_or_default();
 
     rsx!(
-            div {
-                class: "chatbar disable-select",
-                {props.with_replying_to.as_ref()},
-                {props.with_file_upload.as_ref()},
-                div{
-                    class: "chatbar-group",
-                    textarea::InputRich {
-                        key: "{controlled_input_id}",
-                        id: controlled_input_id.clone(),
-                        loading: props.loading.unwrap_or_default(),
-                        placeholder: props.placeholder.clone(),
-                        ignore_focus: props.ignore_focus,
-                        show_char_counter: true,
-                        value: if props.is_disabled { get_local_text("messages.loading")} else { props.value.clone().unwrap_or_default()},
-                        onkeyup: move |keycode| {
-                            if !*is_suggestion_modal_closed.read() && (keycode == Code::Escape || keycode == Code::Tab) {
-                                if keycode == Code::Tab {
-                                    if let Some(i) = selected_suggestion.write_silent().take() {
-                                        if let Some(e) = props_signal.read().clone().on_suggestion_click.as_ref() {
-                                            if let Some(p) = cursor_position.read().as_ref() {
-                                                let (pattern, replacement) = props_signal.read().clone().suggestions.get_replacement_for_index(i);
-                                                e.call((replacement, pattern,*p));
-                                            }
+        div {
+            class: "chatbar disable-select",
+            {props.with_replying_to.as_ref()},
+            {props.with_file_upload.as_ref()},
+            div{
+                class: "chatbar-group",
+                textarea::InputRich {
+                    key: "{controlled_input_id}",
+                    id: controlled_input_id.clone(),
+                    loading: props.loading.unwrap_or_default(),
+                    placeholder: props.placeholder.clone(),
+                    ignore_focus: props.ignore_focus,
+                    show_char_counter: true,
+                    value: if props.is_disabled { get_local_text("messages.loading")} else { props.value.clone().unwrap_or_default()},
+                    onkeyup: move |keycode| {
+                        if !*is_suggestion_modal_closed.read() && (keycode == Code::Escape || keycode == Code::Tab) {
+                            if keycode == Code::Tab {
+                                if let Some(i) = selected_suggestion.write_silent().take() {
+                                    if let Some(e) = props_signal.read().clone().on_suggestion_click.as_ref() {
+                                        if let Some(p) = cursor_position.read().as_ref() {
+                                            let (pattern, replacement) = props_signal.read().clone().suggestions.get_replacement_for_index(i);
+                                            e.call((replacement, pattern,*p));
                                         }
                                     }
                                 }
-                                is_suggestion_modal_closed.with_mut(|i| *i = true);
                             }
-                        },
-                        on_paste_keydown:  move |keyboard_event: Event<KeyboardData>| {
-                            if let Some(e) = props.on_paste_keydown.as_ref() {
-                                e.call(keyboard_event);
-                            }
-                        },
-                        onchange: move |(v, _)| {
-                            props.onchange.call(v);
-                            *is_suggestion_modal_closed.write_silent() = false;
-                        },
-                        onreturn: move |(v, is_valid, _)| {
-                            if let Some(i) = selected_suggestion.write_silent().take() {
-                                if let Some(e) = props_signal.read().clone().on_suggestion_click.as_ref() {
-                                    if let Some(p) = cursor_position.read().as_ref() {
-                                        let (pattern, replacement) = props_signal.read().clone().suggestions.get_replacement_for_index(i);
-                                        e.call((replacement, pattern,*p));
-                                        return;
-                                    }
-                                }
-                            }
-                            if is_valid {
-                                props.onreturn.call(v);
-                            }
-                        },
-                        oncursor_update: move |(v,p)| {
-                            if let Some(e) = props_signal.read().clone().oncursor_update.as_ref() {
-                                e.call((v,p))
-                            }
-                            *cursor_position.write_silent() = Some(p)
-                        },
-    <<<<<<< HEAD
-                        is_disabled: props.is_disabled,
-                        prevent_up_down_arrows: !props_signal.read().clone().suggestions.is_empty(),
-    =======
-                        is_disabled: cx.props.is_disabled,
-                        prevent_up_down_arrows: !cx.props.suggestions.is_empty() || !has_value,
-    >>>>>>> origin/dev
-                        onup_down_arrow:
-                            move |code| {
-                                let amount = match props_signal.read().clone().suggestions {
-                                    SuggestionType::None => 0,
-                                    SuggestionType::Emoji(_, v) => v.len(),
-                                    SuggestionType::Tag(_, v) => v.len(),
-                                };
-                                if amount == 0 {
-                                    *selected_suggestion.write_silent() = None;
-                                    if let SuggestionType::None = cx.props.suggestions {
-                                        if let Some(e) = &cx.props.onup_down_arrow {
-                                            e.call(code);
-                                        }
-                                    }
-                                    return;
-                                }
-                                let current = &mut *selected_suggestion.write();
-                                let selected_idx = if code == Code::ArrowDown {
-                                    match current.as_ref() {
-                                        Some(v) => (v + 1) % amount,
-                                        None => 0,
-                                    }
-                                } else {
-                                    match current.as_ref() {
-                                        Some(v) => (v + amount - 1) % amount,
-                                        None => amount - 1,
-                                    }
-                                };
-                                *current = Some(selected_idx);
-                                *arrow_selected.write() = true;
-                                let _ = eval(&include_str!("./suggestion_scroll.js").replace("$NUM", &selected_idx.to_string()));
-                            }
-                    },
-                    {is_typing.then(|| {
-                        rsx!(MessageTyping {
-                            typing_users: props.typing_users.clone()
-                        })
-                    })}
-                }
-                {props.extensions.as_ref()},
-                div {
-                    class: "controls",
-                    {props.controls.as_ref()}
-                },
-                {(!props_signal.read().clone().suggestions.is_empty() && !*is_suggestion_modal_closed.read()).then(||
-                    rsx!(SuggestionsMenu {
-                    suggestions: props_signal.read().clone().suggestions,
-                    on_close: move |_| {
-                        is_suggestion_modal_closed.with_mut(|i| *i = true);
-                        *selected_suggestion.write() = None;
-                    },
-                    on_click: move |(emoji, pattern)| {
-                        if let Some(e) = props_signal.read().on_suggestion_click.as_ref() {
-                            if let Some(p) = cursor_position.read().as_ref() {
-                                e.call((emoji, pattern, *p))
-                            }
+                            is_suggestion_modal_closed.with_mut(|i| *i = true);
                         }
                     },
-                    selected: selected_suggestion,
-                    arrow_selected: arrow_selected,
-                }))},
+                    on_paste_keydown:  move |keyboard_event: Event<KeyboardData>| {
+                        if let Some(e) = props.on_paste_keydown.as_ref() {
+                            e.call(keyboard_event);
+                        }
+                    },
+                    onchange: move |(v, _)| {
+                        props.onchange.call(v);
+                        *is_suggestion_modal_closed.write_silent() = false;
+                    },
+                    onreturn: move |(v, is_valid, _)| {
+                        if let Some(i) = selected_suggestion.write_silent().take() {
+                            if let Some(e) = props_signal.read().clone().on_suggestion_click.as_ref() {
+                                if let Some(p) = cursor_position.read().as_ref() {
+                                    let (pattern, replacement) = props_signal.read().clone().suggestions.get_replacement_for_index(i);
+                                    e.call((replacement, pattern,*p));
+                                    return;
+                                }
+                            }
+                        }
+                        if is_valid {
+                            props.onreturn.call(v);
+                        }
+                    },
+                    oncursor_update: move |(v,p)| {
+                        if let Some(e) = props_signal.read().clone().oncursor_update.as_ref() {
+                            e.call((v,p))
+                        }
+                        *cursor_position.write_silent() = Some(p)
+                    },
+                    is_disabled: props.is_disabled,
+                    prevent_up_down_arrows: !props_signal.read().clone().suggestions.is_empty() || !has_value,
+                    onup_down_arrow:
+                        move |code| {
+                            let amount = match props_signal.read().clone().suggestions {
+                                SuggestionType::None => 0,
+                                SuggestionType::Emoji(_, v) => v.len(),
+                                SuggestionType::Tag(_, v) => v.len(),
+                            };
+                            if amount == 0 {
+                                *selected_suggestion.write_silent() = None;
+                                if let SuggestionType::None = props.suggestions {
+                                    if let Some(e) = &props.onup_down_arrow {
+                                        e.call(code);
+                                    }
+                                }
+                                return;
+                            }
+                            let current = &mut *selected_suggestion.write();
+                            let selected_idx = if code == Code::ArrowDown {
+                                match current.as_ref() {
+                                    Some(v) => (v + 1) % amount,
+                                    None => 0,
+                                }
+                            } else {
+                                match current.as_ref() {
+                                    Some(v) => (v + amount - 1) % amount,
+                                    None => amount - 1,
+                                }
+                            };
+                            *current = Some(selected_idx);
+                            *arrow_selected.write() = true;
+                            let _ = eval(&include_str!("./suggestion_scroll.js").replace("$NUM", &selected_idx.to_string()));
+                        }
+                },
+                {is_typing.then(|| {
+                    rsx!(MessageTyping {
+                        typing_users: props.typing_users.clone()
+                    })
+                })}
             }
-        )
+            {props.extensions.as_ref()},
+            div {
+                class: "controls",
+                {props.controls.as_ref()}
+            },
+            {(!props_signal.read().clone().suggestions.is_empty() && !*is_suggestion_modal_closed.read()).then(||
+                rsx!(SuggestionsMenu {
+                suggestions: props_signal.read().clone().suggestions,
+                on_close: move |_| {
+                    is_suggestion_modal_closed.with_mut(|i| *i = true);
+                    *selected_suggestion.write() = None;
+                },
+                on_click: move |(emoji, pattern)| {
+                    if let Some(e) = props_signal.read().on_suggestion_click.as_ref() {
+                        if let Some(p) = cursor_position.read().as_ref() {
+                            e.call((emoji, pattern, *p))
+                        }
+                    }
+                },
+                selected: selected_suggestion,
+                arrow_selected: arrow_selected,
+            }))},
+        }
+    )
 }
 
 #[derive(Props, Clone, PartialEq)]

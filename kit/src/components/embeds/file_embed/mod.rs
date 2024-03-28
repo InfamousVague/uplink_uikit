@@ -279,15 +279,15 @@ pub fn FileEmbed(props: Props) -> Element {
                                     }
                                 }
                             }
-                (failed && cx.props.progress.is_some()).then(|| rsx!(div {
+                {(failed && props.progress.is_some()).then(|| rsx!(div {
                     class: "control-btn",
                     Button {
                         icon: Icon::Trash,
                         small: true,
                         appearance: Appearance::Primary,
-                        aria_label: "delete-button".into(),
+                        aria_label: "delete-button".to_string(),
                         onpress: move |_| {
-                            if let Some(e) = &cx.props.on_delete_msg {
+                            if let Some(e) = props.on_delete_msg {
                                 e.call(())
                             }
                         },
@@ -296,14 +296,14 @@ pub fn FileEmbed(props: Props) -> Element {
                         icon: Icon::ArrowRightCircle,
                         small: true,
                         appearance: Appearance::Primary,
-                        aria_label: "retry-button".into(),
+                        aria_label: "retry-button".to_string(),
                         onpress: move |_| {
-                            if let Some(e) = &cx.props.on_resend_msg {
+                            if let Some(e) = props.on_resend_msg {
                                 e.call(())
                             }
                         },
                     }
-                })),
+                }))},
     })
 }
 
