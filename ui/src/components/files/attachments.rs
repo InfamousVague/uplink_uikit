@@ -18,7 +18,7 @@ pub struct AttachmentProps {
 
 #[allow(non_snake_case)]
 pub fn Attachments(props: AttachmentProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let files_attached_to_send = props.files_to_attach.clone();
     let files_attached_to_send3 = files_attached_to_send.clone();
     let files_attached_to_send4 = props.files_to_attach.clone();

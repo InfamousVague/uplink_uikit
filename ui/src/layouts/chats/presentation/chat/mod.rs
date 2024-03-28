@@ -52,10 +52,10 @@ pub fn Compose() -> Element {
     let mut show_rename_group: Signal<bool> = use_signal(|| false);
     let mut show_group_users: Signal<Option<Uuid>> = use_signal(|| None);
 
-    let mut quick_profile_uuid = use_signal(|| Uuid::new_v4().to_string());
-    let mut quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>> = use_signal(|| None);
-    let mut update_script = use_signal(String::new);
-    let mut identity_profile = use_signal(DID::default);
+    let quick_profile_uuid = use_signal(|| Uuid::new_v4().to_string());
+    let quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>> = use_signal(|| None);
+    let update_script = use_signal(String::new);
+    let identity_profile = use_signal(DID::default);
 
     let script = DISABLE_RELOAD;
     let _ = eval(script);
@@ -131,18 +131,18 @@ pub fn Compose() -> Element {
                     state.write().mutate(Action::SidebarHidden(!current));
                 },
                 controls: rsx!(controls::get_controls{
-                    show_manage_members: show_manage_members.clone(),
-                    show_rename_group: show_rename_group.clone(),
-                    show_group_settings: show_group_settings.clone(),
-                    show_group_users: show_group_users.clone(),
+                    show_manage_members: show_manage_members,
+                    show_rename_group: show_rename_group,
+                    show_group_settings: show_group_settings,
+                    show_group_users: show_group_users,
                     ignore_focus: should_ignore_focus,
                     is_owner: is_owner,
                 }),
                 topbar::get_topbar_children {
-                    show_manage_members: show_manage_members.clone(),
-                    show_rename_group: show_rename_group.clone(),
-                    show_group_settings: show_group_settings.clone(),
-                    show_group_users: show_group_users.clone(),
+                    show_manage_members: show_manage_members,
+                    show_rename_group: show_rename_group,
+                    show_group_settings: show_group_settings,
+                    show_group_users: show_group_users,
                     ignore_focus: should_ignore_focus,
                     is_owner: is_owner,
                 }
@@ -195,7 +195,7 @@ pub fn Compose() -> Element {
                     },
                     GroupUsers {
                         active_chat: state.read().get_active_chat(),
-                        quickprofile_data: quickprofile_data.clone(),
+                        quickprofile_data: quickprofile_data,
                     }
                 }
         ))},
@@ -212,13 +212,13 @@ pub fn Compose() -> Element {
                 }
             )}
         } else {
-            {rsx!(get_messages{quickprofile_data: quickprofile_data.clone()})}
+            {rsx!(get_messages{quickprofile_data: quickprofile_data})}
         },
         get_chatbar {
-            show_manage_members: show_manage_members.clone(),
-            show_rename_group: show_rename_group.clone(), // TODO: wire this to a context item when right clicking the topbar.
-            show_group_settings: show_group_settings.clone(),
-            show_group_users: show_group_users.clone(),
+            show_manage_members: show_manage_members,
+            show_rename_group: show_rename_group, // TODO: wire this to a context item when right clicking the topbar.
+            show_group_settings: show_group_settings,
+            show_group_users: show_group_users,
             ignore_focus: should_ignore_focus,
             is_owner: is_owner,
         },

@@ -89,7 +89,7 @@ pub fn async_queue<T: 'static + Send, Fut>(fut: impl Fn(T) -> Fut) -> Signal<Asy
 where
     Fut: Future<Output = ()> + Send + 'static,
 {
-    let mut queue_ref: Signal<AsyncRef<T>> = use_signal(|| AsyncRef { inner_ref: None });
+    let queue_ref: Signal<AsyncRef<T>> = use_signal(|| AsyncRef { inner_ref: None });
     if let Some(queue) = queue_ref.write_silent().inner_ref.take() {
         for entry in queue {
             let future = fut(entry);

@@ -72,7 +72,7 @@ pub fn ChatLayout() -> Element {
         state.write().mutate(Action::SidebarHidden(true));
         first_render.set(false);
     }
-    let mut drag_event: Signal<Option<FileDropEvent>> = use_signal(|| None);
+    let drag_event: Signal<Option<FileDropEvent>> = use_signal(|| None);
     let window = use_window();
     let show_slimbar = state.read().show_slimbar();
 
@@ -84,7 +84,7 @@ pub fn ChatLayout() -> Element {
             loop {
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                 if let FileDropEvent::Hovered { .. } = get_drag_event::get_drag_event() {
-                    drop_and_attach_files(&window, &drag_event, state.clone()).await;
+                    drop_and_attach_files(&window, &drag_event, state).await;
                 }
             }
         }

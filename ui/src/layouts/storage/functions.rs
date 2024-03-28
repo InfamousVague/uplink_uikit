@@ -18,9 +18,7 @@ use dioxus::{
 };
 #[cfg(not(target_os = "macos"))]
 use dioxus_desktop::wry::webview::FileDropEvent;
-use dioxus_hooks::{
-    to_owned, use_coroutine, use_future, use_resource, Coroutine, UnboundedReceiver,
-};
+use dioxus_hooks::{to_owned, use_coroutine, use_resource, Coroutine, UnboundedReceiver};
 use futures::{channel::oneshot, StreamExt};
 use rfd::FileDialog;
 use std::{ffi::OsStr, path::PathBuf, rc::Rc, time::Duration};
@@ -196,7 +194,7 @@ pub fn add_files_in_queue_to_upload(
 pub fn use_allow_block_folder_nav(files_in_queue_to_upload: Signal<Vec<PathBuf>>) {
     // Block directories navigation if there is a file been uploaded
     // use_future here to verify before render elements on first render
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         allow_folder_navigation(files_in_queue_to_upload().is_empty());
     });
     // This is to run on all re-renders
@@ -240,7 +238,8 @@ pub fn init_coroutine<'a>(
     file_tracker: Signal<TransferTracker>,
 ) -> Coroutine<ChanCmd> {
     let download_queue = download_stream_handler();
-    let ch = use_coroutine(|mut rx: UnboundedReceiver<ChanCmd>| {
+
+    use_coroutine(|mut rx: UnboundedReceiver<ChanCmd>| {
         to_owned![controller, download_queue, state, file_tracker];
         async move {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
@@ -489,8 +488,7 @@ pub fn init_coroutine<'a>(
                 }
             }
         }
-    });
-    ch
+    })
 }
 
 /// Upload files has many states to manage
@@ -505,8 +503,8 @@ pub fn start_upload_file_listener(
     upload_file_controller: UploadFileController,
     file_tracker: Signal<TransferTracker>,
 ) {
-    let files_been_uploaded = upload_file_controller.files_been_uploaded.clone();
-    let files_in_queue_to_upload = upload_file_controller.files_in_queue_to_upload.clone();
+    let files_been_uploaded = upload_file_controller.files_been_uploaded;
+    let files_in_queue_to_upload = upload_file_controller.files_in_queue_to_upload;
 
     use_resource(move || {
         to_owned![

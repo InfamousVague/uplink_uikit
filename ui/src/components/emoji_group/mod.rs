@@ -27,7 +27,7 @@ pub fn EmojiGroup(props: Props) -> Element {
         .enabled_extension(emoji_selector_extension);
 
     let picker_tooltip = if has_extension {
-        rsx!({ () })
+        rsx!({  })
     } else {
         rsx!(Tooltip {
             arrow_position: ArrowPosition::Bottom,

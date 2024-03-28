@@ -49,9 +49,9 @@ pub fn get_controls(props: ChatProps) -> Element {
     let call_in_progress = active_call.is_some(); // active_chat.map(|chat| chat.id) == active_call.map(|call| call.conversation_id);
 
     let mut show_pinned = use_signal(|| false);
-    let mut show_group_settings_signal = props.show_group_settings.clone();
-    let mut show_manage_members = props.show_manage_members.clone();
-    let mut show_group_users_signal = props.show_group_users.clone();
+    let mut show_group_settings_signal = props.show_group_settings;
+    let mut show_manage_members = props.show_manage_members;
+    let mut show_group_users_signal = props.show_group_users;
 
     use_effect(move || {
         to_owned![show_more];
@@ -118,7 +118,7 @@ pub fn get_controls(props: ChatProps) -> Element {
         },
         |txt, arrow| {
             if minimal {
-                rsx!({ () })
+                rsx!({  })
             } else {
                 rsx!(Tooltip {
                     arrow_position: arrow,
@@ -171,7 +171,7 @@ pub fn get_controls(props: ChatProps) -> Element {
                 text: text_builder("settings"),
                 tooltip: tooltip_builder("settings", arrow_top),
                 onpress: move |_| {
-                    if show_group_settings_signal.read().clone() {
+                    if *show_group_settings_signal.read() {
                         show_group_settings_signal.set(false);
                     } else if chat_data.read().active_chat.is_initialized {
                         show_group_settings_signal.set(true);
@@ -266,7 +266,7 @@ pub fn get_controls(props: ChatProps) -> Element {
                         show_pinned.set(false);
                     },
                     if chat_data.read().active_chat.is_initialized {
-                        {rsx!(PinnedMessages{ show_pinned: show_pinned.clone()})}
+                        {rsx!(PinnedMessages{ show_pinned: show_pinned})}
                     }
                 }
             )
@@ -282,7 +282,7 @@ pub fn get_controls(props: ChatProps) -> Element {
                     aria_label: "control-group".to_string(),
                     appearance: Appearance::Primary,
                     tooltip: if show_more() {
-                        rsx!({()})
+                        rsx!({})
                     } else {
                         rsx!(Tooltip {
                             arrow_position: ArrowPosition::TopRight,

@@ -41,7 +41,7 @@ struct Cmd {
 // styles for this layout are in layouts/style.scss
 #[component]
 pub fn Layout(pin: Signal<String>, page: Signal<AuthPages>) -> Element {
-    let mut state = use_signal(|| State::load());
+    let state = use_signal(State::load);
     let mut loading = use_signal(|| false);
     let mut input: Signal<Vec<_>> = use_signal(|| (0..12).map(|_| String::new()).collect());
     let mut seed_error = use_signal(|| None);

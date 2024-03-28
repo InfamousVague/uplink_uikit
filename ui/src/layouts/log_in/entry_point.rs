@@ -63,8 +63,8 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>) -> Element {
 
     let mut account_exists: Signal<Option<bool>> = use_signal(|| None);
     let mut cmd_in_progress = use_signal(|| false);
-    let mut first_render = use_signal(|| true);
-    let mut state = use_signal(State::load);
+    let first_render = use_signal(|| true);
+    let state = use_signal(State::load);
     let mut reset_input = use_signal(|| false);
 
     // On windows, is necessary use state on topbar controls, without using use_shared_state
@@ -206,7 +206,7 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>) -> Element {
                         aria_label: "pin-input".to_string(),
                         disabled: loading || cmd_in_progress(),
                         placeholder: get_local_text("unlock.enter-pin"),
-                        reset: reset_input.clone(),
+                        reset: reset_input,
                         options: Options {
                             with_validation: Some(pin_validation),
                             with_clear_btn: true,

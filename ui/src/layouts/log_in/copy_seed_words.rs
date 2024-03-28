@@ -14,7 +14,7 @@ use super::AuthPages;
 // styles for this layout are in layouts/style.scss
 #[component]
 pub fn Layout(page: Signal<AuthPages>, seed_words: Signal<String>) -> Element {
-    let mut state = use_signal(State::load);
+    let state = use_signal(State::load);
     let window = use_window();
 
     if !matches!(&*page.read(), AuthPages::Success(_)) {
@@ -54,7 +54,7 @@ pub fn Layout(page: Signal<AuthPages>, seed_words: Signal<String>) -> Element {
                 text: get_local_text("copy-seed-words")
             },
             if let Some(words) = words.value()() {
-                {rsx!(SeedWords { page: page.clone(), words: words.clone() })}
+                {rsx!(SeedWords { page: page, words: words.clone() })}
             }
         }
     )

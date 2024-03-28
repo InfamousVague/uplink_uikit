@@ -214,7 +214,7 @@ pub fn AddFriend() -> Element {
                             disable_onblur: true,
                             loading: add_in_progress(),
                             disabled: add_in_progress(),
-                            reset: clear_input.clone(),
+                            reset: clear_input,
                             onreturn: move |_| {
                                 if !friend_input_valid() {
                                     return;

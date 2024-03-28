@@ -3,7 +3,6 @@ use crate::{
         data::{ChatData, ScrollTo},
         scripts::{self, SETUP_CONTEXT_PARENT},
     },
-    utils,
 };
 use dioxus::{
     events::eval,
@@ -14,12 +13,12 @@ use dioxus_hooks::{to_owned, use_effect, use_signal, Coroutine};
 
 pub fn init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
     let chat_key = chat_data.read().active_chat.key();
-    let mut chat_key_signal = use_signal(|| chat_key);
+    let _chat_key_signal = use_signal(|| chat_key);
     use_effect(move || {
         to_owned![ch];
         spawn(async move {
             // replicate behavior from before refactor
-            let mut eval_result = eval(SETUP_CONTEXT_PARENT);
+            let eval_result = eval(SETUP_CONTEXT_PARENT);
             let _ = eval_result.join().await;
 
             let chat_id = chat_data.read().active_chat.id();

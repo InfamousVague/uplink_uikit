@@ -178,7 +178,7 @@ pub fn Input(props: Props) -> Element {
                             to_owned![cursor_script, cursor_position];
                             async move {
                                 if do_cursor_update {
-                                    let mut eval_result = eval(&cursor_script);
+                                    let eval_result = eval(&cursor_script);
                                         if let Ok(val) = eval_result.join().await {
                                             *cursor_position.write() = Some(val.as_i64().unwrap_or_default());
                                         }
@@ -204,7 +204,7 @@ pub fn Input(props: Props) -> Element {
                             to_owned![cursor_script, cursor_position];
                             async move {
                                 if do_cursor_update {
-                                    let mut eval_result = eval(&cursor_script);
+                                    let eval_result = eval(&cursor_script);
                                         if let Ok(val) = eval_result.join().await {
                                             *cursor_position.write() = Some(val.as_i64().unwrap_or_default());
                                         }
@@ -260,7 +260,7 @@ pub fn Input(props: Props) -> Element {
                             to_owned![eval, cursor_script, cursor_position];
                             async move {
                                 if do_cursor_update && arrow {
-                                    let mut eval_result = eval(&cursor_script);
+                                    let eval_result = eval(&cursor_script);
                                         if let Ok(val) = eval_result.join().await {
                                             *cursor_position.write() = Some(val.as_i64().unwrap_or_default());
                                         }

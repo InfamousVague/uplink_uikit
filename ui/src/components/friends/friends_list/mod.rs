@@ -70,8 +70,8 @@ pub fn Friends() -> Element {
             .filter(|id| filter.is_empty() || id.username().to_lowercase().starts_with(&filter))
             .map(|id| (id.did_key(), id.clone())),
     );
-    let mut block_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
-    let mut remove_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
+    let block_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
+    let remove_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
 
     let mut share_did = use_signal(|| None);
 
@@ -214,7 +214,7 @@ pub fn Friends() -> Element {
                         ..Options::default()
                     },
                     disable_onblur: true,
-                    reset: reset_filter.clone(),
+                    reset: reset_filter,
                     onchange: move |(s, _)| {
                         friend_filter.set(s);
                     },
@@ -231,7 +231,7 @@ pub fn Friends() -> Element {
             ))},
             {share_did.read().is_some().then(||{
                 rsx!(ShareFriendsModal{
-                    did: share_did.clone()
+                    did: share_did
                 })
             })},
             {friends.into_iter().map(|(letter, sorted_friends)| {
@@ -405,9 +405,9 @@ pub struct FriendProps {
 }
 
 pub fn ShareFriendsModal(props: FriendProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
-    let mut chats_selected = use_signal(|| Vec::new());
-    let mut did_signal = props.did.clone();
+    let state = use_context::<Signal<State>>();
+    let mut chats_selected = use_signal(Vec::new);
+    let mut did_signal = props.did;
     let ch = use_coroutine(|mut rx: UnboundedReceiver<(DID, Vec<Uuid>)>| async move {
         let warp_cmd_tx = WARP_CMD_CH.tx.clone();
         while let Some((id, uuid)) = rx.next().await {

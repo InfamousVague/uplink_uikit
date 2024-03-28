@@ -22,9 +22,9 @@ use common::{get_extras_dir, warp_runner, STATIC_ARGS, WARP_CMD_CH, WARP_EVENT_C
 use dioxus::prelude::*;
 use dioxus_desktop::tao::dpi::{LogicalPosition, PhysicalPosition, PhysicalSize};
 
-use dioxus_desktop::wry::WebViewExtMacOS;
+
 use dioxus_desktop::{
-    tao::{dpi::LogicalSize, event::WindowEvent},
+    tao::{dpi::LogicalSize},
     use_window,
 };
 
@@ -40,7 +40,7 @@ use kit::elements::Appearance;
 use kit::layout::modal::Modal;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use once_cell::sync::Lazy;
-use serde::de;
+
 use tokio::sync::broadcast::error::RecvError;
 
 use std::collections::HashMap;
@@ -65,8 +65,8 @@ use crate::layouts::storage::files_layout::FilesLayout;
 use crate::misc_scripts::*;
 use crate::utils::async_task_queue::{ListenerAction, ACTION_LISTENER};
 use crate::utils::keyboard::KeyboardShortcuts;
-use dioxus_desktop::tao::event as WryEvent;
-use dioxus_desktop::{use_wry_event_handler, DesktopService};
+
+use dioxus_desktop::{DesktopService};
 use tokio::sync::{mpsc, Mutex};
 use tokio::time::{sleep, Duration};
 use tracing::log::{self};
@@ -83,7 +83,7 @@ use crate::utils::auto_updater::{
 use crate::layouts::chats::ChatLayout;
 use crate::window_manager::WindowManagerCmdChannels;
 use common::{
-    state::{storage, ui::WindowMeta, Action, State},
+    state::{storage, Action, State},
     warp_runner::{ConstellationCmd, RayGunCmd, WarpCmd},
 };
 use std::panic;
@@ -202,7 +202,7 @@ fn app() -> Element {
     bootstrap::use_warp_runner();
 
     // 2. Guard the app with the auth
-    let mut auth = use_signal(|| AuthPages::EntryPoint);
+    let auth = use_signal(|| AuthPages::EntryPoint);
     let auth_result = auth.read().clone();
     let AuthPages::Success(identity) = auth_result else {
         return rsx! {
@@ -217,7 +217,7 @@ fn app() -> Element {
                 log::debug!("shortcut called {:?}", shortcut);
             }
         },
-        AuthGuard { page: auth.clone() }};
+        AuthGuard { page: auth }};
     };
 
     // 3. Make sure global context is setup before rendering anything downstream
@@ -246,7 +246,7 @@ fn app_layout() -> Element {
     use_app_coroutines()?;
     use_router_notification_listener()?;
 
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
 
     rsx! {
         AppStyle {}
@@ -257,10 +257,10 @@ fn app_layout() -> Element {
                     match shortcut {
                         GlobalShortcut::ToggleMute => utils::keyboard::shortcut_handlers::audio::toggle_mute(),
                         GlobalShortcut::ToggleDeafen => utils::keyboard::shortcut_handlers::audio::toggle_deafen(),
-                        GlobalShortcut::IncreaseFontSize => utils::keyboard::shortcut_handlers::font::increase_size(state.clone()),
-                        GlobalShortcut::DecreaseFontSize => utils::keyboard::shortcut_handlers::font::decrease_size(state.clone()),
+                        GlobalShortcut::IncreaseFontSize => utils::keyboard::shortcut_handlers::font::increase_size(state),
+                        GlobalShortcut::DecreaseFontSize => utils::keyboard::shortcut_handlers::font::decrease_size(state),
                         GlobalShortcut::OpenCloseDevTools => utils::keyboard::shortcut_handlers::dev::open_close_dev_tools(),
-                        GlobalShortcut::ToggleDevmode => utils::keyboard::shortcut_handlers::dev::toggle_devmode(state.clone()),
+                        GlobalShortcut::ToggleDevmode => utils::keyboard::shortcut_handlers::dev::toggle_devmode(state),
                         GlobalShortcut::SetAppVisible => utils::keyboard::shortcut_handlers::navigation::set_app_visible(),
                         GlobalShortcut::Unknown => log::error!("Unknown `Shortcut` called!")
                     }
@@ -276,7 +276,7 @@ fn app_layout() -> Element {
 }
 
 fn AppStyle() -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     rsx! {
         style { {get_app_style(&state.read())} },
     }
@@ -372,12 +372,12 @@ fn use_auto_updater() -> Option<()> {
 
 fn use_app_coroutines() -> Option<()> {
     let desktop = use_window();
-    let mut desktop_signal = use_signal(|| desktop.clone());
+    let desktop_signal = use_signal(|| desktop.clone());
 
     let mut state = use_context::<Signal<State>>();
 
     // don't fetch stuff from warp when using mock data
-    let mut items_init = use_signal(|| STATIC_ARGS.use_mock);
+    let items_init = use_signal(|| STATIC_ARGS.use_mock);
 
     // `use_future`s
     // all of Uplinks periodic tasks are located here. it's a lot to read but
@@ -405,7 +405,7 @@ fn use_app_coroutines() -> Option<()> {
     // Thus we bind to the resize event itself and update the size from the webview.
     // TODO(Migration_0.5): Verify this function later
     // let mut webview = use_signal(|| desktop.clone().webview);
-    let mut first_resize = use_signal(|| true);
+    let _first_resize = use_signal(|| true);
 
     // TODO(Migration_0.5): Verify this function later
     // use_wry_event_handler({
@@ -747,7 +747,7 @@ fn use_app_coroutines() -> Option<()> {
         let window_cmd_rx = WINDOW_CMD_CH.rx.clone();
         let mut ch = window_cmd_rx.lock().await;
         while let Some(cmd) = ch.recv().await {
-            window_manager::handle_cmd(state.clone(), cmd, desktop_signal()).await;
+            window_manager::handle_cmd(state, cmd, desktop_signal()).await;
         }
     });
 
@@ -1012,12 +1012,11 @@ pub fn get_download_modal(
     //on_submit: EventHandler<PathBuf>,
     on_dismiss: EventHandler<()>,
 ) -> Element {
-    let mut download_location: Signal<Option<PathBuf>> = use_signal(|| None);
+    let download_location: Signal<Option<PathBuf>> = use_signal(|| None);
 
     let dl = download_location.read();
     let _disp_download_location = dl
         .as_ref()
-        .clone()
         .map(|x| x.to_string_lossy().to_string())
         .unwrap_or_default();
 
@@ -1074,10 +1073,10 @@ pub fn get_download_modal(
 }
 
 fn AppLogger() -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
 
     if !state.read().initialized {
-        return rsx!({ () });
+        return rsx!({  });
     }
 
     rsx!({
@@ -1091,7 +1090,7 @@ fn AppLogger() -> Element {
 }
 
 fn Toasts() -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     rsx!({
         state
             .read()
@@ -1132,7 +1131,7 @@ fn Titlebar() -> Element {
 
 fn use_router_notification_listener() -> Option<()> {
     // this use_future replaces the notification_action_handler.
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let navigator = use_navigator();
     use_resource(move || {
         to_owned![state, navigator];

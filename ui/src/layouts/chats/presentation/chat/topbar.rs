@@ -42,10 +42,10 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
     let mut state = use_context::<Signal<State>>();
 
     let chat_data = use_context::<Signal<ChatData>>();
-    let mut show_group_users_signal = props.show_group_users.clone();
-    let mut show_rename_group_signal = props.show_rename_group.clone();
-    let mut show_manage_members_signal = props.show_manage_members.clone();
-    let mut show_group_settings_signal = props.show_group_settings.clone();
+    let mut show_group_users_signal = props.show_group_users;
+    let mut show_rename_group_signal = props.show_rename_group;
+    let mut show_manage_members_signal = props.show_manage_members;
+    let mut show_group_settings_signal = props.show_group_settings;
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<EditGroupCmd>| async move {
         let warp_cmd_tx = WARP_CMD_CH.tx.clone();
@@ -208,7 +208,7 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
                         show_rename_group_signal.set(false);
                     }
                 },
-                if props.show_rename_group.read().clone() {{rsx! (
+                if *props.show_rename_group.read() {{rsx! (
                     div {
                         id: "edit-group-name",
                         class: "edit-group-name",

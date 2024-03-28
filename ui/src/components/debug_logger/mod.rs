@@ -33,7 +33,7 @@ pub enum Tab {
 pub fn DebugLogger() -> Element {
     let window = use_window();
 
-    let mut logs_to_show = use_signal(logger::load_debug_log);
+    let logs_to_show = use_signal(logger::load_debug_log);
 
     use_resource(move || {
         to_owned![logs_to_show];

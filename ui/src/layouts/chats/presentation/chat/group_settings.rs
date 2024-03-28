@@ -31,7 +31,7 @@ pub fn GroupSettings() -> Element {
         }
     };
 
-    let mut group_settings_state = use_signal(|| get_group_settings());
+    let group_settings_state = use_signal(get_group_settings);
 
     let group_settings_changed_channel =
         use_coroutine(|mut rx: UnboundedReceiver<GroupSettingsChange>| {

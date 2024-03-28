@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::path::Path;
-use std::path::PathBuf;
+
 use std::time::Duration;
 
 use common::icons::outline::Shape as Icon;
@@ -51,14 +51,14 @@ pub fn FilesLayout() -> Element {
     let mut state = use_context::<Signal<State>>();
     state.write_silent().ui.current_layout = ui::Layout::Storage;
     let mut storage_controller = StorageController::new(state);
-    let mut upload_file_controller = UploadFileController::new(state.clone());
-    let window = use_window();
-    let files_in_queue_to_upload = upload_file_controller.files_in_queue_to_upload.clone();
-    let files_been_uploaded = upload_file_controller.files_been_uploaded.clone();
-    let files_in_queue_to_upload2 = files_in_queue_to_upload.clone();
-    let files_been_uploaded2 = files_been_uploaded.clone();
+    let mut upload_file_controller = UploadFileController::new(state);
+    let _window = use_window();
+    let files_in_queue_to_upload = upload_file_controller.files_in_queue_to_upload;
+    let files_been_uploaded = upload_file_controller.files_been_uploaded;
+    let files_in_queue_to_upload2 = files_in_queue_to_upload;
+    let files_been_uploaded2 = files_been_uploaded;
     let mut send_files_from_storage = use_signal(|| false);
-    let mut files_pre_selected_to_send: Signal<Vec<Location>> = use_signal(Vec::new);
+    let files_pre_selected_to_send: Signal<Vec<Location>> = use_signal(Vec::new);
     let _router = use_navigator();
     let show_slimbar = state.read().show_slimbar() & !state.read().ui.is_minimal_view();
     let file_tracker = use_context::<Signal<TransferTracker>>();
@@ -66,7 +66,7 @@ pub fn FilesLayout() -> Element {
     functions::use_allow_block_folder_nav(files_in_queue_to_upload);
 
     let ch: Coroutine<ChanCmd> =
-        functions::init_coroutine(storage_controller.clone(), state, file_tracker);
+        functions::init_coroutine(storage_controller, state, file_tracker);
 
     use_resource(move || {
         to_owned![files_been_uploaded, files_in_queue_to_upload];
@@ -170,7 +170,7 @@ pub fn FilesLayout() -> Element {
                                 .await
                                 .expect("Should succeed");
                             if !files_local_path.is_empty() {
-                                functions::add_files_in_queue_to_upload(files_in_queue_to_upload2.clone(), files_local_path);
+                                functions::add_files_in_queue_to_upload(files_in_queue_to_upload2, files_local_path);
                                 files_been_uploaded2.with_mut(|i| *i = true);
                             }
                         }});
@@ -276,7 +276,7 @@ pub fn FilesLayout() -> Element {
                                         {get_local_text("files.storage-max-size")},
                                         span {
                                             class: "count",
-                                            {format!("{}", storage_controller.read().storage_size.0)},
+                                            {storage_controller.read().storage_size.0.to_string()},
                                         }
                                     },
                                     p {
@@ -285,7 +285,7 @@ pub fn FilesLayout() -> Element {
                                         {get_local_text("files.storage-current-size")},
                                         span {
                                             class: "count",
-                                            {format!("{}", storage_controller.read().storage_size.1)},
+                                            {storage_controller.read().storage_size.1.to_string()},
                                         }
                                     },
                                 )}
@@ -301,7 +301,7 @@ pub fn FilesLayout() -> Element {
                 }
             },
             FilesBreadcumbs {
-                storage_controller: storage_controller.clone(),
+                storage_controller: storage_controller,
                 send_files_mode: false,
             },
             if storage_controller.read().files_list.is_empty()
@@ -317,7 +317,7 @@ pub fn FilesLayout() -> Element {
                     )}
                } else {
                 {rsx!(FilesAndFolders {
-                    storage_controller: storage_controller.clone(),
+                    storage_controller: storage_controller,
                     on_click_share_files: move |files_pre_selected: Vec<Location>| {
                         *files_pre_selected_to_send.write_silent() = files_pre_selected;
                         send_files_from_storage.set(true);

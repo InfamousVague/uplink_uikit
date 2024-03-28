@@ -1,4 +1,4 @@
-use base64::{engine::general_purpose, Engine};
+
 use common::{
     icons::outline::Shape, language::get_local_text, utils::lifecycle::use_component_lifecycle,
     STATIC_ARGS,
@@ -36,14 +36,14 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn CropRectImageModal(props: Props) -> Element {
-    let mut large_thumbnail = use_signal(|| props.large_thumbnail.clone());
+    let large_thumbnail = use_signal(|| props.large_thumbnail.clone());
 
     let mut image_scale: Signal<f32> = use_signal(|| 1.0);
     let mut crop_image = use_signal(|| true);
-    let mut cropped_image_pathbuf = use_signal(PathBuf::new);
+    let cropped_image_pathbuf = use_signal(PathBuf::new);
     let mut clicked_button_to_crop = use_signal(|| false);
 
-    let mut image_dimensions = use_signal(|| ImageDimensions {
+    let image_dimensions = use_signal(|| ImageDimensions {
         height: 0,
         width: 0,
     });
@@ -58,7 +58,7 @@ pub fn CropRectImageModal(props: Props) -> Element {
         to_owned![image_dimensions];
         async move {
             while image_dimensions.read().width == 0 && image_dimensions.read().height == 0 {
-                let mut eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
+                let eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
                 if let Ok(val) = eval_result.join().await {
                     *image_dimensions.write_silent() = ImageDimensions {
                         height: val["height"].as_i64().unwrap_or_default(),
@@ -78,7 +78,7 @@ pub fn CropRectImageModal(props: Props) -> Element {
         },
     );
 
-    return rsx!(div {
+    rsx!(div {
             Modal {
                 open: crop_image(),
                 onclose: move |_| {
@@ -133,7 +133,7 @@ pub fn CropRectImageModal(props: Props) -> Element {
                                         async move {
                                             let save_image_cropped_js = SAVE_CROPPED_IMAGE_SCRIPT
                                             .replace("$IMAGE_SCALE", (1.0 / *image_scale.read()).to_string().as_str());
-                                            let mut eval_result = eval(&save_image_cropped_js);
+                                            let eval_result = eval(&save_image_cropped_js);
                                                 if let Ok(val) = eval_result.join().await {
                                                     let thumbnail = val.as_str().unwrap_or_default();
                                                     let base64_string = thumbnail.trim_matches('\"');
@@ -231,5 +231,5 @@ pub fn CropRectImageModal(props: Props) -> Element {
                 }
             }
         },
-    );
+    )
 }

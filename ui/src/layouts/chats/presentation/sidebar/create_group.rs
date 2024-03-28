@@ -38,8 +38,8 @@ pub fn CreateGroup(props: Props) -> Element {
     log::trace!("rendering create_group");
     let mut state = use_context::<Signal<State>>();
     let router = use_navigator();
-    let mut friend_prefix = use_signal(|| String::new());
-    let mut selected_friends: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
+    let mut friend_prefix = use_signal(String::new);
+    let selected_friends: Signal<HashSet<DID>> = use_signal(HashSet::new);
     let mut chat_with: Signal<Option<Uuid>> = use_signal(|| None);
     let mut group_name = use_signal(|| Some(String::new()));
     let friends_list = HashMap::from_iter(
@@ -68,7 +68,7 @@ pub fn CreateGroup(props: Props) -> Element {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
             while rx.next().await.is_some() {
                 let recipients: Vec<DID> = selected_friends.read().iter().cloned().collect();
-                let group_name: Option<String> = group_name.read().as_ref().clone().cloned();
+                let group_name: Option<String> = group_name.read().as_ref().cloned();
                 let group_name_string = group_name.clone().unwrap_or_default();
 
                 let (tx, rx) = oneshot::channel();
@@ -162,8 +162,8 @@ pub fn CreateGroup(props: Props) -> Element {
             }
             render_friends {
                 friends: _friends,
-                name_prefix: friend_prefix.clone(),
-                selected_friends: selected_friends.clone()
+                name_prefix: friend_prefix,
+                selected_friends: selected_friends
             },
             Button {
                 text: get_local_text("messages.create-group-chat"),
@@ -223,7 +223,7 @@ fn render_friends(props: FriendsProps) -> Element {
                                 rsx!(
                                 render_friend {
                                     friend: _friend.clone(),
-                                    selected_friends: props.selected_friends.clone()
+                                    selected_friends: props.selected_friends
                                 }
                             )})
                         }
@@ -241,8 +241,8 @@ pub struct FriendProps {
 }
 fn render_friend(props: FriendProps) -> Element {
     let mut is_checked = use_signal(|| false);
-    let mut selected_friends = props.selected_friends.clone();
-    let mut friend = use_signal(|| props.friend.clone());
+    let mut selected_friends = props.selected_friends;
+    let friend = use_signal(|| props.friend.clone());
     if !*is_checked.read() && selected_friends.read().contains(&props.friend.did_key()) {
         is_checked.set(true);
     }

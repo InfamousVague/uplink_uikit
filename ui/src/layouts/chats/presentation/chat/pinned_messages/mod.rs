@@ -47,7 +47,7 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn PinnedMessages(props: Props) -> Element {
     log::trace!("rendering pinned_messages");
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let chat_data = use_context::<Signal<ChatData>>();
     let minimal = state.read().ui.metadata.minimal_view;
 
@@ -161,11 +161,11 @@ pub fn PinnedMessages(props: Props) -> Element {
                         sender: sender,
                         onremove: move |(_,msg): (Event<MouseData>, warp::raygun::Message)| {
                             let conv = &msg.conversation_id();
-                            ch.send(ChannelCommand::RemovePinnedMessage{ conversation_id: *conv, message_id: msg.id(), show_pinned: props.show_pinned.clone() })
+                            ch.send(ChannelCommand::RemovePinnedMessage{ conversation_id: *conv, message_id: msg.id(), show_pinned: props.show_pinned })
                         },
                         time: time,
                         onclick: move |_| {
-                            ch.send(ChannelCommand::GoToPinnedMessage{conversation_id, message_id, message_date, show_pinned: props.show_pinned.clone()});
+                            ch.send(ChannelCommand::GoToPinnedMessage{conversation_id, message_id, message_date, show_pinned: props.show_pinned});
                         }
                     },
      )
@@ -188,7 +188,7 @@ pub struct PinnedMessageProp {
 
 #[allow(non_snake_case)]
 pub fn PinnedMessage(props: PinnedMessageProp) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let message = &props.message;
     let attachments = message.attachments();
 

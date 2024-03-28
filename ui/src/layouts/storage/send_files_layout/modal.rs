@@ -33,7 +33,7 @@ pub fn SendFilesLayoutModal(props: SendFilesLayoutModalProps) -> Element {
                     class: "modal-div-files-layout",
                     SendFilesLayout {
                         send_files_start_location: send_files_start_location,
-                        send_files_from_storage_state: send_files_from_storage.clone(),
+                        send_files_from_storage_state: send_files_from_storage,
                         files_pre_selected_to_send: files_pre_selected_to_send,
                         on_files_attached: move |(files_location, convs_id): (Vec<Location>, Vec<Uuid>)| {
                             props.on_send.call((files_location, convs_id));

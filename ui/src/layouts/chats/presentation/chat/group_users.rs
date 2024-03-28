@@ -28,8 +28,8 @@ pub struct Props {
 
 pub fn GroupUsers(props: Props) -> Element {
     log::trace!("rendering group_users");
-    let mut state = use_context::<Signal<State>>();
-    let mut friend_prefix = use_signal(|| String::new());
+    let state = use_context::<Signal<State>>();
+    let mut friend_prefix = use_signal(String::new);
 
     let quickprofile_data = &props.quickprofile_data;
 
@@ -89,10 +89,10 @@ pub fn GroupUsers(props: Props) -> Element {
             }
             render_friends {
                 group_participants: group_participants,
-                name_prefix: friend_prefix.clone(),
+                name_prefix: friend_prefix,
                 creator: creator_id,
                 is_dev: state.read().configuration.developer.developer_mode,
-                context_data: quickprofile_data.clone(),
+                context_data: *quickprofile_data,
             }
         }
     )
@@ -136,7 +136,7 @@ fn render_friends(props: FriendsProps) -> Element {
                                 friend: _friend.clone(),
                                 is_creator: friendid == creator,
                                 is_dev: props.is_dev,
-                                context_data: props.context_data.clone(),
+                                context_data: props.context_data,
                             }
                         )})}
                     }
@@ -161,8 +161,8 @@ pub struct FriendProps {
     context_data: Signal<Option<(f64, f64, Identity, bool)>>,
 }
 fn render_friend(props: FriendProps) -> Element {
-    let mut friend = use_signal(|| props.friend.clone());
-    let mut context_data = props.context_data.clone();
+    let friend = use_signal(|| props.friend.clone());
+    let mut context_data = props.context_data;
     rsx!(
         div {
             class: "friend-container",

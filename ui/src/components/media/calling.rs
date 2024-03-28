@@ -65,7 +65,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn CallControl(props: Props) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     match state().ui.call_info.active_call() {
         Some(call) => rsx!(ActiveCallControl {
             active_call: call,
@@ -82,7 +82,7 @@ pub fn CallControl(props: Props) -> Element {
                 call: call.clone(),
                 in_chat: props.in_chat,
             }),
-            None => rsx!({ () }),
+            None => rsx!({  }),
         },
     }
 }
@@ -102,18 +102,18 @@ pub struct ActiveCallProps {
 #[allow(non_snake_case)]
 fn ActiveCallControl(props: ActiveCallProps) -> Element {
     log::trace!("Rendering active call window");
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let active_call: ActiveCall = props.active_call.clone();
-    let active_call_id = active_call.call.id;
+    let _active_call_id = active_call.call.id;
     let active_call_answer_time = active_call.answer_time;
     let scope_id = current_scope_id();
     let outgoing = active_call.call.participants_joined.is_empty();
-    let update_fn = use_signal(|| schedule_update_any());
+    let update_fn = use_signal(schedule_update_any);
 
-    let mut recording = use_signal(|| false);
+    let recording = use_signal(|| false);
 
-    let mut scope_id_signal = use_signal(|| scope_id);
-    let mut answer_time_signal = use_signal(|| active_call_answer_time);
+    let scope_id_signal = use_signal(|| scope_id);
+    let answer_time_signal = use_signal(|| active_call_answer_time);
 
     use_resource(move || async move {
         loop {
@@ -314,12 +314,12 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
         match state.read().get_active_chat() {
             None => {
                 if props.in_chat {
-                    return rsx!({ () });
+                    return rsx!({  });
                 }
             }
             Some(c) => {
                 if active_call.call.conversation_id.eq(&c.id) != props.in_chat {
-                    return rsx!({ () });
+                    return rsx!({  });
                 }
             }
         };
@@ -331,7 +331,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
     let participants_name = State::join_usernames(&other_participants);
     let self_id = build_user_from_identity(&state.read().get_own_identity());
 
-    let mut other_participants_in_call = use_signal(|| other_participants.clone());
+    let other_participants_in_call = use_signal(|| other_participants.clone());
 
     use_effect(move || {
         to_owned![ch, state];
@@ -513,7 +513,7 @@ pub struct PendingCallProps {
 #[allow(non_snake_case)]
 fn PendingCallDialog(props: PendingCallProps) -> Element {
     log::trace!("Rendering pending call window");
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let ch = use_coroutine(|mut rx| {
         to_owned![state];
         async move {
@@ -568,17 +568,17 @@ fn PendingCallDialog(props: PendingCallProps) -> Element {
         match state.read().get_active_chat() {
             None => {
                 if props.in_chat {
-                    return rsx!({ () });
+                    return rsx!({  });
                 }
             }
             Some(c) => {
                 if call.conversation_id.eq(&c.id) != props.in_chat {
-                    return rsx!({ () });
+                    return rsx!({  });
                 }
             }
         };
     }
-    let mut alive = use_signal(|| Arc::new(AtomicBool::new(false)));
+    let alive = use_signal(|| Arc::new(AtomicBool::new(false)));
     use_effect(move || {
         to_owned![alive];
         spawn(async move { PlayUntil(ContinuousSound::RingTone, alive.read().clone()) });
@@ -696,8 +696,8 @@ pub struct CallUserImageProps {
 
 #[allow(non_snake_case)]
 pub fn CallUserImageGroup(props: CallUserImageProps) -> Element {
-    let mut amount = use_signal(|| 3);
-    let mut id = use_signal(|| Uuid::new_v4());
+    let amount = use_signal(|| 3);
+    let id = use_signal(Uuid::new_v4);
     use_effect(move || {
         to_owned![amount];
         spawn(async move {

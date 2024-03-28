@@ -24,7 +24,7 @@ pub fn FileTransferModal<'a>(props: Props) -> Element {
         tracker.get_tracker(TrackerType::FileDownload),
     );
     if file_progress_upload.is_empty() && file_progress_download.is_empty() {
-        return rsx!({ () });
+        return rsx!({  });
     }
     let modal = props.modal.unwrap_or_default();
     rsx!(div {
@@ -107,7 +107,7 @@ pub fn FileTransferElement(props: TransferProps) -> Element {
                         {f.description.as_ref().map(|desc|rsx!(div {
                             class: "file-progress-description",
                             aria_label: "file-progress-description",
-                            {format!("{}", desc)}
+                            {desc.to_string()}
                         }))},
                     },
                     div {

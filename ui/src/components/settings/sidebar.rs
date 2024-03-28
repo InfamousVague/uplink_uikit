@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use common::icons::outline::Shape as Icon;
 use common::language::get_local_text;
-use common::sounds;
+
 use common::state::State;
 use dioxus::prelude::*;
 use kit::{
@@ -84,8 +84,8 @@ pub fn emit(props: Props, e: Page) {
 }
 
 #[allow(non_snake_case)]
-pub fn Sidebar(props: Props) -> Element {
-    let mut state = use_context::<Signal<State>>();
+pub fn Sidebar(_props: Props) -> Element {
+    let state = use_context::<Signal<State>>();
     let page = use_context::<Signal<Page>>();
     let _router = dioxus_router::hooks::use_navigator();
 
@@ -232,7 +232,7 @@ pub fn Sidebar(props: Props) -> Element {
                 routes: routes.clone(),
                 active: active_route.to,
                 bubble: true,
-                onnavigate: move |route| {
+                onnavigate: move |_route| {
                     // TODO(Migration_0.5): Look this
                     // if state.read().configuration.audiovideo.interface_sounds {
                     //    sounds::Play(sounds::Sounds::Interaction);

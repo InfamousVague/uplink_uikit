@@ -83,7 +83,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
         None => false,
     };
 
-    let mut update_script_signal = use_signal(|| props.update_script.clone());
+    let update_script_signal = use_signal(|| props.update_script);
 
     use_resource(move || async move {
         if !update_script_signal()().is_empty() {
@@ -336,7 +336,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                     p {
                         class: "text",
                         aria_label: "profile-name-value",
-                        {format!("{}", identity.username())}
+                        {identity.username().to_string()}
                     }
                 }
                 {identity.status_message().and_then(|s|{
@@ -487,11 +487,11 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
         {share_did.as_ref().map(|_|{
             match state.read().get_active_chat() {
                 Some(chat) => rsx!(ShareFriendsModal{
-                    did: share_did.clone(),
+                    did: share_did,
                     excluded_chat: chat.id
                 }),
                 None => rsx!(ShareFriendsModal{
-                    did: share_did.clone(),
+                    did: share_did,
                 })
             }
         })},

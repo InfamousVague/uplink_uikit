@@ -33,8 +33,8 @@ pub enum AuthPages {
 pub fn AuthGuard(page: Signal<AuthPages>) -> Element {
     log::trace!("rendering auth guard");
 
-    let mut pin = use_signal(String::new);
-    let mut seed_words = use_signal(String::new);
+    let pin = use_signal(String::new);
+    let seed_words = use_signal(String::new);
     let desktop = use_window();
     let theme = "";
 
@@ -63,11 +63,11 @@ pub fn AuthGuard(page: Signal<AuthPages>) -> Element {
             },
 
             match *page.read() {
-                AuthPages::EntryPoint => rsx!(entry_point::Layout { page: page.clone(), pin: pin.clone() }),
-                AuthPages::EnterUserName => rsx!(enter_username::Layout { page: page.clone(), pin: pin.clone(), seed_words: seed_words.clone() }),
-                AuthPages::CreateOrRecover => rsx!(create_or_recover::Layout { page: page.clone() }),
-                AuthPages::EnterSeedWords => rsx!(enter_seed_words::Layout { page: page.clone(), pin: pin.clone(), }),
-                AuthPages::CopySeedWords => rsx!(copy_seed_words::Layout { page: page.clone(), seed_words: seed_words.clone() }),
+                AuthPages::EntryPoint => rsx!(entry_point::Layout { page: page, pin: pin }),
+                AuthPages::EnterUserName => rsx!(enter_username::Layout { page: page, pin: pin, seed_words: seed_words }),
+                AuthPages::CreateOrRecover => rsx!(create_or_recover::Layout { page: page }),
+                AuthPages::EnterSeedWords => rsx!(enter_seed_words::Layout { page: page, pin: pin, }),
+                AuthPages::CopySeedWords => rsx!(copy_seed_words::Layout { page: page, seed_words: seed_words }),
                 _ => unreachable!("this view should disappear when an account is unlocked or created"),
             }
         }

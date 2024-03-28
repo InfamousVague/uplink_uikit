@@ -45,14 +45,14 @@ pub struct SendFilesProps {
 
 #[allow(non_snake_case)]
 pub fn SendFilesLayout(props: SendFilesProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let send_files_start_location = props.send_files_start_location.clone();
-    let send_files_from_storage_state = props.send_files_from_storage_state.clone();
+    let send_files_from_storage_state = props.send_files_from_storage_state;
     let storage_controller = StorageController::new(state);
-    let mut first_render = use_signal(|| true);
+    let first_render = use_signal(|| true);
     let file_tracker = use_context::<Signal<TransferTracker>>();
     let ch: Coroutine<ChanCmd> =
-        functions::init_coroutine(storage_controller.clone(), state, file_tracker);
+        functions::init_coroutine(storage_controller, state, file_tracker);
     let in_files = send_files_start_location.eq(&SendFilesStartLocation::Storage);
     functions::get_items_from_current_directory(ch);
 
@@ -66,7 +66,7 @@ pub fn SendFilesLayout(props: SendFilesProps) -> Element {
 
     storage_controller
         .write_silent()
-        .update_current_dir_path(state.clone());
+        .update_current_dir_path(state);
 
     rsx!(div {
         id: "send-files-layout",
@@ -76,8 +76,8 @@ pub fn SendFilesLayout(props: SendFilesProps) -> Element {
             aria_label: "send-files-body",
             SendFilesTopbar {
                 send_files_start_location: send_files_start_location.clone(),
-                send_files_from_storage_state: send_files_from_storage_state.clone(),
-                storage_controller: storage_controller.clone(),
+                send_files_from_storage_state: send_files_from_storage_state,
+                storage_controller: storage_controller,
                 on_send: move |files_location_path| {
                     props.on_files_attached.call((files_location_path, storage_controller.with(|f| f.chats_selected_to_send.clone())));
                 },
@@ -85,11 +85,11 @@ pub fn SendFilesLayout(props: SendFilesProps) -> Element {
             }
             if in_files {
                 ChatsToSelect {
-                    storage_controller: storage_controller.clone(),
+                    storage_controller: storage_controller,
                 }
             }
             FilesBreadcumbs {
-                storage_controller: storage_controller.clone(),
+                storage_controller: storage_controller,
                 send_files_mode: true,
             },
             if storage_controller.read().files_list.is_empty()
@@ -102,7 +102,7 @@ pub fn SendFilesLayout(props: SendFilesProps) -> Element {
                         }
                } else {
                 FilesAndFolders {
-                    storage_controller: storage_controller.clone(),
+                    storage_controller: storage_controller,
                     send_files_mode: true,
                 }
                }
@@ -117,8 +117,8 @@ struct ChatsToSelectProps {
 
 #[allow(non_snake_case)]
 fn ChatsToSelect(props: ChatsToSelectProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
-    let mut storage_controller = props.storage_controller.clone();
+    let state = use_context::<Signal<State>>();
+    let mut storage_controller = props.storage_controller;
 
     rsx!(div {
         id: "all_chats",

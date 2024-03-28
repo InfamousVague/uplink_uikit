@@ -85,7 +85,7 @@ pub type DownloadTracker = HashMap<Uuid, HashSet<warp::constellation::file::File
 pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>>) -> Element {
     log::trace!("get_messages");
     use_context_provider(|| -> DownloadTracker { HashMap::new() });
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let chat_data = use_context::<Signal<ChatData>>();
     let scroll_btn = use_context::<Signal<ScrollBtn>>();
     let pending_downloads = use_context::<Signal<DownloadTracker>>();
@@ -140,7 +140,7 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
                     if behavior.on_scroll_end != data::ScrollBehavior::DoNothing {
                         return;
                     }
-                    let mut eval_result = eval(scripts::READ_SCROLL);
+                    let eval_result = eval(scripts::READ_SCROLL);
                     if let Ok(result) = eval_result.join().await {
                         let scroll = result.as_i64().unwrap_or_default();
                         chat_data.write_silent().set_scroll_value(active_chat_id, scroll);
@@ -235,7 +235,7 @@ impl PartialEq for MessageGroupProps {
 }
 
 fn render_message_group(props: MessageGroupProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
 
     let MessageGroupProps {
         group,
@@ -371,13 +371,13 @@ fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
         .extensions
         .enabled_extension(emoji_selector_extension);
 
-    let mut messages = use_signal(|| props.messages.clone());
+    let messages = use_signal(|| props.messages.clone());
     let messages_no_signal = messages();
 
     let ch = use_coroutine_handle::<MessagesCommand>();
     rsx!({
         messages_no_signal.iter().cloned().map(|grouped_message| {
-let mut message = use_signal(|| grouped_message.message.clone());
+let message = use_signal(|| grouped_message.message.clone());
         let sender_is_self = message().inner.sender() == state.read().did_key();
 
         // WARNING: these keys are required to prevent a bug with the context menu, which manifests when deleting messages.
@@ -396,7 +396,7 @@ let mut message = use_signal(|| grouped_message.message.clone());
                 message: grouped_message.clone(),
                 is_remote: props.is_remote,
                 message_key: message_key,
-                edit_msg: edit_msg.clone(),
+                edit_msg: edit_msg,
                 pending: props.pending
             });
         }
@@ -410,7 +410,7 @@ let mut message = use_signal(|| grouped_message.message.clone());
                 message: grouped_message.clone(),
                 is_remote: props.is_remote,
                 message_key: message_key,
-                edit_msg: edit_msg.clone(),
+                edit_msg: edit_msg,
                 pending: props.pending
             }),
             items: rsx!(
@@ -458,7 +458,7 @@ let mut message = use_signal(|| grouped_message.message.clone());
                     text: get_local_text("messages.react"),
                     disabled: !has_extension,
                     tooltip:  if has_extension {
-                        rsx!({()})
+                        rsx!({})
                     } else {
                         rsx!(Tooltip {
                             arrow_position: ArrowPosition::Top,
@@ -573,7 +573,7 @@ fn render_message(props: MessageProps) -> Element {
         mut edit_msg,
         pending: _,
     } = props;
-    let mut message = use_signal(|| grouped_message.message);
+    let message = use_signal(|| grouped_message.message);
     let is_editing = edit_msg
         .read()
         .map(|id| !props.is_remote && (id == message().inner.id()))
@@ -726,11 +726,11 @@ pub struct PendingMessagesListenerProps {
 
 //The component that listens for upload events
 pub fn render_pending_messages_listener(props: PendingMessagesListenerProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     state.write_silent().scope_ids.pending_message_component = Some(current_scope_id().unwrap().0);
     let chat = match state.read().get_active_chat() {
         Some(c) => c,
-        None => return rsx!({ () }),
+        None => return rsx!({  }),
     };
     rsx!(pending_wrapper {
         msg: chat.pending_outgoing_messages,

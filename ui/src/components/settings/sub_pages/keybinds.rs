@@ -94,8 +94,8 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
     let mut is_recording = use_signal(|| false);
     let mut update_keybind = use_signal(|| None);
     let system_shortcut = Shortcut::get_system_shortcut(&state, props.shortcut.clone());
-    let mut new_keybind_has_one_key = use_signal(|| false);
-    let mut new_keybind_has_at_least_one_modifier = use_signal(|| false);
+    let new_keybind_has_one_key = use_signal(|| false);
+    let new_keybind_has_at_least_one_modifier = use_signal(|| false);
     let aria_label = props.aria_label.clone().unwrap_or_default();
 
     if update_keybind.read().is_some() && !is_recording() {
@@ -130,7 +130,7 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
         .map(|(_, sc)| sc.clone())
         .unwrap_or_default();
 
-    let mut recorded_bindings = use_signal(|| Vec::new());
+    let mut recorded_bindings = use_signal(Vec::new);
 
     let script = AVOID_INPUT_ON_DIV.replace("$UUID", keybind_section_id.as_str());
     let _ = eval(&script);
@@ -259,8 +259,8 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
 pub fn KeybindSettings() -> Element {
     let mut state = use_context::<Signal<State>>();
     let bindings = state.read().settings.keybinds.clone();
-    let mut state2 = state.clone();
-    let mut state3 = state.clone();
+    let mut state2 = state;
+    let mut state3 = state;
 
     use_component_lifecycle(
         move || {

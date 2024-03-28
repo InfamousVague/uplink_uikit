@@ -22,13 +22,13 @@ pub struct SearchProps {
 }
 
 pub fn search_friends(props: SearchProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     if props.identities.read().is_empty() || !*props.search_friends_is_focused.read() {
         return None;
     }
 
     let mut friends_identities = props.friends_identities.read().clone();
-    let mut search_friends_is_focused = props.search_friends_is_focused.clone();
+    let mut search_friends_is_focused = props.search_friends_is_focused;
     let chats = props.chats.read().clone();
 
     friends_identities.sort_by_key(|identity| identity.username());

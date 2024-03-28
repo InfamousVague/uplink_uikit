@@ -73,11 +73,11 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
         .map(|c| c.id == active_chat_id)
         .unwrap_or_default();
 
-    let mut is_loading = !state_matches_active_chat || !chat_data.read().active_chat.is_initialized;
+    let is_loading = !state_matches_active_chat || !chat_data.read().active_chat.is_initialized;
     let mut can_send = use_signal(|| state.read().active_chat_has_draft());
     let mut update_script = use_signal(String::new);
     // TODO(Migration_0.5): Look after migration
-    let mut upload_button_menu_uuid = use_signal(|| Uuid::new_v4().to_string());
+    let upload_button_menu_uuid = use_signal(|| Uuid::new_v4().to_string());
     let mut show_storage_modal = use_signal(|| false);
 
     let mut suggestions = use_signal(|| SuggestionType::None);
@@ -146,11 +146,11 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
     let scroll_ch = coroutines::get_scroll_ch(&chat_data, &state);
     let msg_ch: Coroutine<MsgChInput> = coroutines::get_msg_ch(&state);
     let local_typing_ch = coroutines::get_typing_ch();
-    let local_typing_ch2 = local_typing_ch.clone();
+    let local_typing_ch2 = local_typing_ch;
 
     // drives the sending of TypingIndicator
-    let local_typing_ch1 = local_typing_ch.clone();
-    let mut enable_paste_shortcut = use_signal(|| true);
+    let local_typing_ch1 = local_typing_ch;
+    let enable_paste_shortcut = use_signal(|| true);
 
     use_resource(move || {
         to_owned![enable_paste_shortcut];
@@ -179,7 +179,7 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
         }
     });
 
-    let mut current_chat = use_signal(|| active_chat_id);
+    let current_chat = use_signal(|| active_chat_id);
 
     use_resource(move || async move {
         loop {

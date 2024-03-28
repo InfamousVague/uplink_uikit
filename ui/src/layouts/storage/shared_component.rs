@@ -1,4 +1,4 @@
-use std::borrow::{Borrow, BorrowMut};
+
 
 use crate::layouts::storage::functions::{self, download_file, ChanCmd};
 use crate::layouts::storage::send_files_layout::send_files_components::{
@@ -86,9 +86,9 @@ pub struct FilesAndFoldersProps {
 #[allow(non_snake_case)]
 pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let send_files_mode = props.send_files_mode.clone();
-    let mut storage_controller = props.storage_controller.clone();
-    let storage_controller_immutable = props.storage_controller.clone();
+    let send_files_mode = props.send_files_mode;
+    let mut storage_controller = props.storage_controller;
+    let storage_controller_immutable = props.storage_controller;
     let ch = use_coroutine_handle();
 
     rsx!(span {
@@ -273,7 +273,7 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                             class: "file-wrap",
                             FileCheckbox {
                                 file_path: file_path.clone(),
-                                storage_controller: storage_controller.clone(),
+                                storage_controller: storage_controller,
                                 is_selecting_files: send_files_mode,
                             },
                             File {
@@ -284,7 +284,7 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                 with_rename: storage_controller.with(|i| i.is_renaming_map == Some(key)),
                                 onpress: move |_| {
                                     if send_files_mode {
-                                        toggle_selected_file(storage_controller.clone(), file_path2.clone());
+                                        toggle_selected_file(storage_controller, file_path2.clone());
                                         return;
                                     }
                                     let key = file_id;

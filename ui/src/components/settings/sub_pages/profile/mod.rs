@@ -113,7 +113,7 @@ pub fn ProfileSettings() -> Element {
         }
     });
 
-    let mut phrase_exists = use_signal(|| false);
+    let phrase_exists = use_signal(|| false);
     let seed_phrase_exists = use_coroutine(|mut rx: UnboundedReceiver<()>| {
         to_owned![phrase_exists];
         async move {
@@ -213,7 +213,7 @@ pub fn ProfileSettings() -> Element {
             .mutate(common::state::Action::AddToastNotification(
                 ToastNotification::init(
                     get_local_text("warning-messages.error"),
-                    msg.into(),
+                    msg,
                     Some(common::icons::outline::Shape::ExclamationTriangle),
                     2,
                 ),
@@ -326,7 +326,7 @@ pub fn ProfileSettings() -> Element {
 
     let change_banner_text = get_local_text("settings-profile.change-banner");
 
-    let mut store_phrase = use_signal(|| true);
+    let store_phrase = use_signal(|| true);
 
     if *first_render.read() {
         seed_phrase_exists.send(());
@@ -409,7 +409,7 @@ pub fn ProfileSettings() -> Element {
                         style: "background-image: url({banner});",
                         onclick: move |mouse_event_data| {
                             if mouse_event_data.modifiers() != Modifiers::CONTROL {
-                                set_banner(open_crop_image_modal_for_banner_picture.clone());
+                                set_banner(open_crop_image_modal_for_banner_picture);
                             }
                         },
                         p {class: "change-banner-text", "{change_banner_text}" },
@@ -434,14 +434,14 @@ pub fn ProfileSettings() -> Element {
                         style: "background-image: url({image});",
                         onclick: move |mouse_event_data: Event<MouseData>| {
                             if mouse_event_data.modifiers() != Modifiers::CONTROL {
-                                set_profile_picture(open_crop_image_modal.clone());
+                                set_profile_picture(open_crop_image_modal);
                             }
                         },
                         Button {
                             icon: Icon::Plus,
                             aria_label: "add-picture-button".to_string(),
                             onpress: move |_| {
-                            set_profile_picture(open_crop_image_modal.clone());
+                            set_profile_picture(open_crop_image_modal);
                             }
                         },
                     },
@@ -598,7 +598,7 @@ pub fn ProfileSettings() -> Element {
                     FancySelect {
                         initial_value: get_status_option(&online_status),
                         width: 190,
-                        options: identity_status_values.iter().map(|status| get_status_option(status)).collect(),
+                        options: identity_status_values.iter().map(get_status_option).collect(),
                         onselect: move |value: String| {
                             let status = serde_json::from_str::<IdentityStatus>(&value).unwrap_or(IdentityStatus::Online);
                             ch.send(ChanCmd::Status(status));

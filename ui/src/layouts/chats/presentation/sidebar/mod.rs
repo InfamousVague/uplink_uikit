@@ -58,16 +58,16 @@ pub struct SidebarProps {
 }
 
 #[allow(non_snake_case)]
-pub fn Sidebar(props: SidebarProps) -> Element {
+pub fn Sidebar(_props: SidebarProps) -> Element {
     log::trace!("rendering chats sidebar layout");
     let mut state = use_context::<Signal<State>>();
-    let mut search_results = use_signal(|| Vec::<identity_search_result::Entry>::new());
-    let mut search_results_friends_identities = use_signal(|| Vec::<Identity>::new());
-    let mut search_results_chats = use_signal(|| Vec::<Chat>::new());
+    let mut search_results = use_signal(Vec::<identity_search_result::Entry>::new);
+    let mut search_results_friends_identities = use_signal(Vec::<Identity>::new);
+    let mut search_results_chats = use_signal(Vec::<Chat>::new);
     let mut chat_with: Signal<Option<Uuid>> = use_signal(|| None);
     let mut reset_searchbar: Signal<_> = use_signal(|| false);
     let router = use_navigator();
-    let mut show_delete_conversation = use_signal(|| true);
+    let show_delete_conversation = use_signal(|| true);
     let mut on_search_dropdown_hover = use_signal(|| false);
     let mut search_friends_is_focused = use_signal(|| false);
     let storage = state.read().ui.current_layout == Layout::Storage;
@@ -79,7 +79,7 @@ pub fn Sidebar(props: SidebarProps) -> Element {
     }
 
     let ch = use_coroutine(|rx: UnboundedReceiver<MessagesCommand>| {
-        conversation_coroutine(rx, chat_with.clone(), show_delete_conversation.clone())
+        conversation_coroutine(rx, chat_with, show_delete_conversation)
     });
 
     let mut select_identifier = move |id: identity_search_result::Identifier| match id {
@@ -114,14 +114,14 @@ pub fn Sidebar(props: SidebarProps) -> Element {
         .filter(|(_, ext)| ext.details().location == extensions::Location::Sidebar)
         .map(|(_, ext)| rsx!({ ext.render() }))
         .collect::<Vec<_>>();
-    let mut search_typed_chars = use_signal(String::new);
+    let search_typed_chars = use_signal(String::new);
     let transfer = if storage {
         {
             rsx!(FileTransferModal { state: state })
         }
     } else {
         {
-            rsx!({ () })
+            rsx!({  })
         }
     };
 
@@ -137,7 +137,7 @@ pub fn Sidebar(props: SidebarProps) -> Element {
                         disabled: false,
                         aria_label: "chat-search-input".to_string(),
                         icon: Icon::MagnifyingGlass,
-                        reset: reset_searchbar.clone(),
+                        reset: reset_searchbar,
                         options: Options {
                             with_clear_btn: true,
                             react_to_esc_key: true,
@@ -204,12 +204,12 @@ pub fn Sidebar(props: SidebarProps) -> Element {
             with_file_transfer: transfer,
             if *search_friends_is_focused.read() {
                 {rsx! { search::search_friends {
-                    search_typed_chars: search_typed_chars.clone(),
-                    search_friends_is_focused: search_friends_is_focused.clone(),
-                    identities: search_results.clone(),
-                    friends_identities: search_results_friends_identities.clone(),
-                    chats: search_results_chats.clone(),
-                    search_dropdown_hover: on_search_dropdown_hover.clone(),
+                    search_typed_chars: search_typed_chars,
+                    search_friends_is_focused: search_friends_is_focused,
+                    identities: search_results,
+                    friends_identities: search_results_friends_identities,
+                    chats: search_results_chats,
+                    search_dropdown_hover: on_search_dropdown_hover,
                     onclick: move |identifier: identity_search_result::Identifier| {
                         select_identifier(identifier);
                         search_results.set(Vec::new());

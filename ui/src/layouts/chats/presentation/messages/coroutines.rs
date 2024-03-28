@@ -38,7 +38,9 @@ pub fn handle_msg_scroll(
     chat_data: &Signal<ChatData>,
     scroll_btn: &Signal<ScrollBtn>,
 ) -> Coroutine<()> {
-    let ch = use_coroutine(|mut rx: UnboundedReceiver<()>| {
+    
+
+    use_coroutine(|mut rx: UnboundedReceiver<()>| {
         to_owned![chat_data, scroll_btn];
         async move {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
@@ -57,7 +59,7 @@ pub fn handle_msg_scroll(
                     let behavior = chat_data.read().get_chat_behavior(conv_id);
 
                     // init the scroll button
-                    let mut eval_result = eval(scripts::READ_SCROLL);
+                    let eval_result = eval(scripts::READ_SCROLL);
                     if let Ok(result) = eval_result.join().await {
                         let scroll = result.as_i64().unwrap_or_default();
                         chat_data.write_silent().set_scroll_value(conv_id, scroll);
@@ -342,9 +344,7 @@ pub fn handle_msg_scroll(
                 } // CONFIGURE_EVAL
             } // while rx.next().await.is_some()
         } // async move
-    });
-
-    ch.clone()
+    })
 }
 
 pub fn fetch_later_ch(
@@ -431,7 +431,6 @@ pub fn fetch_later_ch(
             }
         }
     })
-    .clone()
 }
 
 pub fn handle_warp_commands(
@@ -441,7 +440,8 @@ pub fn handle_warp_commands(
     let download_streams = download_stream_handler();
     let file_tracker = use_context::<Signal<TransferTracker>>();
 
-    let ch = use_coroutine(|mut rx: UnboundedReceiver<MessagesCommand>| {
+    
+    use_coroutine(|mut rx: UnboundedReceiver<MessagesCommand>| {
         to_owned![state, file_tracker, pending_downloads, download_streams];
         async move {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
@@ -620,6 +620,5 @@ pub fn handle_warp_commands(
                 }
             }
         }
-    });
-    ch.clone()
+    })
 }

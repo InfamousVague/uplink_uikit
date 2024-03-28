@@ -11,7 +11,7 @@ use uuid::Uuid;
 use warp::raygun;
 
 use crate::{
-    layouts::chats::data::{self, ChatProps, MsgChInput, TypingInfo, DEFAULT_MESSAGES_TO_TAKE},
+    layouts::chats::data::{self, MsgChInput, TypingInfo, DEFAULT_MESSAGES_TO_TAKE},
     utils::async_task_queue::chat_upload_stream_handler,
 };
 
@@ -73,7 +73,6 @@ pub fn get_msg_ch(state: &Signal<State>) -> Coroutine<MsgChInput> {
             }
         }
     })
-    .clone()
 }
 
 pub fn get_scroll_ch(chat_data: &Signal<data::ChatData>, state: &Signal<State>) -> Coroutine<Uuid> {
@@ -101,7 +100,6 @@ pub fn get_scroll_ch(chat_data: &Signal<data::ChatData>, state: &Signal<State>) 
             }
         }
     })
-    .clone()
 }
 
 // typing indicator notes
@@ -179,5 +177,4 @@ pub fn get_typing_ch() -> Coroutine<TypingIndicator> {
             }
         }
     })
-    .clone()
 }

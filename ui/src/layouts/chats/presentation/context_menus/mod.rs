@@ -15,9 +15,9 @@ pub struct FileLocationProps {
 
 #[allow(non_snake_case)]
 pub fn FileLocation(props: FileLocationProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let id = props.id.clone();
-    let update_script_signal = props.update_script.clone();
+    let update_script_signal = props.update_script;
 
     use_resource(move || async move {
         let script = update_script_signal.read();

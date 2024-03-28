@@ -43,7 +43,7 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>, seed_words: Signal<S
     }
 
     let mut username = use_signal(String::new);
-    let mut error = use_signal(String::new);
+    let _error = use_signal(String::new);
     let mut button_disabled = use_signal(|| true);
 
     let username_validation = Validation {
