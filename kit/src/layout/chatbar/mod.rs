@@ -13,7 +13,6 @@ use crate::{
 };
 
 use common::{icons, language::get_local_text, warp_runner::thumbnail_to_base64};
-
 pub type To = &'static str;
 
 pub enum SuggestionType {
@@ -77,6 +76,7 @@ pub struct Props<'a> {
     suggestions: &'a SuggestionType,
     oncursor_update: Option<EventHandler<'a, (String, i64)>>,
     on_suggestion_click: Option<EventHandler<'a, (String, String, i64)>>,
+    onup_down_arrow: Option<EventHandler<'a, Code>>,
 }
 
 #[derive(Props)]
@@ -175,6 +175,12 @@ pub fn Chatbar<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
     let selected_suggestion: &UseRef<Option<usize>> = use_ref(cx, || None);
     let arrow_selected = use_ref(cx, || false);
     let is_suggestion_modal_closed: &UseRef<bool> = use_ref(cx, || false);
+    let has_value = cx
+        .props
+        .value
+        .as_ref()
+        .map(|s| !s.is_empty())
+        .unwrap_or_default();
     let eval = use_eval(cx);
 
     cx.render(rsx!(
@@ -237,7 +243,7 @@ pub fn Chatbar<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
                         *cursor_position.write_silent() = Some(p)
                     },
                     is_disabled: cx.props.is_disabled,
-                    prevent_up_down_arrows: !cx.props.suggestions.is_empty(),
+                    prevent_up_down_arrows: !cx.props.suggestions.is_empty() || !has_value,
                     onup_down_arrow:
                         move |code| {
                             let amount = match cx.props.suggestions {
@@ -247,6 +253,11 @@ pub fn Chatbar<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
                             };
                             if amount == 0 {
                                 *selected_suggestion.write_silent() = None;
+                                if let SuggestionType::None = cx.props.suggestions {
+                                    if let Some(e) = &cx.props.onup_down_arrow {
+                                        e.call(code);
+                                    }
+                                }
                                 return;
                             }
                             let current = &mut *selected_suggestion.write();

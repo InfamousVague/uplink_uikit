@@ -42,7 +42,10 @@ use crate::{
     components::{files::attachments::Attachments, shortcuts},
     layouts::{
         chats::{
-            data::{ChatData, ChatProps, MessagesToSend, MsgChInput, ScrollBtn, TypingIndicator},
+            data::{
+                ChatData, ChatProps, MessagesToEdit, MessagesToSend, MsgChInput, ScrollBtn,
+                TypingIndicator,
+            },
             scripts::SHOW_CONTEXT,
         },
         storage::send_files_layout::{modal::SendFilesLayoutModal, SendFilesStartLocation},
@@ -62,6 +65,7 @@ pub fn get_chatbar<'a>(cx: &'a Scoped<'a, ChatProps>) -> Element<'a> {
     let chat_data = use_shared_state::<ChatData>(cx)?;
     let scroll_btn = use_shared_state::<ScrollBtn>(cx)?;
     let to_send = use_shared_state::<MessagesToSend>(cx)?;
+    let edit_msg = use_shared_state::<MessagesToEdit>(cx)?;
     state.write_silent().scope_ids.chatbar = Some(cx.scope_id().0);
 
     let active_chat_id = chat_data.read().active_chat.id();
@@ -435,6 +439,13 @@ pub fn get_chatbar<'a>(cx: &'a Scoped<'a, ChatProps>) -> Element<'a> {
                         }
                     }
                     suggestions.set(SuggestionType::None);
+                }
+            },
+            onup_down_arrow: move |code|{
+                if code == Code::ArrowUp && edit_msg.read().edit.is_none() {
+                    if let Some(msg) = chat_data.read().active_chat.messages.last_user_msg {
+                        edit_msg.write().edit = Some(msg);
+                    }
                 }
             },
             controls: cx.render(

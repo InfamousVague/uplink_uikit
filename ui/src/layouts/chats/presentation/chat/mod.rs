@@ -16,7 +16,7 @@ use kit::{
 use crate::{
     components::media::calling::CallControl,
     layouts::chats::{
-        data::{self, ChatData, MessagesToSend, ScrollBtn},
+        data::{self, ChatData, MessagesToEdit, MessagesToSend, ScrollBtn},
         presentation::{
             chat::{edit_group::EditGroup, group_settings::GroupSettings, group_users::GroupUsers},
             chatbar::get_chatbar,
@@ -40,6 +40,7 @@ pub fn Compose(cx: Scope) -> Element {
     use_shared_state_provider(cx, ChatData::default);
     use_shared_state_provider(cx, ScrollBtn::new);
     use_shared_state_provider(cx, MessagesToSend::default);
+    use_shared_state_provider(cx, MessagesToEdit::default);
     let state = use_shared_state::<State>(cx)?;
     let chat_data = use_shared_state::<ChatData>(cx)?;
 

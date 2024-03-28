@@ -400,11 +400,13 @@ fn ActiveCallControl(cx: Scope<ActiveCallProps>) -> Element {
                     "{participants_name}"
                 }
             )),
-            p {
-                class: format_args!("call-time {}", if cx.props.in_chat {"in-chat"} else {""}),
-                aria_label: "call-time",
-                format_timestamp_timeago(active_call.answer_time.into(), &state.read().settings.language_id()),
-            },
+            state.read().ui.call_timer.then(||rsx!(
+                p {
+                    class: format_args!("call-time {}", if cx.props.in_chat {"in-chat"} else {""}),
+                    aria_label: "call-time",
+                    format_timestamp_timeago(active_call.answer_time.into(), &state.read().settings.language_id()),
+                }
+            )),
             cx.props.in_chat.then(||rsx!(div {
                 class: "self-identity",
                 UserImage {

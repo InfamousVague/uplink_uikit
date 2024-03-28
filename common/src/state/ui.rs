@@ -184,6 +184,7 @@ pub struct UI {
     // stores information related to the current call
     #[serde(skip)]
     pub call_info: call::CallInfo,
+    pub call_timer: bool,
     #[serde(skip)]
     pub current_debug_logger: Option<DebugLogger>,
     // false: the media player is anchored in place
@@ -235,6 +236,7 @@ impl Default for UI {
         Self {
             notifications: Default::default(),
             call_info: Default::default(),
+            call_timer: true,
             current_debug_logger: Default::default(),
             popout_media_player: Default::default(),
             toast_notifications: Default::default(),

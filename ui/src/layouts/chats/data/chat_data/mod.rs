@@ -23,6 +23,11 @@ pub struct MessagesToSend {
     pub messages_to_send: Vec<(Option<String>, Vec<FileLocation>)>,
 }
 
+#[derive(Clone, Default)]
+pub struct MessagesToEdit {
+    pub edit: Option<Uuid>,
+}
+
 impl PartialEq for ChatData {
     fn eq(&self, _other: &Self) -> bool {
         false
@@ -162,7 +167,9 @@ impl ChatData {
             return;
         }
 
-        self.active_chat.messages.insert_messages(messages);
+        self.active_chat
+            .messages
+            .insert_messages(self.active_chat.my_id().did_key(), messages);
     }
 
     pub fn is_loaded(&self, conv_id: Uuid) -> bool {
@@ -191,7 +198,9 @@ impl ChatData {
         }
 
         if should_append_msg {
-            self.active_chat.messages.insert_messages(vec![msg]);
+            self.active_chat
+                .messages
+                .insert_messages(self.active_chat.my_id().did_key(), vec![msg]);
             true
         } else {
             if let Some(behavior) = behavior {
