@@ -39,20 +39,20 @@ pub fn Compose() -> Element {
     log::trace!("rendering compose");
     use_context_provider(|| ChatData::default);
     use_context_provider(|| ScrollBtn::new);
-    let state = use_context::<Signal<State>>();
-    let chat_data = use_context::<Signal<ChatData>>();
+    let mut state = use_context::<Signal<State>>();
+    let mut chat_data = use_context::<Signal<ChatData>>();
 
     let init = coroutines::init_chat_data(state, chat_data);
-    coroutines::handle_warp_events(&state, &chat_data);
+    coroutines::handle_warp_events(state, chat_data);
 
     state.write_silent().ui.current_layout = ui::Layout::Compose;
 
-    let show_manage_members: Signal<Option<Uuid>> = use_signal(|| None);
-    let show_group_settings: Signal<bool> = use_signal(|| false);
-    let show_rename_group: Signal<bool> = use_signal(|| false);
-    let show_group_users: Signal<Option<Uuid>> = use_signal(|| None);
+    let mut show_manage_members: Signal<Option<Uuid>> = use_signal(|| None);
+    let mut show_group_settings: Signal<bool> = use_signal(|| false);
+    let mut show_rename_group: Signal<bool> = use_signal(|| false);
+    let mut show_group_users: Signal<Option<Uuid>> = use_signal(|| None);
 
-    let quick_profile_uuid = &*use_hook(|| Uuid::new_v4().to_string());
+    let quick_profile_uuid = use_signal(|| Uuid::new_v4().to_string());
     let quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>> = use_signal(|| None);
     let update_script = use_signal(String::new);
     let identity_profile = use_signal(DID::default);
@@ -61,10 +61,10 @@ pub fn Compose() -> Element {
     let _ = eval(script);
     // Handle user tag click
     // We handle it here since user tags are not dioxus components
-    use_effect(|| {
-        to_owned![state, eval_provider, quickprofile_data];
+    use_effect(move || {
+        to_owned![state, quickprofile_data];
         spawn(async move {
-            let eval_result = eval(USER_TAG_SCRIPT);
+            let mut eval_result = eval(USER_TAG_SCRIPT);
             loop {
                 if let Ok(s) = eval_result.recv().await {
                     match serde_json::from_str::<(f64, f64, DID)>(s.as_str().unwrap_or_default()) {
@@ -82,12 +82,12 @@ pub fn Compose() -> Element {
         });
     });
 
-    use_effect(|| {
+    use_effect(move || {
         to_owned![quick_profile_uuid, update_script, identity_profile];
         spawn(async move {
             if let Some((x, y, id, right)) = quickprofile_data.read().as_ref() {
                 let script = SHOW_CONTEXT
-                    .replace("UUID", &quick_profile_uuid)
+                    .replace("UUID", &quick_profile_uuid())
                     .replace("$PAGE_X", &x.to_string())
                     .replace("$PAGE_Y", &y.to_string())
                     .replace("$SELF", &right.to_string());

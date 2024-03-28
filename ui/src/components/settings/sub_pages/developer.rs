@@ -23,7 +23,7 @@ use crate::{components::settings::SettingSection, logger};
 #[allow(non_snake_case)]
 pub fn DeveloperSettings() -> Element {
     log::trace!("Developer settings page rendered.");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<PathBuf>| {
         //to_owned![];
@@ -118,7 +118,7 @@ pub fn DeveloperSettings() -> Element {
                     aria_label: "open-cache-folder-button".to_string(),
                     appearance: Appearance::Secondary,
                     icon: Icon::FolderOpen,
-                    onpress: |_| {
+                    onpress: move |_| {
                         let _ = opener::open(&STATIC_ARGS.uplink_path);
                     }
                 }
@@ -132,7 +132,7 @@ pub fn DeveloperSettings() -> Element {
                     aria_label: "compress-button".to_string(),
                     appearance: Appearance::Secondary,
                     icon: Icon::ArchiveBoxArrowDown,
-                    onpress: |_| {
+                    onpress: move |_| {
                         if let Some(path) =  FileDialog::new().set_directory(dirs::home_dir().unwrap_or(".".into())).pick_folder() {
                             ch.send(path);
                         };

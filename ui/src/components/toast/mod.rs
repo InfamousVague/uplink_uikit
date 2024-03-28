@@ -19,7 +19,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn Toast(props: Props) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     rsx!(kit::components::toast::Toast {
         id: props.id,
         on_hover: move |_| state.write_silent().reset_toast_timer(&props.id),

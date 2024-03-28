@@ -119,7 +119,7 @@ pub fn handle_msg_scroll(
                         observer_script.replace("$TOP_MSG_ID", &top_msg_id.to_string());
                     observer_script =
                         observer_script.replace("$BOTTOM_MSG_ID", &bottom_msg_id.to_string());
-                    let eval_result = eval(&observer_script);
+                    let mut eval_result = eval(&observer_script);
 
                     // not sure if it's safe to call eval.recv() in a select! statement. turning it into something
                     // which should definitely work for that.

@@ -22,7 +22,7 @@ use crate::{
 pub fn AboutPage() -> Element {
     let version = env!("CARGO_PKG_VERSION");
     let app_name = env!("CARGO_PKG_NAME");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let download_state = use_context::<Signal<DownloadState>>();
     let update_button_loading = use_signal(|| false);
     let download_available: Signal<Option<GitHubRelease>> = use_signal(|| None);
@@ -113,7 +113,7 @@ pub fn AboutPage() -> Element {
                     aria_label: "check-for-updates-button".to_string(),
                     appearance: Appearance::Secondary,
                     icon: Icon::ArrowPath,
-                    onpress: |_| {
+                    onpress: move |_| {
                         download_available.set(None);
                         update_button_loading.set(true);
                         ch.send(());
@@ -205,7 +205,7 @@ pub fn AboutPage() -> Element {
             },
             div {
                 width: "100%",
-                onclick: |_| {
+                onclick: move |_| {
                     if click_count() < 9 {
                         click_count.with_mut(|x| *x += 1);
                     } else {
@@ -233,7 +233,7 @@ pub fn AboutPage() -> Element {
                     aria_label: "open-website-button".to_string(),
                     appearance: Appearance::Secondary,
                     icon: Icon::GlobeAlt,
-                    onpress: |_| {
+                    onpress: move |_| {
                         let _ = open::that("https://satellite.im");
                     }
                 }
@@ -247,7 +247,7 @@ pub fn AboutPage() -> Element {
                     aria_label: "open-codebase-button".to_string(),
                     appearance: Appearance::Secondary,
                     icon: Icon::CodeBracketSquare,
-                    onpress: |_| {
+                    onpress: move |_| {
                         let _ = open::that("https://github.com/Satellite-im/Uplink");
                     }
                 }

@@ -16,7 +16,7 @@ use kit::{
 
 #[allow(non_snake_case)]
 pub fn Settings() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     rsx! (
         div {
@@ -81,7 +81,7 @@ pub fn Explore() -> Element {
 
 #[allow(non_snake_case)]
 pub fn Installed() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     let metas: Vec<_> = state
         .read()

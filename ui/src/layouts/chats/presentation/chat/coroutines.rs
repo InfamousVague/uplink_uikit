@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 use crate::layouts::chats::data::{self, ChatBehavior, ChatData};
 
-pub fn handle_warp_events(state: &Signal<State>, chat_data: &Signal<ChatData>) {
+pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
     let active_chat_id_signal = use_signal(move || {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id

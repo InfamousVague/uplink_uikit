@@ -147,10 +147,12 @@ fn FilePreview(props: Props) -> Element {
         props.on_dismiss.call(());
     }
 
+    let is_developer_mode = state.read().configuration.developer.developer_mode.clone();
+
     rsx!(
         ContextMenu {
             id: "file-preview-context-menu".to_string(),
-            devmode: state.read().configuration.developer.developer_mode,
+            devmode: is_developer_mode,
             items: rsx!(
                 ContextItem {
                     icon: Icon::ArrowDownCircle,

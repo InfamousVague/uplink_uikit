@@ -58,9 +58,9 @@ enum QuickProfileCmd {
 #[allow(non_snake_case)]
 pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let settings_page = use_context::<Signal<Page>>();
+    let mut settings_page = use_context::<Signal<Page>>();
     let id = props.id;
-    let share_did = use_signal(|| None);
+    let mut share_did = use_signal(|| None);
 
     let identity = state
         .read()
@@ -109,7 +109,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
 
     let router = use_navigator();
 
-    let chat_with: Signal<Option<Uuid>> = use_signal(|| None);
+    let mut chat_with: Signal<Option<Uuid>> = use_signal(|| None);
     if let Some(id) = chat_with() {
         chat_with.set(None);
         state.write().mutate(Action::ChatWith(&id, true));

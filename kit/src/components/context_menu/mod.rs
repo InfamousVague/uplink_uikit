@@ -130,7 +130,7 @@ pub struct IdentityProps {
 
 #[allow(non_snake_case)]
 pub fn IdentityHeader(props: IdentityProps) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let sender = state
         .read()
         .get_identity(&props.sender_did)

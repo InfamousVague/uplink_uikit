@@ -65,7 +65,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn CallControl(props: Props) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     match state.read().ui.call_info.active_call() {
         Some(call) => rsx!(ActiveCallControl {
             active_call: call,
@@ -102,7 +102,7 @@ pub struct ActiveCallProps {
 #[allow(non_snake_case)]
 fn ActiveCallControl(props: ActiveCallProps) -> Element {
     log::trace!("Rendering active call window");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let active_call: &ActiveCall = &props.active_call;
     let active_call_id = active_call.call.id;
     let active_call_answer_time = active_call.answer_time;
@@ -513,7 +513,7 @@ pub struct PendingCallProps {
 #[allow(non_snake_case)]
 fn PendingCallDialog(props: PendingCallProps) -> Element {
     log::trace!("Rendering pending call window");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let ch = use_coroutine(|mut rx| {
         to_owned![state];
         async move {

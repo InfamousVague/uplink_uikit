@@ -11,7 +11,7 @@ use crate::components::settings::SettingSection;
 
 #[allow(non_snake_case)]
 pub fn NotificationSettings() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     rsx!(
         div {

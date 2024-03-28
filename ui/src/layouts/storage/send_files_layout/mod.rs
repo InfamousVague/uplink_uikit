@@ -45,7 +45,7 @@ pub struct SendFilesProps {
 
 #[allow(non_snake_case)]
 pub fn SendFilesLayout(props: SendFilesProps) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let send_files_start_location = props.send_files_start_location.clone();
     let send_files_from_storage_state = props.send_files_from_storage_state.clone();
     let storage_controller = StorageController::new(state);
@@ -117,7 +117,7 @@ struct ChatsToSelectProps {
 
 #[allow(non_snake_case)]
 fn ChatsToSelect(props: ChatsToSelectProps) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let mut storage_controller = props.storage_controller.clone();
 
     rsx!(div {

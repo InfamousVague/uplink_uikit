@@ -15,7 +15,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn EmojiGroup(props: Props) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let emojis = state.read().ui.emojis.clone();
     let sorted_list = emojis.get_sorted_vec(Some(4));
     let emoji_selector_extension = "emoji_selector";

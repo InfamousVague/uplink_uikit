@@ -47,7 +47,7 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn PinnedMessages(props: Props) -> Element {
     log::trace!("rendering pinned_messages");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let chat_data = use_context::<Signal<ChatData>>();
     let minimal = state.read().ui.metadata.minimal_view;
 
@@ -82,7 +82,7 @@ pub fn PinnedMessages(props: Props) -> Element {
                         conversation_id,
                         message_id,
                         message_date,
-                        show_pinned,
+                        mut show_pinned,
                     } => {
                         log::debug!("fetching pinned message");
                         let view_init = data::ViewInit {
@@ -188,7 +188,7 @@ pub struct PinnedMessageProp {
 
 #[allow(non_snake_case)]
 pub fn PinnedMessage(props: PinnedMessageProp) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let message = &props.message;
     let attachments = message.attachments();
 

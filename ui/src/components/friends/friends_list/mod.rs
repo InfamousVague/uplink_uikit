@@ -55,7 +55,7 @@ enum ChanCmd {
 
 #[allow(non_snake_case)]
 pub fn Friends() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let reset_filter = use_signal(|| false);
     let friend_filter = use_signal(String::new);
     if reset_filter() {
@@ -405,7 +405,7 @@ pub struct FriendProps {
 }
 
 pub fn ShareFriendsModal(props: FriendProps) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let chats_selected = use_signal(|| Vec::new());
     let ch = use_coroutine(|mut rx: UnboundedReceiver<(DID, Vec<Uuid>)>| async move {
         let warp_cmd_tx = WARP_CMD_CH.tx.clone();

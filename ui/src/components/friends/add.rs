@@ -28,7 +28,7 @@ use common::{
 
 #[allow(non_snake_case)]
 pub fn AddFriend() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let clear_input = use_signal(|| false);
     let friend_input = use_signal(String::new);
     let friend_input_valid = use_signal(|| false);

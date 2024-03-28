@@ -30,7 +30,7 @@ pub fn FilesSettings() -> Element {
                     aria_label: "open-sync-folder-button".to_string(),
                     appearance: kit::elements::Appearance::Secondary,
                     icon: common::icons::outline::Shape::FolderOpen,
-                    onpress: |_| {
+                    onpress: move |_| {
                     }
                 }
             },*/

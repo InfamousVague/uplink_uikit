@@ -28,8 +28,8 @@ pub struct Props {
 
 pub fn GroupUsers(props: Props) -> Element {
     log::trace!("rendering group_users");
-    let state = use_context::<Signal<State>>();
-    let friend_prefix = use_signal(|| String::new());
+    let mut state = use_context::<Signal<State>>();
+    let mut friend_prefix = use_signal(|| String::new());
 
     let quickprofile_data = &props.quickprofile_data;
 
@@ -161,21 +161,21 @@ pub struct FriendProps {
     context_data: Signal<Option<(f64, f64, Identity, bool)>>,
 }
 fn render_friend(props: FriendProps) -> Element {
+    let friend = use_signal(|| props.friend.clone());
+    let mut context_data = props.context_data.clone();
     rsx!(
         div {
             class: "friend-container",
             aria_label: "Friend Container",
             oncontextmenu: move |e| {
-                props
-                    .context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, props.friend.to_owned(), true)));
+                context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, friend().to_owned(), true)));
             },
             UserImage {
                 platform: Platform::from(props.friend.platform()),
                 status: Status::from(props.friend.identity_status()),
                 image: props.friend.profile_picture(),
                 oncontextmenu: move |e: Event<MouseData>| {
-                    props
-                        .context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, props.friend.to_owned(), true)));
+                    context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, friend().to_owned(), true)));
                 }
             },
             div {
@@ -183,7 +183,7 @@ fn render_friend(props: FriendProps) -> Element {
                 p {
                     class: "ellipsis-overflow",
                     aria_label: "friend-username",
-                    {props.friend.username()},
+                    {friend().username()},
                 },
             },
             if props.is_creator {

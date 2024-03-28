@@ -33,7 +33,7 @@ enum AudioCmd {
 #[allow(non_snake_case)]
 pub fn AudioSettings() -> Element {
     log::trace!("Audio settings page rendered.");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let input_devices = use_signal(Vec::new);
     let output_devices = use_signal(Vec::new);
 

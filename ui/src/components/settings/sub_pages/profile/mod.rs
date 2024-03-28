@@ -49,7 +49,7 @@ enum ChanCmd {
 #[allow(non_snake_case)]
 pub fn ProfileSettings() -> Element {
     log::trace!("rendering ProfileSettings");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let first_render = use_signal(|| true);
 
     let identity = state.read().get_own_identity();
@@ -759,7 +759,7 @@ pub fn ProfileSettings() -> Element {
                 if open_crop_image_modal_for_banner_picture().0 {
                     {rsx!(CropRectImageModal {
                         large_thumbnail: open_crop_image_modal_for_banner_picture().1.clone(),
-                        on_cancel: |_| {
+                        on_cancel: move |_| {
                             open_crop_image_modal_for_banner_picture.set((false, (Vec::new(), String::new())));
                         },
                         on_crop: move |image_pathbuf: PathBuf| {
@@ -774,7 +774,7 @@ pub fn ProfileSettings() -> Element {
                 if open_crop_image_modal().0 {
                     {rsx!(CropCircleImageModal {
                         large_thumbnail: open_crop_image_modal().1.clone(),
-                        on_cancel: |_| {
+                        on_cancel: move |_| {
                             open_crop_image_modal.set((false, (Vec::new(), String::new())));
                         },
                         on_crop: move |image_pathbuf: PathBuf| {

@@ -39,9 +39,13 @@ enum EditGroupCmd {
 }
 
 pub fn get_topbar_children(props: ChatProps) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     let chat_data = use_context::<Signal<ChatData>>();
+    let mut show_group_users_signal = props.show_group_users.clone();
+    let mut show_rename_group_signal = props.show_rename_group.clone();
+    let mut show_manage_members_signal = props.show_manage_members.clone();
+    let mut show_group_settings_signal = props.show_group_settings.clone();
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<EditGroupCmd>| async move {
         let warp_cmd_tx = WARP_CMD_CH.tx.clone();
@@ -123,7 +127,7 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
     let conv_id = data.active_chat.id();
     let subtext = data.active_chat.subtext();
 
-    let show_group_settings = || match chat_data.read().active_chat.conversation_settings() {
+    let show_group_settings = match chat_data.read().active_chat.conversation_settings() {
         ConversationSettings::Group(_) => props.is_owner,
         ConversationSettings::Direct(_) => false,
     };
@@ -165,7 +169,7 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
                             aria_label: "rename-group-context-option".to_string(),
                             text: "Rename".to_string(),
                             onpress: move |_| {
-                                props.show_rename_group.set(true);
+                                show_rename_group_signal.set(true);
                             }
                         }
                     )}}
@@ -175,18 +179,18 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
                             aria_label: "manage-members-context-option".to_string(),
                             text: "Manage Members".to_string(),
                             onpress: move |_| {
-                                props.show_manage_members.set(Some(chat_data.read().active_chat.id()));
+                                show_manage_members_signal.set(Some(chat_data.read().active_chat.id()));
                             }
                         }
                     )}}
-                    if show_group_settings() {{rsx!(
+                    if show_group_settings {{rsx!(
                         ContextItem {
                             danger: true,
                             icon: Icon::Cog,
                             aria_label: "group-settings-context-option".to_string(),
                             text: "Settings".to_string(),
                             onpress: move |_| {
-                                props.show_group_settings.set(true);
+                                show_group_settings_signal.set(true);
                             }
                         },
                     )}}
@@ -198,10 +202,10 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
                 aria_label: "user-info",
                 onclick: move |_| {
                     if show_group_list && !direct_message {
-                        props.show_group_users.set(None);
+                        show_group_users_signal.set(None);
                     } else if !direct_message {
-                        props.show_group_users.set(Some(chat_data.read().active_chat.id()));
-                        props.show_rename_group.set(false);
+                        show_group_users_signal.set(Some(chat_data.read().active_chat.id()));
+                        show_rename_group_signal.set(false);
                     }
                 },
                 if props.show_rename_group.read().clone() {{rsx! (
@@ -223,13 +227,13 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
                                 if v != conversation_title.clone() {
                                     ch.send(EditGroupCmd::UpdateGroupName((conv_id, v)));
                                 }
-                                props.show_rename_group.set(false);
+                                show_rename_group_signal.set(false);
                             },
                         },
                         Button {
                             icon: Icon::XMark,
                             appearance: Appearance::Secondary,
-                            onpress: move |_| props.show_rename_group.set(false),
+                            onpress: move |_| show_rename_group_signal.set(false),
                             aria_label: "close-rename-group".to_string(),
                         }
                     })}

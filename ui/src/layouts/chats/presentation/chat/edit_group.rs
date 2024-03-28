@@ -40,13 +40,13 @@ enum ChanCmd {
 #[allow(non_snake_case)]
 pub fn EditGroup() -> Element {
     log::trace!("rendering edit_group");
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let minimal = state.read().ui.metadata.minimal_view;
     // Search Input
-    let friend_prefix = use_signal(String::new);
+    let mut friend_prefix = use_signal(String::new);
 
     // show the ADD or REMOVE components, default to Remove
-    let edit_group_action = use_signal(|| EditGroupAction::Remove);
+    let mut edit_group_action = use_signal(|| EditGroupAction::Remove);
     let conv_id = state.read().get_active_chat().unwrap().id;
 
     let creator_id = state.read().get_active_chat()?.creator.clone()?;
@@ -218,7 +218,7 @@ pub struct FriendRowProps {
 /* Friend Row with add/remove button functionality */
 fn friend_row(props: FriendRowProps) -> Element {
     let _friend = props.friend.clone();
-    let selected_friends: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
+    let mut selected_friends: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
     let conv_id = props.conv_id;
     let ch = use_coroutine(|mut rx: UnboundedReceiver<ChanCmd>| {
         to_owned![selected_friends, conv_id];

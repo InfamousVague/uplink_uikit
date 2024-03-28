@@ -24,7 +24,7 @@ use tracing::log;
 
 #[allow(non_snake_case)]
 pub fn BlockedUsers() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let block_list = state.read().blocked_fr_identities();
     let unblock_in_progress: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
 

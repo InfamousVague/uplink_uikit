@@ -45,7 +45,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn Friend(props: Props) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let relationship = props.relationship;
     let status_message = props.status_message.clone();
     let aria_label = props.aria_label.clone().unwrap_or_default();

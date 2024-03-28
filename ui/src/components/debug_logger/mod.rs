@@ -46,9 +46,9 @@ pub fn DebugLogger() -> Element {
     });
 
     let active_tab: Signal<Tab> = use_signal(|| Tab::Logs);
-    let filter_level: Signal<Level> = use_signal(|| Level::Error); // If debug is set, we will not filter at all
+    let mut filter_level: Signal<Level> = use_signal(|| Level::Error); // If debug is set, we will not filter at all
 
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     let state_json = state.read().get_json();
 
@@ -70,7 +70,7 @@ pub fn DebugLogger() -> Element {
                         aria_label: "logs-button".to_string(),
                         icon: Icon::CommandLine,
                         appearance: if active_tab() == Tab::Logs { Appearance::Primary } else { Appearance::Secondary },
-                        onpress: |_| {
+                        onpress: move |_| {
                             active_tab.set(Tab::Logs);
                         }
                     },
@@ -86,7 +86,7 @@ pub fn DebugLogger() -> Element {
                                 aria_label: "debug-level-button".to_string(),
                                 icon: Icon::BugAnt,
                                 appearance: Appearance::Secondary,
-                                onpress: |_| {
+                                onpress: move |_| {
                                     filter_level.set(Level::Debug);
                                 },
                                 tooltip: rsx!(
@@ -100,7 +100,7 @@ pub fn DebugLogger() -> Element {
                                 aria_label: "info-level-button".to_string(),
                                 icon: Icon::InformationCircle,
                                 appearance: if filter_level() == Level::Info { Appearance::Info } else { Appearance::Secondary },
-                                onpress: |_| {
+                                onpress: move |_| {
                                     filter_level.set(Level::Info);
                                 },
                                 tooltip: rsx!(
@@ -114,7 +114,7 @@ pub fn DebugLogger() -> Element {
                                 aria_label: "error-level-button".to_string(),
                                 icon: Icon::ExclamationTriangle,
                                 appearance: if filter_level() == Level::Error { Appearance::Danger } else { Appearance::Secondary },
-                                onpress: |_| {
+                                onpress: move |_| {
                                     filter_level.set(Level::Error);
                                 },
                                 tooltip: rsx!(
@@ -128,7 +128,7 @@ pub fn DebugLogger() -> Element {
                                 aria_label: "trace-level-button".to_string(),
                                 icon: Icon::Eye,
                                 appearance: Appearance::Secondary,
-                                onpress: |_| {
+                                onpress: move |_| {
                                     filter_level.set(Level::Trace);
                                 },
                                 tooltip: rsx!(
@@ -145,7 +145,7 @@ pub fn DebugLogger() -> Element {
                         text: "State".to_string(),
                         icon: Icon::Square3Stack3d,
                         appearance: if active_tab() == Tab::State { Appearance::Primary } else { Appearance::Secondary },
-                        onpress: |_| {
+                        onpress: move |_| {
                             active_tab.set(Tab::State);
                         }
                     },
@@ -154,7 +154,7 @@ pub fn DebugLogger() -> Element {
                         text: "Web Inspector".to_string(),
                         icon: Icon::ArrowTopRightOnSquare,
                         appearance: Appearance::Secondary,
-                        onpress: |_| {
+                        onpress: move |_| {
                             window.webview.open_devtools();
                         }
                     },

@@ -10,7 +10,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn NothingHere(props: Props) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let pending_friends =
         state.read().incoming_fr_identities().len() + state.read().outgoing_fr_identities().len();
     let blocked_friends = state.read().blocked_fr_identities().len();

@@ -48,7 +48,7 @@ pub fn KeyboardShortcuts(props: Props) -> Element {
         };
     }
 
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     if !state.read().settings.pause_global_keybinds {
         let keybinds = state.read().settings.keybinds.clone();

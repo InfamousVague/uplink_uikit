@@ -31,7 +31,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn _MediaPlayer(props: Props) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let window = use_window();
     let silenced = state
         .read()

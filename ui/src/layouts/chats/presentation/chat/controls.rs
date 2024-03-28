@@ -38,19 +38,22 @@ enum ControlsCmd {
 }
 
 pub fn get_controls(props: ChatProps) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let minimal = state.read().ui.metadata.minimal_view;
     let chat_data = use_context::<Signal<ChatData>>();
     let favorite = chat_data.read().active_chat.is_favorite();
 
-    let call_pending = use_signal(|| false);
-    let show_more = use_signal(|| false);
+    let mut call_pending = use_signal(|| false);
+    let mut show_more = use_signal(|| false);
     let active_call = state.read().ui.call_info.active_call();
     let call_in_progress = active_call.is_some(); // active_chat.map(|chat| chat.id) == active_call.map(|call| call.conversation_id);
 
-    let show_pinned = use_signal(|| false);
+    let mut show_pinned = use_signal(|| false);
+    let mut show_group_settings_signal = props.show_group_settings.clone();
+    let mut show_manage_members = props.show_manage_members.clone();
+    let mut show_group_users_signal = props.show_group_users.clone();
 
-    use_effect(|| {
+    use_effect(move || {
         to_owned![show_more];
         {
             if *show_more.read() {
@@ -149,12 +152,12 @@ pub fn get_controls(props: ChatProps) -> Element {
                 tooltip: tooltip_builder("friends.manage-group-members", arrow_top),
                 onpress: move |_| {
                     let active = &chat_data.read().active_chat;
-                    if props.show_manage_members.read().clone().is_some() {
-                        props.show_manage_members.set(None);
+                    if show_manage_members.read().clone().is_some() {
+                        show_manage_members.set(None);
                     } else if active.is_initialized {
-                        props.show_manage_members.set(Some(active.id()));
-                        props.show_group_users.set(None);
-                        props.show_group_settings.set(false);
+                        show_manage_members.set(Some(active.id()));
+                        show_group_users_signal.set(None);
+                        show_group_settings_signal.set(false);
                     }
                     show_more.set(false);
                 }
@@ -168,12 +171,12 @@ pub fn get_controls(props: ChatProps) -> Element {
                 text: text_builder("settings"),
                 tooltip: tooltip_builder("settings", arrow_top),
                 onpress: move |_| {
-                    if props.show_group_settings.read().clone() {
-                        props.show_group_settings.set(false);
+                    if show_group_settings_signal.read().clone() {
+                        show_group_settings_signal.set(false);
                     } else if chat_data.read().active_chat.is_initialized {
-                        props.show_group_settings.set(true);
-                        props.show_manage_members.set(None);
-                        props.show_group_users.set(None);
+                        show_group_settings_signal.set(true);
+                        show_manage_members.set(None);
+                        show_group_users_signal.set(None);
                     }
                 }
             })}

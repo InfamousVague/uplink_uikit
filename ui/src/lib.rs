@@ -246,7 +246,7 @@ fn app_layout() -> Element {
     use_app_coroutines()?;
     use_router_notification_listener()?;
 
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     rsx! {
         AppStyle {}
@@ -276,7 +276,7 @@ fn app_layout() -> Element {
 }
 
 fn AppStyle() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     rsx! {
         style { {get_app_style(&state.read())} },
     }
@@ -1041,7 +1041,7 @@ pub fn get_download_modal(
                         text: get_local_text("updates.download-label"),
                         aria_label: get_local_text("updates.download-label"),
                         appearance: Appearance::Secondary,
-                        onpress: |_| {
+                        onpress: move |_| {
                             let _ = open::that("https://github.com/Satellite-im/Uplink/releases/latest");
                         }
                     }
@@ -1073,7 +1073,7 @@ pub fn get_download_modal(
 }
 
 fn AppLogger() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
 
     if !state.read().initialized {
         return rsx!({ () });
@@ -1090,7 +1090,7 @@ fn AppLogger() -> Element {
 }
 
 fn Toasts() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     rsx!({
         state
             .read()
@@ -1131,7 +1131,7 @@ fn Titlebar() -> Element {
 
 fn use_router_notification_listener() -> Option<()> {
     // this use_future replaces the notification_action_handler.
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let navigator = use_navigator();
     use_resource(move || {
         to_owned![state, navigator];

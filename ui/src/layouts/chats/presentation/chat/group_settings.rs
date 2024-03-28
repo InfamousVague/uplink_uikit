@@ -90,7 +90,7 @@ pub fn GroupSettings() -> Element {
                     }
                     Switch {
                         active: group_settings_state().members_can_add_participants(),
-                        onflipped: |switch_state| {
+                        onflipped: move |switch_state| {
                             group_settings_changed_channel.send(GroupSettingsChange::MembersCanAddParticipants(switch_state))
                         }
                     }
@@ -102,7 +102,7 @@ pub fn GroupSettings() -> Element {
                     }
                     Switch {
                         active: group_settings_state().members_can_change_name(),
-                        onflipped: |switch_state| {
+                        onflipped: move |switch_state| {
                             group_settings_changed_channel.send(GroupSettingsChange::MembersCanChangeName(switch_state))
                         }
                     }

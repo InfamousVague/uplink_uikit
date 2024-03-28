@@ -22,7 +22,7 @@ pub struct SearchProps {
 }
 
 pub fn search_friends(props: SearchProps) -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     if props.identities.read().is_empty() || !*props.search_friends_is_focused.read() {
         return None;
     }

@@ -31,7 +31,7 @@ enum ChanCmd {
 
 #[allow(non_snake_case)]
 pub fn PendingFriends() -> Element {
-    let state = use_context::<Signal<State>>();
+    let mut state = use_context::<Signal<State>>();
     let friends_list = state.read().incoming_fr_identities();
     let deny_in_progress: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
     let accept_in_progress: Signal<HashSet<DID>> = use_signal(|| HashSet::new());

@@ -219,8 +219,8 @@ fn render_selector(mouse_over_emoji_button: Signal<bool>, nav: Element) -> Eleme
                     aria_label: "emoji-search-input".to_string(),
                     value: String::new(),
                     onreturn:  |_| {},
-                    onchange: |_| {},
-                    onkeyup: |_| {},
+                    onchange: move |_| {},
+                    onkeyup: move |_| {},
                     prevent_up_down_arrows: !emoji_suggestions.is_empty(),
                     oncursor_update: move |(v, p): (String, i64)| {
                         let mut sub: String = v.chars().take(p as usize).collect();

@@ -12,7 +12,7 @@ use dioxus::{
 };
 use dioxus_hooks::{to_owned, use_effect, use_signal, Coroutine};
 
-pub fn init_msg_scroll(chat_data: &Signal<ChatData>, ch: Coroutine<()>) {
+pub fn init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
     let chat_key = chat_data.read().active_chat.key();
     let chat_key_signal = use_signal(|| chat_key);
     use_effect(move || {
