@@ -403,7 +403,8 @@ fn use_app_coroutines() -> Option<()> {
 
     // There is currently an issue in Tauri/Wry where the window size is not reported properly.
     // Thus we bind to the resize event itself and update the size from the webview.
-    let mut webview = use_signal(|| desktop.clone().webview);
+    // TODO(Migration_0.5): Verify this function later
+    // let mut webview = use_signal(|| desktop.clone().webview);
     let mut first_resize = use_signal(|| true);
 
     // TODO(Migration_0.5): Verify this function later

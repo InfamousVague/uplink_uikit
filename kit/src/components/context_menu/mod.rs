@@ -130,7 +130,7 @@ pub struct IdentityProps {
 
 #[allow(non_snake_case)]
 pub fn IdentityHeader(props: IdentityProps) -> Element {
-    let mut state = use_context::<Signal<State>>();
+    let state = use_context::<Signal<State>>();
     let sender = state
         .read()
         .get_identity(&props.sender_did)
@@ -180,8 +180,8 @@ pub fn ContextMenu(props: Props) -> Element {
     let window = use_window();
 
     let devmode = props.devmode.unwrap_or(false);
-    let mut with_click = use_signal(|| props.left_click_trigger.unwrap_or_default());
-    let mut id_signal = use_signal(|| id.clone());
+    let with_click = use_signal(|| props.left_click_trigger.unwrap_or_default());
+    let id_signal = use_signal(|| id.clone());
 
     // Handles the hiding and showing of the context menu
     use_effect(move || {

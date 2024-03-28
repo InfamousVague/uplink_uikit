@@ -68,7 +68,7 @@ pub fn ProfileSettings() -> Element {
     let image = identity.profile_picture();
     let banner = identity.profile_banner();
     let mut open_crop_image_modal = use_signal(|| (false, (Vec::new(), String::new())));
-    let open_crop_image_modal_for_banner_picture =
+    let mut open_crop_image_modal_for_banner_picture =
         use_signal(|| (false, (Vec::new(), String::new())));
 
     //TODO: Remove `\0` as that should not be used to determined if an image is empty

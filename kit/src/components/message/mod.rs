@@ -176,7 +176,7 @@ fn wrap_links_with_a_tags(text: &str) -> (String, Vec<String>) {
 #[allow(non_snake_case)]
 pub fn Message(props: Props) -> Element {
     //  log::trace!("render Message");
-    let mut props_signal = use_signal(|| props.clone());
+    let props_signal = use_signal(|| props.clone());
     let loading = props.loading.unwrap_or_default();
     let is_remote = props.remote.unwrap_or_default();
     let order = props.order.unwrap_or(Order::Last);
@@ -678,7 +678,7 @@ pub struct IdentityMessageProps {
 #[allow(non_snake_case)]
 pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let mut identity = use_signal(|| None);
+    let identity = use_signal(|| None);
     let ch = use_coroutine(|mut rx: UnboundedReceiver<IdentityCmd>| {
         to_owned![identity, state];
         async move {
@@ -738,7 +738,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
         }
     });
 
-    let mut did = use_signal(|| props.id.clone());
+    let did = use_signal(|| props.id.clone());
 
     use_effect(move || {
         to_owned![ch];
@@ -749,7 +749,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
 
     match identity() {
         Some(identity) => {
-            let mut identity_signal = use_signal(|| identity.clone());
+            let identity_signal = use_signal(|| identity.clone());
             let disabled = state
                 .read()
                 .outgoing_fr_identities()

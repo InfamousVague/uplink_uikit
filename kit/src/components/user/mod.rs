@@ -58,7 +58,7 @@ pub fn emit(props: Props, e: Event<MouseData>) {
 
 #[allow(non_snake_case)]
 pub fn User(props: Props) -> Element {
-    let mut props_signal = use_signal(|| props.clone());
+    let props_signal = use_signal(|| props.clone());
     let time_ago = get_time_ago(props.clone());
     let badge = get_badge(props.clone());
     let aria_label = props.aria_label.clone().unwrap_or_default();

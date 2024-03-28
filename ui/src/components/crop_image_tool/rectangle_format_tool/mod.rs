@@ -58,7 +58,7 @@ pub fn CropRectImageModal(props: Props) -> Element {
         to_owned![image_dimensions];
         async move {
             while image_dimensions.read().width == 0 && image_dimensions.read().height == 0 {
-                let eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
+                let mut eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
                 if let Ok(val) = eval_result.join().await {
                     *image_dimensions.write_silent() = ImageDimensions {
                         height: val["height"].as_i64().unwrap_or_default(),
@@ -133,7 +133,7 @@ pub fn CropRectImageModal(props: Props) -> Element {
                                         async move {
                                             let save_image_cropped_js = SAVE_CROPPED_IMAGE_SCRIPT
                                             .replace("$IMAGE_SCALE", (1.0 / *image_scale.read()).to_string().as_str());
-                                            let eval_result = eval(&save_image_cropped_js);
+                                            let mut eval_result = eval(&save_image_cropped_js);
                                                 if let Ok(val) = eval_result.join().await {
                                                     let thumbnail = val.as_str().unwrap_or_default();
                                                     let base64_string = thumbnail.trim_matches('\"');

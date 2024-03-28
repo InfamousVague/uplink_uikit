@@ -100,7 +100,7 @@ impl UplinkExtension {
     }
 
     // todo: can an element be converted to an HTML string and have the string be returned instead?
-    pub fn render<'a>(&self) -> Element {
+    pub fn render(&self) -> Element {
         unsafe {
             let res = self
                 .lib

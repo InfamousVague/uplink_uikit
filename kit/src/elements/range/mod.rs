@@ -24,7 +24,7 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn Range(props: Props) -> Element {
     let mut internal_state = use_signal(|| props.initial_value);
-    let mut value = use_signal(|| props.initial_value);
+    let value = use_signal(|| props.initial_value);
 
     use_effect(move || {
         internal_state.set(*value.read());

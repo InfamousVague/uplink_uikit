@@ -146,7 +146,7 @@ enum Command {
 #[component(no_case_check)]
 fn render_selector(mouse_over_emoji_button: Signal<bool>, nav: Element) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let mut mouse_over_emoji_selector = use_signal(|| false);
+    let mouse_over_emoji_selector = use_signal(|| false);
     let mut emoji_suggestions = use_signal(Vec::new);
 
     let focus_script = r#"
@@ -154,7 +154,7 @@ fn render_selector(mouse_over_emoji_button: Signal<bool>, nav: Element) -> Eleme
             emoji_selector.focus();
         "#;
 
-    let mut focus_script_signal = use_signal(|| focus_script.to_string());
+    let focus_script_signal = use_signal(|| focus_script.to_string());
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<Command>| {
         to_owned![state];
@@ -299,7 +299,7 @@ fn render_selector(mouse_over_emoji_button: Signal<bool>, nav: Element) -> Eleme
 #[component(no_case_check)]
 fn render_1(_unused: bool) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let mut mouse_over_emoji_button = use_signal(|| false);
+    let mouse_over_emoji_button = use_signal(|| false);
     let visible = state.read().ui.emoji_picker_visible;
     log::debug!("vis {}", visible);
 

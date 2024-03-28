@@ -333,7 +333,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
 
     let mut other_participants_in_call = use_signal(|| other_participants.clone());
 
-    use_effect(|| {
+    use_effect(move || {
         to_owned![ch, state];
         {
             for id in other_participants_in_call() {
@@ -579,7 +579,7 @@ fn PendingCallDialog(props: PendingCallProps) -> Element {
         };
     }
     let mut alive = use_signal(|| Arc::new(AtomicBool::new(false)));
-    use_effect(|| {
+    use_effect(move || {
         to_owned![alive];
         spawn(async move { PlayUntil(ContinuousSound::RingTone, alive.read().clone()) });
     });
@@ -698,10 +698,10 @@ pub struct CallUserImageProps {
 pub fn CallUserImageGroup(props: CallUserImageProps) -> Element {
     let mut amount = use_signal(|| 3);
     let mut id = use_signal(|| Uuid::new_v4());
-    use_effect(|| {
+    use_effect(move || {
         to_owned![amount];
         spawn(async move {
-            let eval_result = eval(include_str!("./resize_handler.js"));
+            let mut eval_result = eval(include_str!("./resize_handler.js"));
             loop {
                 match eval_result.recv().await {
                     Ok(value) => {

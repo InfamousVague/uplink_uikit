@@ -9,7 +9,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn ColorSwatch(props: Props) -> Element {
-    let mut props_signal = use_signal(|| props.clone());
+    let props_signal = use_signal(|| props.clone());
     let active = props
         .active
         .then(|| "active".to_string())

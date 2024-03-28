@@ -57,7 +57,7 @@ pub fn handle_msg_scroll(
                     let behavior = chat_data.read().get_chat_behavior(conv_id);
 
                     // init the scroll button
-                    let eval_result = eval(scripts::READ_SCROLL);
+                    let mut eval_result = eval(scripts::READ_SCROLL);
                     if let Ok(result) = eval_result.join().await {
                         let scroll = result.as_i64().unwrap_or_default();
                         chat_data.write_silent().set_scroll_value(conv_id, scroll);

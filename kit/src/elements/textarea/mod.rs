@@ -72,11 +72,11 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn Input(props: Props) -> Element {
     log::trace!("render input");
-    let mut left_shift_pressed = use_signal(|| false);
-    let mut right_shift_pressed = use_signal(|| false);
-    let mut enter_pressed = use_signal(|| false);
-    let mut numpad_enter_pressed = use_signal(|| false);
-    let mut cursor_position = use_signal(|| None);
+    let left_shift_pressed = use_signal(|| false);
+    let right_shift_pressed = use_signal(|| false);
+    let enter_pressed = use_signal(|| false);
+    let numpad_enter_pressed = use_signal(|| false);
+    let cursor_position = use_signal(|| None);
 
     let Props {
         id: _,
@@ -118,14 +118,14 @@ pub fn Input(props: Props) -> Element {
         .replace("$MULTI_LINE", &format!("{}", true));
     let disabled = loading || is_disabled;
 
-    let mut sync = use_signal(|| include_str!("./sync_data.js").replace("$UUID", &id));
+    let sync = use_signal(|| include_str!("./sync_data.js").replace("$UUID", &id));
     let clear_counter_script =
         r#"document.getElementById('$UUID-char-counter').innerText = "0";"#.replace("$UUID", &id);
 
     let cursor_script = include_str!("./cursor_script.js").replace("$ID", &id2);
 
-    let mut text_value = use_signal(|| value.clone());
-    let mut value_signal = use_signal(|| value.clone());
+    let text_value = use_signal(|| value.clone());
+    let value_signal = use_signal(|| value.clone());
 
     let _ = use_resource(move || {
         to_owned![cursor_position, show_char_counter];
@@ -146,7 +146,7 @@ pub fn Input(props: Props) -> Element {
         }
     }
 
-    let mut placeholder = use_signal(|| placeholder.clone());
+    let placeholder = use_signal(|| placeholder.clone());
     let placeholder_clone = placeholder;
 
     rsx! (
@@ -178,7 +178,7 @@ pub fn Input(props: Props) -> Element {
                             to_owned![cursor_script, cursor_position];
                             async move {
                                 if do_cursor_update {
-                                    let eval_result = eval(&cursor_script);
+                                    let mut eval_result = eval(&cursor_script);
                                         if let Ok(val) = eval_result.join().await {
                                             *cursor_position.write() = Some(val.as_i64().unwrap_or_default());
                                         }
@@ -204,7 +204,7 @@ pub fn Input(props: Props) -> Element {
                             to_owned![cursor_script, cursor_position];
                             async move {
                                 if do_cursor_update {
-                                    let eval_result = eval(&cursor_script);
+                                    let mut eval_result = eval(&cursor_script);
                                         if let Ok(val) = eval_result.join().await {
                                             *cursor_position.write() = Some(val.as_i64().unwrap_or_default());
                                         }
@@ -260,7 +260,7 @@ pub fn Input(props: Props) -> Element {
                             to_owned![eval, cursor_script, cursor_position];
                             async move {
                                 if do_cursor_update && arrow {
-                                    let eval_result = eval(&cursor_script);
+                                    let mut eval_result = eval(&cursor_script);
                                         if let Ok(val) = eval_result.join().await {
                                             *cursor_position.write() = Some(val.as_i64().unwrap_or_default());
                                         }
@@ -298,7 +298,7 @@ pub fn Input(props: Props) -> Element {
 #[allow(non_snake_case)]
 pub fn InputRich(props: Props) -> Element {
     log::trace!("render input");
-    let mut listener_data = use_signal(|| None);
+    let listener_data = use_signal(|| None);
 
     let Props {
         id: _,
@@ -333,11 +333,11 @@ pub fn InputRich(props: Props) -> Element {
         .replace("$MULTI_LINE", &format!("{}", true));
     let disabled = loading || is_disabled;
 
-    let mut text_value = use_signal(|| value.clone());
-    let mut sync_script = use_signal(|| include_str!("./sync_data.js").replace("$UUID", &id));
+    let text_value = use_signal(|| value.clone());
+    let sync_script = use_signal(|| include_str!("./sync_data.js").replace("$UUID", &id));
 
-    let mut value = use_signal(|| value.clone());
-    let mut placeholder = use_signal(|| placeholder.clone());
+    let value = use_signal(|| value.clone());
+    let placeholder = use_signal(|| placeholder.clone());
 
     // Sync changed to the editor
     let _ = use_resource(move || {

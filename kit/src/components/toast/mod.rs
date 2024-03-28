@@ -36,7 +36,7 @@ pub fn get_icon(props: Props) -> Icon {
 
 #[allow(non_snake_case)]
 pub fn Toast(props: Props) -> Element {
-    let mut props_signal = use_signal(|| props.clone());
+    let props_signal = use_signal(|| props.clone());
     let content = props.with_content.clone().unwrap_or_default();
     let title = props.with_title.clone().unwrap_or_default();
 

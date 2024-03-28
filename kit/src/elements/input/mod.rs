@@ -326,7 +326,7 @@ pub fn validate(props: Props, val: &str) -> Option<ValidationError> {
 
 #[allow(non_snake_case)]
 pub fn Input(props: Props) -> Element {
-    let mut props_signal = use_signal(|| props.clone());
+    let props_signal = use_signal(|| props.clone());
     // Input element needs an id. Create a new one if an id wasn't specified
     let input_id = if props.id.is_empty() {
         Uuid::new_v4().to_string()
@@ -378,8 +378,8 @@ pub fn Input(props: Props) -> Element {
         .and_then(|b| b.then_some("password"))
         .unwrap_or("text");
 
-    let mut focus_signal = use_signal(|| props.focus);
-    let mut focus_script_signal = use_signal(|| focus_script.clone());
+    let focus_signal = use_signal(|| props.focus);
+    let focus_script_signal = use_signal(|| focus_script.clone());
 
     use_effect(move || {
         if *focus_signal.read() {

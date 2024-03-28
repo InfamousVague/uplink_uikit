@@ -140,7 +140,7 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
                     if behavior.on_scroll_end != data::ScrollBehavior::DoNothing {
                         return;
                     }
-                    let eval_result = eval(scripts::READ_SCROLL);
+                    let mut eval_result = eval(scripts::READ_SCROLL);
                     if let Ok(result) = eval_result.join().await {
                         let scroll = result.as_i64().unwrap_or_default();
                         chat_data.write_silent().set_scroll_value(active_chat_id, scroll);

@@ -23,7 +23,7 @@ pub fn AboutPage() -> Element {
     let version = env!("CARGO_PKG_VERSION");
     let app_name = env!("CARGO_PKG_NAME");
     let mut state = use_context::<Signal<State>>();
-    let download_state = use_context::<Signal<DownloadState>>();
+    let mut download_state = use_context::<Signal<DownloadState>>();
     let mut update_button_loading = use_signal(|| false);
     let mut download_available: Signal<Option<GitHubRelease>> = use_signal(|| None);
     let desktop = use_window();

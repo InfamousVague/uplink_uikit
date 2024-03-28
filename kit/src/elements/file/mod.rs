@@ -56,7 +56,7 @@ pub fn get_file_extension(file_name: String) -> String {
 
 #[allow(non_snake_case)]
 pub fn File(props: Props) -> Element {
-    let mut props_signal = use_signal(|| props.clone());
+    let props_signal = use_signal(|| props.clone());
     let file_extension = get_file_extension(props.text.clone());
     let file_name = props.text.clone();
     let file_name2 = file_name.clone();

@@ -5,10 +5,10 @@ use dioxus_desktop::{use_window, LogicalSize};
 
 #[allow(non_snake_case)]
 pub fn TopbarControls() -> Element {
-    let mut state = use_signal(State::load);
+    let state = use_signal(State::load);
     let desktop = use_window();
-    let mut desktop_signal = use_signal(|| desktop.clone());
-    let mut first_resize = use_signal(|| true);
+    let desktop_signal = use_signal(|| desktop.clone());
+    let first_resize = use_signal(|| true);
     if cfg!(not(target_os = "macos")) {
         rsx!(
             div {

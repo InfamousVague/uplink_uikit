@@ -54,7 +54,7 @@ pub fn Folder(props: Props) -> Element {
 
     let loading = props.loading.unwrap_or_default();
 
-    let mut props_signal = use_signal(|| props.clone());
+    let props_signal = use_signal(|| props.clone());
 
     if loading {
         rsx!(FolderSkeletal {})
