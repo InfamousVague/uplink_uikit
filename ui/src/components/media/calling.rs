@@ -110,10 +110,10 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
     let outgoing = active_call.call.participants_joined.is_empty();
     let update_fn = schedule_update_any();
 
-    let recording = use_signal(|| false);
+    let mut recording = use_signal(|| false);
 
-    let scope_id_signal = use_signal(|| scope_id);
-    let answer_time_signal = use_signal(|| active_call_answer_time);
+    let mut scope_id_signal = use_signal(|| scope_id);
+    let mut answer_time_signal = use_signal(|| active_call_answer_time);
 
     use_future(|| async move {
         loop {
@@ -331,7 +331,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
     let participants_name = State::join_usernames(&other_participants);
     let self_id = build_user_from_identity(&state.read().get_own_identity());
 
-    let other_participants_in_call = use_signal(|| other_participants.clone());
+    let mut other_participants_in_call = use_signal(|| other_participants.clone());
 
     use_effect(|| {
         to_owned![ch, state];
@@ -578,7 +578,7 @@ fn PendingCallDialog(props: PendingCallProps) -> Element {
             }
         };
     }
-    let alive = use_signal(|| Arc::new(AtomicBool::new(false)));
+    let mut alive = use_signal(|| Arc::new(AtomicBool::new(false)));
     use_effect(|| {
         to_owned![alive];
         spawn(async move { PlayUntil(ContinuousSound::RingTone, alive.read().clone()) });
@@ -696,8 +696,8 @@ pub struct CallUserImageProps {
 
 #[allow(non_snake_case)]
 pub fn CallUserImageGroup(props: CallUserImageProps) -> Element {
-    let amount = use_signal(|| 3);
-    let id = use_signal(|| Uuid::new_v4());
+    let mut amount = use_signal(|| 3);
+    let mut id = use_signal(|| Uuid::new_v4());
     use_effect(|| {
         to_owned![amount];
         spawn(async move {

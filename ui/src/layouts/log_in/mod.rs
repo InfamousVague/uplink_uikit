@@ -33,8 +33,8 @@ pub enum AuthPages {
 pub fn AuthGuard(page: Signal<AuthPages>) -> Element {
     log::trace!("rendering auth guard");
 
-    let pin = use_signal(String::new);
-    let seed_words = use_signal(String::new);
+    let mut pin = use_signal(String::new);
+    let mut seed_words = use_signal(String::new);
     let desktop = use_window();
     let theme = "";
 

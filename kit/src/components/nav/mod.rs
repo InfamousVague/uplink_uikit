@@ -115,8 +115,8 @@ pub fn Nav(props: Props) -> Element {
     let tooltip_direction = props.tooltip_direction.unwrap_or(ArrowPosition::Bottom);
     let routes_in_app = props.routes.clone();
     // For some reason if you dont do this the first render will not have a context menu
-    let uuid = use_signal(|| Uuid::new_v4().to_string());
-    let props_signal = use_signal(|| props.clone());
+    let mut uuid = use_signal(|| Uuid::new_v4().to_string());
+    let mut props_signal = use_signal(|| props.clone());
 
     rsx!(
         div {

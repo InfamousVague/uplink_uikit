@@ -24,11 +24,11 @@ pub fn AboutPage() -> Element {
     let app_name = env!("CARGO_PKG_NAME");
     let mut state = use_context::<Signal<State>>();
     let download_state = use_context::<Signal<DownloadState>>();
-    let update_button_loading = use_signal(|| false);
-    let download_available: Signal<Option<GitHubRelease>> = use_signal(|| None);
+    let mut update_button_loading = use_signal(|| false);
+    let mut download_available: Signal<Option<GitHubRelease>> = use_signal(|| None);
     let desktop = use_window();
 
-    let click_count = use_signal(|| 0);
+    let mut click_count = use_signal(|| 0);
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<()>| {
         to_owned![download_available, update_button_loading, state];

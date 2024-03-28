@@ -33,8 +33,8 @@ enum ChanCmd {
 pub fn PendingFriends() -> Element {
     let mut state = use_context::<Signal<State>>();
     let friends_list = state.read().incoming_fr_identities();
-    let deny_in_progress: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
-    let accept_in_progress: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
+    let mut deny_in_progress: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
+    let mut accept_in_progress: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<ChanCmd>| {
         to_owned![deny_in_progress, accept_in_progress];

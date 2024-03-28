@@ -154,7 +154,7 @@ pub fn ExtensionsBrowser() -> Element {
         },
     ];
 
-    let active_route = use_signal(|| "installed");
+    let mut active_route = use_signal(|| "installed");
 
     rsx!(
         div {

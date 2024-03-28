@@ -193,10 +193,10 @@ pub fn Reply(props: ReplyProps) -> Element {
 
 #[allow(non_snake_case)]
 pub fn Chatbar(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
+    let mut props_signal = use_signal(|| props.clone());
     let controlled_input_id = &props.id;
     let is_typing = !props.typing_users.is_empty();
-    let cursor_position = use_signal(|| None);
+    let mut cursor_position = use_signal(|| None);
     let mut selected_suggestion: Signal<Option<usize>> = use_signal(|| None);
     let mut arrow_selected = use_signal(|| false);
     let mut is_suggestion_modal_closed: Signal<bool> = use_signal(|| false);
@@ -333,14 +333,14 @@ pub struct SuggestionProps {
 
 #[allow(non_snake_case)]
 fn SuggestionsMenu(props: SuggestionProps) -> Element {
-    let props_signal = use_signal(|| props.clone());
+    let mut props_signal = use_signal(|| props.clone());
     if props.selected.read().is_none() {
         *props.selected.write_silent() = Some(0);
     }
     let (label, suggestions): (_, Vec<_>) = match props_signal.read().clone().suggestions {
         SuggestionType::None => return None,
         SuggestionType::Emoji(pattern, emojis) => {
-            let pattern_signal = use_signal(|| pattern.clone());
+            let mut pattern_signal = use_signal(|| pattern.clone());
             let component = emojis.iter().cloned().enumerate().map(|(num, (emoji,alias))| {
                 rsx!(div {
                     class: format_args!("{} {}", "chatbar-suggestion", match props_signal.read().clone().selected.read().as_ref() {
@@ -369,7 +369,7 @@ fn SuggestionsMenu(props: SuggestionProps) -> Element {
             (get_local_text("messages.emoji-suggestion"), component)
         }
         SuggestionType::Tag(pattern, identities) => {
-            let pattern_signal = use_signal(|| pattern.clone());
+            let mut pattern_signal = use_signal(|| pattern.clone());
             let component = identities.iter().enumerate().map(|(num, id)| {
                 let username = format!("{}#{}", id.username(), id.short_id());
                 rsx!(div {

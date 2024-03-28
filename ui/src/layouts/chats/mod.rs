@@ -72,7 +72,7 @@ pub fn ChatLayout() -> Element {
         state.write().mutate(Action::SidebarHidden(true));
         first_render.set(false);
     }
-    let drag_event: Signal<Option<FileDropEvent>> = use_signal(|| None);
+    let mut drag_event: Signal<Option<FileDropEvent>> = use_signal(|| None);
     let window = use_window();
     let show_slimbar = state.read().show_slimbar();
 

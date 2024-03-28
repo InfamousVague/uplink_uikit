@@ -63,7 +63,7 @@ fn FilePreview(props: Props) -> Element {
     let thumbnail = thumbnail_to_base64(&props.file);
     let temp_dir = STATIC_ARGS.temp_files.join(props.file.name());
 
-    let file_loading_counter = use_signal(|| 0);
+    let mut file_loading_counter = use_signal(|| 0);
     // Using id to change file name in case of duplicate files and avoid
     // open different file from that user clicked
     let temp_dir_with_file_id = STATIC_ARGS.temp_files.join(format!(
@@ -131,7 +131,7 @@ fn FilePreview(props: Props) -> Element {
         .unwrap_or_default();
 
     let file_type = get_file_type(&props.file.name());
-    let should_dismiss_on_error = use_signal(|| false);
+    let mut should_dismiss_on_error = use_signal(|| false);
 
     if file_type == FileType::Unkwnown {
         state

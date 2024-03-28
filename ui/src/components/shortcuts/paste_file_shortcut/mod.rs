@@ -54,7 +54,7 @@ pub fn PasteFilesShortcut(props: ShortCutProps) -> Element {
         return None;
     }
 
-    let files_local_path_to_upload = use_signal(Vec::new);
+    let mut files_local_path_to_upload = use_signal(Vec::new);
     let mut command_pressed = use_signal(|| false);
     let key = KeyCode::V;
     let modifiers = if cfg!(target_os = "macos") {

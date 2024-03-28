@@ -47,7 +47,7 @@ pub fn emit_context(props: Props, e: Event<MouseData>) {
 
 #[allow(non_snake_case)]
 pub fn UserImage(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
+    let mut props_signal = use_signal(|| props.clone());
     let image_data: String = get_image(props.clone());
     let status = props.status;
     let platform = props.platform;

@@ -66,7 +66,7 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn FileEmbed(props: Props) -> Element {
     //log::trace!("rendering file embed: {}", props.filename);
-    let props_signal = use_signal(|| props.clone());
+    let mut props_signal = use_signal(|| props.clone());
     let file_extension = std::path::Path::new(&props.filename)
         .extension()
         .and_then(OsStr::to_str)

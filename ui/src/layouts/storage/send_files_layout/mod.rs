@@ -49,7 +49,7 @@ pub fn SendFilesLayout(props: SendFilesProps) -> Element {
     let send_files_start_location = props.send_files_start_location.clone();
     let send_files_from_storage_state = props.send_files_from_storage_state.clone();
     let storage_controller = StorageController::new(state);
-    let first_render = use_signal(|| true);
+    let mut first_render = use_signal(|| true);
     let file_tracker = use_context::<Signal<TransferTracker>>();
     let ch: Coroutine<ChanCmd> =
         functions::init_coroutine(storage_controller.clone(), state, file_tracker);

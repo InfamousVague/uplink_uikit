@@ -33,7 +33,7 @@ pub enum FriendRoute {
 #[allow(non_snake_case)]
 pub fn FriendsLayout() -> Element {
     let mut state = use_context::<Signal<State>>();
-    let route = use_signal(|| FriendRoute::All);
+    let mut route = use_signal(|| FriendRoute::All);
     let show_slimbar = state.read().show_slimbar() & !state.read().ui.is_minimal_view();
     state.write_silent().ui.current_layout = ui::Layout::Friends;
 

@@ -29,7 +29,7 @@ pub fn KeyboardShortcuts(props: Props) -> Element {
     }
 
     if props.is_on_auth_pages.unwrap_or(false) {
-        let state = use_signal(|| State::load());
+        let mut state = use_signal(|| State::load());
         let keybinds = state.read().settings.keybinds.clone();
         return rsx! {
             for (global_shortcut, shortcut) in keybinds {
@@ -100,7 +100,7 @@ struct GlobalShortcutProps {
 }
 
 fn RenderGlobalShortCuts<'a>(props: GlobalShortcutProps) -> Element {
-    let command_pressed = use_signal(|| false);
+    let mut command_pressed = use_signal(|| false);
 
     if *command_pressed.read() {
         *command_pressed.write_silent() = false;

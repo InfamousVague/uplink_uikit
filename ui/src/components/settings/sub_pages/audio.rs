@@ -34,11 +34,11 @@ enum AudioCmd {
 pub fn AudioSettings() -> Element {
     log::trace!("Audio settings page rendered.");
     let mut state = use_context::<Signal<State>>();
-    let input_devices = use_signal(Vec::new);
-    let output_devices = use_signal(Vec::new);
+    let mut input_devices = use_signal(Vec::new);
+    let mut output_devices = use_signal(Vec::new);
 
-    let speaker_volume = use_signal(|| 0);
-    let microphone_volume = use_signal(|| 0);
+    let mut speaker_volume = use_signal(|| 0);
+    let mut microphone_volume = use_signal(|| 0);
 
     let ch = use_coroutine(|mut rx| {
         to_owned![

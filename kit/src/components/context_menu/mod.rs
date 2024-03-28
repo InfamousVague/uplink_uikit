@@ -180,8 +180,8 @@ pub fn ContextMenu(props: Props) -> Element {
     let window = use_window();
 
     let devmode = props.devmode.unwrap_or(false);
-    let with_click = use_signal(|| props.left_click_trigger.unwrap_or_default());
-    let id_signal = use_signal(|| id.clone());
+    let mut with_click = use_signal(|| props.left_click_trigger.unwrap_or_default());
+    let mut id_signal = use_signal(|| id.clone());
 
     // Handles the hiding and showing of the context menu
     use_effect(move || {

@@ -94,8 +94,8 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
     let mut is_recording = use_signal(|| false);
     let mut update_keybind = use_signal(|| None);
     let system_shortcut = Shortcut::get_system_shortcut(&state, props.shortcut.clone());
-    let new_keybind_has_one_key = use_signal(|| false);
-    let new_keybind_has_at_least_one_modifier = use_signal(|| false);
+    let mut new_keybind_has_one_key = use_signal(|| false);
+    let mut new_keybind_has_at_least_one_modifier = use_signal(|| false);
     let aria_label = props.aria_label.clone().unwrap_or_default();
 
     if update_keybind.read().is_some() && !is_recording() {

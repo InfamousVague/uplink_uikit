@@ -36,14 +36,14 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn CropCircleImageModal(props: Props) -> Element {
-    let large_thumbnail = use_signal(|| props.large_thumbnail.clone());
+    let mut large_thumbnail = use_signal(|| props.large_thumbnail.clone());
 
     let mut image_scale: Signal<f32> = use_signal(|| 1.0);
     let mut crop_image = use_signal(|| true);
-    let cropped_image_pathbuf = use_signal(PathBuf::new);
+    let mut cropped_image_pathbuf = use_signal(PathBuf::new);
     let mut clicked_button_to_crop = use_signal(|| false);
 
-    let image_dimensions = use_signal(|| ImageDimensions {
+    let mut image_dimensions = use_signal(|| ImageDimensions {
         height: 0,
         width: 0,
     });

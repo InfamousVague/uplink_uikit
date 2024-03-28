@@ -58,7 +58,7 @@ pub fn FilesLayout() -> Element {
     let files_in_queue_to_upload2 = files_in_queue_to_upload.clone();
     let files_been_uploaded2 = files_been_uploaded.clone();
     let mut send_files_from_storage = use_signal(|| false);
-    let files_pre_selected_to_send: Signal<Vec<Location>> = use_signal(Vec::new);
+    let mut files_pre_selected_to_send: Signal<Vec<Location>> = use_signal(Vec::new);
     let _router = use_navigator();
     let show_slimbar = state.read().show_slimbar() & !state.read().ui.is_minimal_view();
     let file_tracker = use_context::<Signal<TransferTracker>>();

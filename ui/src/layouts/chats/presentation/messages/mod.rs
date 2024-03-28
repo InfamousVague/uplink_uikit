@@ -371,13 +371,13 @@ fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
         .extensions
         .enabled_extension(emoji_selector_extension);
 
-    let messages = use_signal(|| props.messages.clone());
+    let mut messages = use_signal(|| props.messages.clone());
     let messages_no_signal = messages();
 
     let ch = use_coroutine_handle::<MessagesCommand>();
     rsx!({
         messages_no_signal.iter().cloned().map(|grouped_message| {
-        let message = use_signal(|| grouped_message.message.clone());
+let mut message = use_signal(|| grouped_message.message.clone());
         let sender_is_self = message().inner.sender() == state.read().did_key();
 
         // WARNING: these keys are required to prevent a bug with the context menu, which manifests when deleting messages.
@@ -573,7 +573,7 @@ fn render_message(props: MessageProps) -> Element {
         mut edit_msg,
         pending: _,
     } = props;
-    let message = use_signal(|| grouped_message.message);
+    let mut message = use_signal(|| grouped_message.message);
     let is_editing = edit_msg
         .read()
         .map(|id| !props.is_remote && (id == message().inner.id()))

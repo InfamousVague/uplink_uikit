@@ -202,7 +202,7 @@ fn app() -> Element {
     bootstrap::use_warp_runner();
 
     // 2. Guard the app with the auth
-    let auth = use_signal(|| AuthPages::EntryPoint);
+    let mut auth = use_signal(|| AuthPages::EntryPoint);
     let auth_result = auth.read().clone();
     let AuthPages::Success(identity) = auth_result else {
         return rsx! {
@@ -372,12 +372,12 @@ fn use_auto_updater() -> Option<()> {
 
 fn use_app_coroutines() -> Option<()> {
     let desktop = use_window();
-    let desktop_signal = use_signal(|| desktop.clone());
+    let mut desktop_signal = use_signal(|| desktop.clone());
 
     let mut state = use_context::<Signal<State>>();
 
     // don't fetch stuff from warp when using mock data
-    let items_init = use_signal(|| STATIC_ARGS.use_mock);
+    let mut items_init = use_signal(|| STATIC_ARGS.use_mock);
 
     // `use_future`s
     // all of Uplinks periodic tasks are located here. it's a lot to read but
@@ -403,8 +403,8 @@ fn use_app_coroutines() -> Option<()> {
 
     // There is currently an issue in Tauri/Wry where the window size is not reported properly.
     // Thus we bind to the resize event itself and update the size from the webview.
-    // let webview = use_signal(|| desktop.clone().webview);
-    let first_resize = use_signal(|| true);
+    let mut webview = use_signal(|| desktop.clone().webview);
+    let mut first_resize = use_signal(|| true);
 
     // TODO(Migration_0.5): Verify this function later
     // use_wry_event_handler({
@@ -1011,7 +1011,7 @@ pub fn get_download_modal(
     //on_submit: EventHandler<PathBuf>,
     on_dismiss: EventHandler<()>,
 ) -> Element {
-    let download_location: Signal<Option<PathBuf>> = use_signal(|| None);
+    let mut download_location: Signal<Option<PathBuf>> = use_signal(|| None);
 
     let dl = download_location.read();
     let _disp_download_location = dl

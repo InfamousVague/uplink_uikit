@@ -77,7 +77,7 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
     let mut can_send = use_signal(|| state.read().active_chat_has_draft());
     let mut update_script = use_signal(String::new);
     // TODO(Migration_0.5): Look after migration
-    let upload_button_menu_uuid = use_signal(|| Uuid::new_v4().to_string());
+    let mut upload_button_menu_uuid = use_signal(|| Uuid::new_v4().to_string());
     let mut show_storage_modal = use_signal(|| false);
 
     let mut suggestions = use_signal(|| SuggestionType::None);
@@ -150,7 +150,7 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
 
     // drives the sending of TypingIndicator
     let local_typing_ch1 = local_typing_ch.clone();
-    let enable_paste_shortcut = use_signal(|| true);
+    let mut enable_paste_shortcut = use_signal(|| true);
 
     use_resource(move || {
         to_owned![enable_paste_shortcut];
@@ -179,7 +179,7 @@ pub fn get_chatbar<'a>(props: ChatProps) -> Element {
         }
     });
 
-    let current_chat = use_signal(|| active_chat_id);
+    let mut current_chat = use_signal(|| active_chat_id);
 
     use_resource(move || async move {
         loop {

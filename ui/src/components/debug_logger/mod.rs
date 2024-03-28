@@ -33,7 +33,7 @@ pub enum Tab {
 pub fn DebugLogger() -> Element {
     let window = use_window();
 
-    let logs_to_show = use_signal(logger::load_debug_log);
+    let mut logs_to_show = use_signal(logger::load_debug_log);
 
     use_resource(move || {
         to_owned![logs_to_show];
@@ -45,7 +45,7 @@ pub fn DebugLogger() -> Element {
         }
     });
 
-    let active_tab: Signal<Tab> = use_signal(|| Tab::Logs);
+    let mut active_tab: Signal<Tab> = use_signal(|| Tab::Logs);
     let mut filter_level: Signal<Level> = use_signal(|| Level::Error); // If debug is set, we will not filter at all
 
     let mut state = use_context::<Signal<State>>();

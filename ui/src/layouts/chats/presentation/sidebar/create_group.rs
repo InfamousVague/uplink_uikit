@@ -39,7 +39,7 @@ pub fn CreateGroup(props: Props) -> Element {
     let mut state = use_context::<Signal<State>>();
     let router = use_navigator();
     let mut friend_prefix = use_signal(|| String::new());
-    let selected_friends: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
+    let mut selected_friends: Signal<HashSet<DID>> = use_signal(|| HashSet::new());
     let mut chat_with: Signal<Option<Uuid>> = use_signal(|| None);
     let mut group_name = use_signal(|| Some(String::new()));
     let friends_list = HashMap::from_iter(
@@ -242,7 +242,7 @@ pub struct FriendProps {
 fn render_friend(props: FriendProps) -> Element {
     let mut is_checked = use_signal(|| false);
     let mut selected_friends = props.selected_friends.clone();
-    let friend = use_signal(|| props.friend.clone());
+    let mut friend = use_signal(|| props.friend.clone());
     if !*is_checked.read() && selected_friends.read().contains(&props.friend.did_key()) {
         is_checked.set(true);
     }

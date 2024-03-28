@@ -50,7 +50,7 @@ enum ChanCmd {
 pub fn ProfileSettings() -> Element {
     log::trace!("rendering ProfileSettings");
     let mut state = use_context::<Signal<State>>();
-    let first_render = use_signal(|| true);
+    let mut first_render = use_signal(|| true);
 
     let identity = state.read().get_own_identity();
     let user_status = identity.status_message().unwrap_or_default();
@@ -62,12 +62,12 @@ pub fn ProfileSettings() -> Element {
         IdentityStatus::Offline,
     ];
     let username = identity.username();
-    let should_update: Signal<Option<Identity>> = use_signal(|| None);
-    let update_failed: Signal<Option<String>> = use_signal(|| None);
+    let mut should_update: Signal<Option<Identity>> = use_signal(|| None);
+    let mut update_failed: Signal<Option<String>> = use_signal(|| None);
     // TODO: This needs to persist across restarts but a config option seems overkill. Should we have another kind of file to cache flags?
     let image = identity.profile_picture();
     let banner = identity.profile_banner();
-    let open_crop_image_modal = use_signal(|| (false, (Vec::new(), String::new())));
+    let mut open_crop_image_modal = use_signal(|| (false, (Vec::new(), String::new())));
     let open_crop_image_modal_for_banner_picture =
         use_signal(|| (false, (Vec::new(), String::new())));
 
@@ -76,8 +76,8 @@ pub fn ProfileSettings() -> Element {
         image.eq("\0") || image.is_empty() || identity.contains_default_picture();
     let no_banner_picture = banner.eq("\0") || banner.is_empty();
 
-    let show_remove_seed = use_signal(|| false);
-    let seed_phrase = use_signal(|| None);
+    let mut show_remove_seed = use_signal(|| false);
+    let mut seed_phrase = use_signal(|| None);
     let seed_words_ch: Coroutine<()> = use_coroutine(|mut rx: UnboundedReceiver<()>| {
         to_owned![seed_phrase];
         async move {
@@ -113,7 +113,7 @@ pub fn ProfileSettings() -> Element {
         }
     });
 
-    let phrase_exists = use_signal(|| false);
+    let mut phrase_exists = use_signal(|| false);
     let seed_phrase_exists = use_coroutine(|mut rx: UnboundedReceiver<()>| {
         to_owned![phrase_exists];
         async move {
@@ -220,7 +220,7 @@ pub fn ProfileSettings() -> Element {
             ));
         update_failed.set(None);
     }
-    let loading_indicator = use_signal(|| false);
+    let mut loading_indicator = use_signal(|| false);
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<ChanCmd>| {
         to_owned![should_update, update_failed];
@@ -326,7 +326,7 @@ pub fn ProfileSettings() -> Element {
 
     let change_banner_text = get_local_text("settings-profile.change-banner");
 
-    let store_phrase = use_signal(|| true);
+    let mut store_phrase = use_signal(|| true);
 
     if *first_render.read() {
         seed_phrase_exists.send(());

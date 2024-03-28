@@ -80,7 +80,7 @@ pub fn Button(props: Props) -> Element {
     );
 
     let show_icon = props.loading.unwrap_or_default() || props.icon.is_some();
-    let props_signal = use_signal(|| props.clone());
+    let mut props_signal = use_signal(|| props.clone());
 
     rsx!(
         div {

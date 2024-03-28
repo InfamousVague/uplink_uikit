@@ -33,7 +33,7 @@ pub fn emit(props: Props) {
 
 #[allow(non_snake_case)]
 pub fn Topbar(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
+    let mut props_signal = use_signal(|| props.clone());
     log::trace!("rendering topbar");
     rsx!(
         div {

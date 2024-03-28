@@ -56,8 +56,8 @@ enum ChanCmd {
 #[allow(non_snake_case)]
 pub fn Friends() -> Element {
     let mut state = use_context::<Signal<State>>();
-    let reset_filter = use_signal(|| false);
-    let friend_filter = use_signal(String::new);
+    let mut reset_filter = use_signal(|| false);
+    let mut friend_filter = use_signal(String::new);
     if reset_filter() {
         friend_filter.set(String::new());
         reset_filter.set(false);
@@ -70,16 +70,16 @@ pub fn Friends() -> Element {
             .filter(|id| filter.is_empty() || id.username().to_lowercase().starts_with(&filter))
             .map(|id| (id.did_key(), id.clone())),
     );
-    let block_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
-    let remove_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
+    let mut block_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
+    let mut remove_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
 
-    let share_did = use_signal(|| None);
+    let mut share_did = use_signal(|| None);
 
     let friends = State::get_friends_by_first_letter(friends_list);
 
     let router = use_navigator();
 
-    let chat_with: Signal<Option<Uuid>> = use_signal(|| None);
+    let mut chat_with: Signal<Option<Uuid>> = use_signal(|| None);
 
     if let Some(id) = chat_with() {
         chat_with.set(None);
@@ -406,7 +406,7 @@ pub struct FriendProps {
 
 pub fn ShareFriendsModal(props: FriendProps) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let chats_selected = use_signal(|| Vec::new());
+    let mut chats_selected = use_signal(|| Vec::new());
     let ch = use_coroutine(|mut rx: UnboundedReceiver<(DID, Vec<Uuid>)>| async move {
         let warp_cmd_tx = WARP_CMD_CH.tx.clone();
         while let Some((id, uuid)) = rx.next().await {

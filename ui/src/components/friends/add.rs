@@ -29,14 +29,14 @@ use common::{
 #[allow(non_snake_case)]
 pub fn AddFriend() -> Element {
     let mut state = use_context::<Signal<State>>();
-    let clear_input = use_signal(|| false);
-    let friend_input = use_signal(String::new);
-    let friend_input_valid = use_signal(|| false);
-    let request_sent = use_signal(|| false);
-    let error_toast: Signal<Option<String>> = use_signal(|| None);
-    let add_in_progress = use_signal(|| false);
+    let mut clear_input = use_signal(|| false);
+    let mut friend_input = use_signal(String::new);
+    let mut friend_input_valid = use_signal(|| false);
+    let mut request_sent = use_signal(|| false);
+    let mut error_toast: Signal<Option<String>> = use_signal(|| None);
+    let mut add_in_progress = use_signal(|| false);
     // used when copying the user's id to the clipboard
-    let my_id: Signal<Option<String>> = use_signal(|| None);
+    let mut my_id: Signal<Option<String>> = use_signal(|| None);
     // Set up validation options for the input field
     let friend_validation = Validation {
         max_length: Some(56),

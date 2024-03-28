@@ -161,7 +161,7 @@ pub struct FriendProps {
     context_data: Signal<Option<(f64, f64, Identity, bool)>>,
 }
 fn render_friend(props: FriendProps) -> Element {
-    let friend = use_signal(|| props.friend.clone());
+    let mut friend = use_signal(|| props.friend.clone());
     let mut context_data = props.context_data.clone();
     rsx!(
         div {

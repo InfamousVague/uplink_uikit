@@ -83,7 +83,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
         None => false,
     };
 
-    let update_script_signal = use_signal(|| props.update_script.clone());
+    let mut update_script_signal = use_signal(|| props.update_script.clone());
 
     use_resource(move || async move {
         if !update_script_signal()().is_empty() {

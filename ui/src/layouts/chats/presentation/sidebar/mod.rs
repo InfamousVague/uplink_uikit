@@ -67,7 +67,7 @@ pub fn Sidebar(props: SidebarProps) -> Element {
     let mut chat_with: Signal<Option<Uuid>> = use_signal(|| None);
     let mut reset_searchbar: Signal<_> = use_signal(|| false);
     let router = use_navigator();
-    let show_delete_conversation = use_signal(|| true);
+    let mut show_delete_conversation = use_signal(|| true);
     let mut on_search_dropdown_hover = use_signal(|| false);
     let mut search_friends_is_focused = use_signal(|| false);
     let storage = state.read().ui.current_layout == Layout::Storage;
@@ -114,7 +114,7 @@ pub fn Sidebar(props: SidebarProps) -> Element {
         .filter(|(_, ext)| ext.details().location == extensions::Location::Sidebar)
         .map(|(_, ext)| rsx!({ ext.render() }))
         .collect::<Vec<_>>();
-    let search_typed_chars = use_signal(String::new);
+    let mut search_typed_chars = use_signal(String::new);
     let transfer = if storage {
         {
             rsx!(FileTransferModal { state: state })

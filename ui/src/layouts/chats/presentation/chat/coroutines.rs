@@ -15,7 +15,7 @@ use uuid::Uuid;
 use crate::layouts::chats::data::{self, ChatBehavior, ChatData};
 
 pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
-    let active_chat_id_signal = use_signal(move || {
+    let mut active_chat_id_signal = use_signal(move || {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });
@@ -96,7 +96,7 @@ pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
 
 // any use_future should be in the coroutines file to prevent a naming conflict with the futures crate.
 pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Resource<()> {
-    let active_chat_id_signal = use_signal(move || {
+    let mut active_chat_id_signal = use_signal(move || {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });

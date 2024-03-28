@@ -52,10 +52,10 @@ pub fn Compose() -> Element {
     let mut show_rename_group: Signal<bool> = use_signal(|| false);
     let mut show_group_users: Signal<Option<Uuid>> = use_signal(|| None);
 
-    let quick_profile_uuid = use_signal(|| Uuid::new_v4().to_string());
-    let quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>> = use_signal(|| None);
-    let update_script = use_signal(String::new);
-    let identity_profile = use_signal(DID::default);
+    let mut quick_profile_uuid = use_signal(|| Uuid::new_v4().to_string());
+    let mut quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>> = use_signal(|| None);
+    let mut update_script = use_signal(String::new);
+    let mut identity_profile = use_signal(DID::default);
 
     let script = DISABLE_RELOAD;
     let _ = eval(script);

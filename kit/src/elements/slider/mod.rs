@@ -19,7 +19,7 @@ pub fn get_default(props: Props) -> i32 {
 
 #[allow(non_snake_case)]
 pub fn Slider(props: Props) -> Element {
-    let _slider_value = use_signal(|| get_default(props));
+    let mut _slider_value = use_signal(|| get_default(props));
     // TODO: Pending dioxus update for eval returning values
     rsx! {
         div {
