@@ -451,11 +451,13 @@ pub fn ShareFriendsModal(cx: Scope<FriendProps>) -> Element {
         close_on_click_inside_modal: false,
         dont_pad: true,
         div {
+            aria_label: "share-did-modal",
             class: "modal-share-friends",
             div {
                 class: "modal-share-friends-header",
                 padding: "12px",
                 Label {
+                    aria_label: "share-did-header".into(),
                     text: get_local_text("friends.select-chat"),
                 },
                 div {
@@ -463,7 +465,7 @@ pub fn ShareFriendsModal(cx: Scope<FriendProps>) -> Element {
                     Button {
                         text: get_local_text("friends.share-to-chat"),
                         icon: Icon::Share,
-                        aria_label: "share_to_chat".into(),
+                        aria_label: "share-to-chat-button".into(),
                         appearance: Appearance::Secondary,
                         disabled: chats_selected.read().is_empty(),
                         onpress: move |_| {
@@ -476,6 +478,7 @@ pub fn ShareFriendsModal(cx: Scope<FriendProps>) -> Element {
             chats.is_empty().then(||{
                 rsx!(div {
                     class: "modal-share-friend-empty",
+                    aria_label: "modal-share-friend-empty",
                     get_local_text("messages.no-chats")
                 })
             }),
@@ -510,6 +513,7 @@ pub fn ShareFriendsModal(cx: Scope<FriendProps>) -> Element {
                 rsx!(div {
                     class: format_args!("modal-share-friend {}", if selected {"share-friend-selected"} else {""}),
                     User {
+                        aria_label: participants_name.clone(),
                         username: participants_name,
                         subtext: subtext_val,
                         timestamp: raygun::Message::default().date(),
@@ -518,6 +522,7 @@ pub fn ShareFriendsModal(cx: Scope<FriendProps>) -> Element {
                             div {
                                 class: "modal-share-friend-image-group",
                                 Checkbox {
+                                    aria_label: "user-to-share-did-checkbox".into(),
                                     disabled: false,
                                     width: "1em".into(),
                                     height: "1em".into(),
