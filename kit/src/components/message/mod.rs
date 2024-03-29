@@ -269,6 +269,7 @@ pub fn Message<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
         .pending
         .then_some("message-pending")
         .unwrap_or_default();
+    let is_editing = cx.props.with_text.is_some() && cx.props.editing;
 
     cx.render(rsx! (
         cx.props.pinned.then(|| {
@@ -287,11 +288,21 @@ pub fn Message<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
                 },
             })
         }),
+        is_editing.then(||
+            rsx! (
+                div {
+                    class: "edit-message-wrap",
+                    onclick: move |_| {
+                        cx.props.on_edit.call(cx.props.with_text.clone().unwrap_or_default());
+                    }
+                },
+            )
+        ),
         div {
             class: {
                 format_args!(
-                    "message {} {} {} {} {}",
-                   loading_class, remote_class, order_class, msg_pending_class, mention_class
+                    "message {} {} {} {} {} {}",
+                   loading_class, remote_class, order_class, msg_pending_class, mention_class, if is_editing { "edit-message" } else { "" }
                 )
             },
             aria_label: {
@@ -309,7 +320,7 @@ pub fn Message<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
                     cx.props.with_content.as_ref(),
                 },
             )),
-            (cx.props.with_text.is_some() && cx.props.editing).then(||
+            is_editing.then(||
                 rsx! (
                     p {
                         class: "text",
