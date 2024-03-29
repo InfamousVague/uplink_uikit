@@ -47,7 +47,7 @@
     }
 
     &.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection {
-        background: var(--text-selection);
+        background: color-mix(in srgb, var(--text-selection) 40%, transparent);
     }
 }
 
