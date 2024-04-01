@@ -1,7 +1,5 @@
-
 use common::STATIC_ARGS;
-use dioxus_desktop::{Config};
-
+use dioxus_desktop::Config;
 
 pub(crate) fn webview_config() -> Config {
     let window = crate::window_builder::get_window_builder(true);

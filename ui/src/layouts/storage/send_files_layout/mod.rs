@@ -51,8 +51,7 @@ pub fn SendFilesLayout(props: SendFilesProps) -> Element {
     let storage_controller = StorageController::new(state);
     let first_render = use_signal(|| true);
     let file_tracker = use_context::<Signal<TransferTracker>>();
-    let ch: Coroutine<ChanCmd> =
-        functions::init_coroutine(storage_controller, state, file_tracker);
+    let ch: Coroutine<ChanCmd> = functions::init_coroutine(storage_controller, state, file_tracker);
     let in_files = send_files_start_location.eq(&SendFilesStartLocation::Storage);
     functions::get_items_from_current_directory(ch);
 

@@ -1,9 +1,8 @@
-use crate::{
-    layouts::chats::{
-        data::{ChatData, ScrollTo},
-        scripts::{self, SETUP_CONTEXT_PARENT},
-    },
+use crate::layouts::chats::{
+    data::{ChatData, ScrollTo},
+    scripts::{self, SETUP_CONTEXT_PARENT},
 };
+
 use dioxus::{
     events::eval,
     prelude::*,

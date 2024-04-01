@@ -118,7 +118,7 @@ pub fn get_controls(props: ChatProps) -> Element {
         },
         |txt, arrow| {
             if minimal {
-                rsx!({  })
+                rsx!({})
             } else {
                 rsx!(Tooltip {
                     arrow_position: arrow,

@@ -121,7 +121,7 @@ pub fn Sidebar(_props: SidebarProps) -> Element {
         }
     } else {
         {
-            rsx!({  })
+            rsx!({})
         }
     };
 
