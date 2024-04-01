@@ -38,8 +38,6 @@ pub fn handle_msg_scroll(
     chat_data: &Signal<ChatData>,
     scroll_btn: &Signal<ScrollBtn>,
 ) -> Coroutine<()> {
-    
-
     use_coroutine(|mut rx: UnboundedReceiver<()>| {
         to_owned![chat_data, scroll_btn];
         async move {
@@ -440,7 +438,6 @@ pub fn handle_warp_commands(
     let download_streams = download_stream_handler();
     let file_tracker = use_context::<Signal<TransferTracker>>();
 
-    
     use_coroutine(|mut rx: UnboundedReceiver<MessagesCommand>| {
         to_owned![state, file_tracker, pending_downloads, download_streams];
         async move {

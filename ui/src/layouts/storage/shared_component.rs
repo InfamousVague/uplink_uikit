@@ -1,5 +1,3 @@
-
-
 use crate::layouts::storage::functions::{self, download_file, ChanCmd};
 use crate::layouts::storage::send_files_layout::send_files_components::{
     toggle_selected_file, FileCheckbox,
