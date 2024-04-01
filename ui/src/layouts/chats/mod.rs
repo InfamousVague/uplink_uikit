@@ -4,7 +4,7 @@ mod scripts;
 pub use presentation::sidebar::Sidebar as ChatSidebar;
 use presentation::welcome::Welcome;
 
-use std::{path::PathBuf, rc::Rc};
+use std::{path::PathBuf};
 
 use crate::{
     layouts::{chats::presentation::chat::Compose, slimbar::SlimbarLayout},

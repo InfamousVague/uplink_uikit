@@ -100,12 +100,12 @@ pub fn FileEmbed(props: Props) -> Element {
         false
     };
 
-    let is_pending = props.progress.is_some();
+    let _is_pending = props.progress.is_some();
 
     let mut file_size_pending = String::new();
     let mut failed = false;
 
-    let perc = if let Some(p) = props_signal.read().clone().progress {
+    let _perc = if let Some(p) = props_signal.read().clone().progress {
         match p {
             FileProgression::CurrentProgress {
                 name: _,
@@ -148,7 +148,7 @@ pub fn FileEmbed(props: Props) -> Element {
     // kind
     // kind - size
     // size
-    let file_description = match props.filesize {
+    let _file_description = match props.filesize {
         Some(filesize) => {
             let size = format_size(filesize, DECIMAL);
             match props.kind.as_ref() {

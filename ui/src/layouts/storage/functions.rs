@@ -21,7 +21,7 @@ use dioxus_desktop::wry::webview::FileDropEvent;
 use dioxus_hooks::{to_owned, use_coroutine, use_resource, Coroutine, UnboundedReceiver};
 use futures::{channel::oneshot, StreamExt};
 use rfd::FileDialog;
-use std::{ffi::OsStr, path::PathBuf, rc::Rc, time::Duration};
+use std::{ffi::OsStr, path::PathBuf, time::Duration};
 use tokio::time::sleep;
 use uuid::Uuid;
 use warp::constellation::{directory::Directory, item::Item};
