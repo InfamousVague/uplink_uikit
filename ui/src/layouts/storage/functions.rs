@@ -16,8 +16,7 @@ use dioxus::{
     prelude::*,
     signals::{Readable, Signal},
 };
-#[cfg(not(target_os = "macos"))]
-use dioxus_desktop::wry::webview::FileDropEvent;
+
 use dioxus_hooks::{to_owned, use_coroutine, use_resource, Coroutine, UnboundedReceiver};
 use futures::{channel::oneshot, StreamExt};
 use rfd::FileDialog;
@@ -79,7 +78,9 @@ pub fn get_items_from_current_directory(ch: Coroutine<ChanCmd>) {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn allow_drag_event_for_non_macos_systems(are_files_hovering_app: &Signal<bool>) {
+pub fn allow_drag_event_for_non_macos_systems(mut are_files_hovering_app: Signal<bool>) {
+    use dioxus_desktop::wry::FileDropEvent;
+
     use_resource(move || {
         async move {
             // ondragover function from div does not work on windows
