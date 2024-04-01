@@ -361,7 +361,7 @@ impl PartialEq for MessagesProps {
 
 fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let mut edit_msg: Signal<Option<Uuid>> = use_signal(|| None);
+    let mut edit_msg = use_context::<Signal<MessagesToEdit>>();
     // see comment in ContextMenu about this variable.
     let mut reacting_to: Signal<Option<Uuid>> = use_signal(|| None);
 
@@ -504,7 +504,7 @@ let message = use_signal(|| grouped_message.message.clone());
                     aria_label: "messages-edit".to_string(),
                     text: get_local_text("messages.edit"),
                     should_render: !props.is_remote
-                        && edit_msg().map(|id| id != msg_uuid).unwrap_or(true),
+                        && edit_msg().edit.map(|id| id != msg_uuid).unwrap_or(true),
                     onpress: move |_| {
                         edit_msg.write().edit = Some(msg_uuid);
                         state.write().ui.ignore_focus = true;
@@ -515,7 +515,7 @@ let message = use_signal(|| grouped_message.message.clone());
                     aria_label: "messages-cancel-edit".to_string(),
                     text: get_local_text("messages.cancel-edit"),
                     should_render: !props.is_remote
-                        && edit_msg().map(|id| id == msg_uuid).unwrap_or(false),
+                        && edit_msg().edit.map(|id| id == msg_uuid).unwrap_or(false),
                     onpress: move |_| {
                         edit_msg.write().edit = None;
                         state.write().ui.ignore_focus = false;
@@ -545,7 +545,7 @@ struct MessageProps {
     message: data::MessageGroupMsg,
     is_remote: bool,
     message_key: String,
-    edit_msg: Signal<Option<Uuid>>,
+    edit_msg: Signal<MessagesToEdit>,
     pending: bool,
 }
 
