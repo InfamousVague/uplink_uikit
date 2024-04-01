@@ -320,6 +320,9 @@
     border-radius: var(--border-radius);
     /* color: var(--text-color-dark); */
     padding: var(--gap-less);
+    &::selection {
+      background-color: var(--text-selection-dark);
+    }
   }
 
   .button-container {

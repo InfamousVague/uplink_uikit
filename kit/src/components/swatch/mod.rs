@@ -17,7 +17,8 @@ pub fn ColorSwatch(props: Props) -> Element {
 
     rsx!(div {
         class: "color-swatch {active}",
+        aria_label: "color-swatch-button-rgb-{props.color.0}-{props.color.1}-{props.color.2}",
         style: "background-color: rgb({props.color.0}, {props.color.1}, {props.color.2})",
-        onclick: move |_| props_signal().onpress.call(()),
+        onclick: move |_| props.onpress.call(()),
     })
 }

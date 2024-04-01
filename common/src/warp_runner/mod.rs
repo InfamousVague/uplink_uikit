@@ -319,26 +319,22 @@ async fn wait_for_multipass(
 // assumes that all anyone needs from tesseract is "keypair"
 // otherwise, Tesseract::to_file probably needs to call file.sync_all()
 async fn init_tesseract(overwrite_old_account: bool) -> Result<Tesseract, Error> {
-    tokio::task::spawn_blocking(move || {
-        log::trace!("initializing tesseract");
+    log::trace!("initializing tesseract");
 
-        if overwrite_old_account {
-            // delete old account data
-            if let Err(e) = std::fs::remove_dir_all(&STATIC_ARGS.uplink_path) {
-                log::warn!("failed to delete uplink directory: {}", e);
-            }
-
-            // create directories
-            if let Err(e) = std::fs::create_dir_all(&STATIC_ARGS.warp_path) {
-                log::warn!("failed to create warp directory: {}", e);
-            }
+    if overwrite_old_account {
+        // delete old account data
+        if let Err(e) = tokio::fs::remove_dir_all(&STATIC_ARGS.uplink_path).await {
+            log::warn!("failed to delete uplink directory: {}", e);
         }
 
-        // open existing file or create new one
-        Tesseract::open_or_create(&STATIC_ARGS.warp_path, &STATIC_ARGS.tesseract_file)
-    })
-    .await
-    .map_err(anyhow::Error::from)?
+        // create directories
+        if let Err(e) = tokio::fs::create_dir_all(&STATIC_ARGS.warp_path).await {
+            log::warn!("failed to create warp directory: {}", e);
+        }
+    }
+
+    // open existing file or create new one
+    Tesseract::open_or_create(&STATIC_ARGS.warp_path, &STATIC_ARGS.tesseract_file)
 }
 
 impl From<&DiscoveryMode> for Discovery {

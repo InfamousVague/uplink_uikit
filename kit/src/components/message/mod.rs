@@ -283,6 +283,7 @@ pub fn Message(props: Props) -> Element {
         .pending
         .then_some("message-pending")
         .unwrap_or_default();
+    let is_editing = props.with_text.is_some() && props.editing;
 
     rsx! (
         {props.pinned.then(|| {
@@ -301,11 +302,21 @@ pub fn Message(props: Props) -> Element {
                 },
             })
         })},
+        {is_editing.then(||
+            rsx! (
+                div {
+                    class: "edit-message-wrap",
+                    onclick: move |_| {
+                        props.on_edit.call(props.with_text.clone().unwrap_or_default());
+                    }
+                },
+            )
+        )},
         div {
             class: {
                 format_args!(
-                    "message {} {} {} {} {}",
-                   loading_class, remote_class, order_class, msg_pending_class, mention_class
+                    "message {} {} {} {} {} {}",
+                   loading_class, remote_class, order_class, msg_pending_class, mention_class, if is_editing { "edit-message" } else { "" }
                 )
             },
             aria_label: {
@@ -323,34 +334,34 @@ pub fn Message(props: Props) -> Element {
                     {props.with_content.as_ref()},
                 },
             ))},
-            {(props_signal().with_text.is_some() && props.editing).then(||
-                rsx! (
-                    p {
-                        class: "text",
-                        aria_label: "message-text",
-                        {rsx! (
-                            EditMsg {
-                                id: props.id.clone(),
-                                text: props.with_text.clone().unwrap_or_default(),
-                                on_enter: move |update| {
-                                    props.on_edit.call(update);
-                                }
-                            }
-                        )}
-                    }
-                )
-            )},
-            {(props.with_text.is_some() && !props.editing).then(|| rsx!(
-                ChatText {
-                    text: props.with_text.as_ref().cloned().unwrap_or_default(),
-                    remote: is_remote,
-                    pending: props.pending,
-                    markdown: props.parse_markdown,
-                    state: props.state,
-                    chat: props.chat,
-                    ascii_emoji: props.transform_ascii_emojis,
-                }
-            ))},
+            // {is_editing.then(||
+            //     rsx! (
+            //         p {
+            //             class: "text",
+            //             aria_label: "message-text",
+            //             {rsx! (
+            //                 EditMsg {
+            //                     id: props.id.clone(),
+            //                     text: props.with_text.clone().unwrap_or_default(),
+            //                     on_enter: move |update| {
+            //                         props.on_edit.call(update);
+            //                     }
+            //                 }
+            //             )}
+            //         }
+            //     )
+            // )},
+            // {(props.with_text.is_some() && !props.editing).then(|| rsx!(
+            //     ChatText {
+            //         text: props.with_text.as_ref().cloned().unwrap_or_default(),
+            //         remote: is_remote,
+            //         pending: props.pending,
+            //         markdown: props.parse_markdown,
+            //         state: props.state,
+            //         chat: props.chat,
+            //         ascii_emoji: props.transform_ascii_emojis,
+            //     }
+            // ))},
             {has_attachments.then(|| {
                 rsx!(
                     div {
