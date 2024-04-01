@@ -14,7 +14,7 @@ pub enum ToggleType {
     Mute,
 }
 
-pub fn toggle(state: UseSharedState<State>, cx: Scope, toggle_type: ToggleType) {
+pub fn toggle(state: Signal<State>, toggle_type: ToggleType) {
     let call_state = match state.read().ui.call_info.active_call() {
         Some(c) => c.call,
         None => {
@@ -23,7 +23,7 @@ pub fn toggle(state: UseSharedState<State>, cx: Scope, toggle_type: ToggleType) 
         }
     };
 
-    let ch: &Coroutine<CallDialogCmd> = use_coroutine(cx, |mut rx| {
+    let ch: Coroutine<CallDialogCmd> = use_coroutine(|mut rx| {
         to_owned![state];
         async move {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();

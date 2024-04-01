@@ -79,12 +79,12 @@ pub fn FileTransferElement(props: TransferProps) -> Element {
                             class: "filename-and-file-queue-text",
                             aria_label: "filename-and-file-queue-text",
                             margin_right: "auto",
-                            f.file.to_string(),
+                            {f.file.to_string()},
                         },
                         ProgressIndicator {
                             progress: progress
                         },
-                        {f.description.as_ref().map(|desc|rsx!(div {
+                        {f.description.map(|desc|rsx!(div {
                             class: "file-progress-description",
                             aria_label: "file-progress-description",
                             {desc.to_string()}

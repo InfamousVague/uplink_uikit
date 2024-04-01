@@ -578,6 +578,7 @@ fn render_message(props: MessageProps) -> Element {
     let message = use_signal(|| grouped_message.message);
     let is_editing = edit_msg
         .read()
+        .clone()
         .edit
         .map(|id| !props.is_remote && (id == message().inner.id()))
         .unwrap_or(false);
@@ -615,138 +616,132 @@ fn render_message(props: MessageProps) -> Element {
     if let Some(info) = &message().in_reply_to {
         reply_user = state.read().get_identity(&info.2).unwrap_or_default();
     }
-    let to_send = use_shared_state::<MessagesToSend>(cx)?;
+    let to_send = use_context::<Signal<MessagesToSend>>();
 
     rsx!(
-            div {
-                class: "msg-wrapper",
-                {preview_file_in_the_message().0.then(|| {
-                    if preview_file_in_the_message().1.is_none() {
+        div {
+            class: "msg-wrapper",
+            {preview_file_in_the_message().0.then(|| {
+                if preview_file_in_the_message().1.is_none() {
+                    preview_file_in_the_message.set((false, None));
+                }
+                let file = preview_file_in_the_message().1.clone().unwrap();
+                let file2 = file.clone();
+                rsx!(open_file_preview_modal {
+                    on_dismiss: move |_| {
                         preview_file_in_the_message.set((false, None));
-                    }
-                    let file = preview_file_in_the_message().1.clone().unwrap();
-                    let file2 = file.clone();
-                    rsx!(open_file_preview_modal {
-                        on_dismiss: move |_| {
-                            preview_file_in_the_message.set((false, None));
-                        },
-                        on_download: move |temp_path: Option<PathBuf>| {
-                            let conv_id = message().inner.conversation_id();
-                            if let Some(path) = temp_path {
-                                if !path.exists() {
-                                    log::info!("downloading file in temp directory: {:?}", path.clone());
-                                    ch.send(MessagesCommand::DownloadAttachment {
-                                        conv_id,
-                                        msg_id: message().inner.id(),
-                                        file: file2.clone(),
-                                        file_path_to_download: path,
-                                    })
-                                }
-                            } else {
-                                download_file(&file2, message().inner.conversation_id(), message().inner.id(), pending_downloads, ch);
+                    },
+                    on_download: move |temp_path: Option<PathBuf>| {
+                        let conv_id = message().inner.conversation_id();
+                        if let Some(path) = temp_path {
+                            if !path.exists() {
+                                log::info!("downloading file in temp directory: {:?}", path.clone());
+                                ch.send(MessagesCommand::DownloadAttachment {
+                                    conv_id,
+                                    msg_id: message().inner.id(),
+                                    file: file2.clone(),
+                                    file_path_to_download: path,
+                                })
                             }
-                        },
-                        file: file.clone()
-                    }
-                )
-                })},
-                {message().in_reply_to.as_ref().map(|(other_msg, other_msg_attachments, sender_did)| rsx!(
-                MessageReply {
-                        key: "reply-{message_key}",
-                        with_text: other_msg.to_string(),
-                        with_attachments: other_msg_attachments.clone(),
-                        // This remote should be true only if the reply itself is remove, not the message being replied to.
-                        remote: props.is_remote,
-                        remote_message: props.is_remote,
-                        sender_did: sender_did.clone(),
-                        replier_did: user_did_2.clone(),
-                        markdown: render_markdown,
-                        transform_ascii_emojis: should_transform_ascii_emojis,
-                        state: state,
-                        chat: chat_data.read().active_chat.id(),
-                        user_image: rsx!(UserImage {
-                            loading: false,
-                            platform: Platform::from(reply_user.platform()),
-                            status: Status::from(reply_user.identity_status()),
-                            image: reply_user.profile_picture(),
-                        })
-                    }
-                ))},
-                Message {
-                    id: message_key.clone(),
-                    key: "{message_key}",
-                    editing: is_editing,
+                        } else {
+                            download_file(&file2, message().inner.conversation_id(), message().inner.id(), pending_downloads, ch);
+                        }
+                    },
+                    file: file.clone()
+                }
+            )
+            })},
+            {message().in_reply_to.as_ref().map(|(other_msg, other_msg_attachments, sender_did)| rsx!(
+            MessageReply {
+                    key: "reply-{message_key}",
+                    with_text: other_msg.to_string(),
+                    with_attachments: other_msg_attachments.clone(),
+                    // This remote should be true only if the reply itself is remove, not the message being replied to.
                     remote: props.is_remote,
-                    with_text: msg_lines,
-                    is_mention: is_mention,
-                    reactions: reactions_list,
+                    remote_message: props.is_remote,
+                    sender_did: sender_did.clone(),
+                    replier_did: user_did_2.clone(),
+                    markdown: render_markdown,
+                    transform_ascii_emojis: should_transform_ascii_emojis,
                     state: state,
                     chat: chat_data.read().active_chat.id(),
-                    order: if grouped_message.is_first { Order::First } else if grouped_message.is_last { Order::Last } else { Order::Middle },
-                    attachments: message.read().clone()
-                    .inner
-                    .attachments(),
-                    attachments_pending_download: pending_downloads.read().get(&message().inner.conversation_id()).cloned(),
-                    on_click_reaction: move |emoji: String| {
-                        ch.send(MessagesCommand::React((user_did.clone(), message().inner.clone(), emoji)));
-                    },
-    <<<<<<< HEAD
-                    pending: props.pending,
-                    pinned: message().inner.pinned(),
-                    attachments_pending_uploads: pending_uploads.cloned(),
-    =======
-                    pending: props.pending,
-                    pinned: message.inner.pinned(),
-                    attachments_pending_uploads: pending_uploads,
-                    on_resend: move |(txt, file): (Option<String>, FileLocation)|{
-                        match txt.clone() {
-                            Some(_) => {
-                                state
-                                .write()
-                                .decrement_outgoing_messages(chat_data.read().active_chat.id(), message.inner.id());
-                            },
-                            None => {
-                                state
-                                .write()
-                                .remove_outgoing_attachment(chat_data.read().active_chat.id(), message.inner.id(), file.clone());
-                            },
-                        }
-                        to_send.with_mut(|s|s.messages_to_send.push((txt, vec![file])));
-                    },
-                    on_delete: move |file| {
-                        state
-                        .write()
-                        .remove_outgoing_attachment(chat_data.read().active_chat.id(), message.inner.id(), file);
-                    },
-    >>>>>>> origin/dev
-                    parse_markdown: render_markdown,
-                    transform_ascii_emojis: should_transform_ascii_emojis,
-                    on_download: move |(file, temp_dir): (warp::constellation::file::File, Option<PathBuf>)| {
-                        if temp_dir.is_some() {
-                            preview_file_in_the_message.set((true, Some(file.clone())));
-                        } else {
-                            download_file(&file, message().inner.conversation_id(), message().inner.id(), pending_downloads, ch);
-                        }
-                    },
-                    on_edit: move |update: String| {
-                        edit_msg.write().edit = None;
-                        state.write().ui.ignore_focus = false;
-                        let msg = update.split('\n').map(|x| x.to_string()).collect::<Vec<String>>();
-                        if  message().inner.lines() == msg || !msg.iter().any(|x| !x.trim().is_empty()) {
-                            return;
-                        }
-                        ch.send(MessagesCommand::EditMessage { conv_id: message().inner.conversation_id(), msg_id: message().inner.id(), msg})
+                    user_image: rsx!(UserImage {
+                        loading: false,
+                        platform: Platform::from(reply_user.platform()),
+                        status: Status::from(reply_user.identity_status()),
+                        image: reply_user.profile_picture(),
+                    })
+                }
+            ))},
+            Message {
+                id: message_key.clone(),
+                key: "{message_key}",
+                editing: is_editing,
+                remote: props.is_remote,
+                with_text: msg_lines,
+                is_mention: is_mention,
+                reactions: reactions_list,
+                state: state,
+                chat: chat_data.read().active_chat.id(),
+                order: if grouped_message.is_first { Order::First } else if grouped_message.is_last { Order::Last } else { Order::Middle },
+                attachments: message.read().clone()
+                .inner
+                .attachments(),
+                attachments_pending_download: pending_downloads.read().get(&message().inner.conversation_id()).cloned(),
+                on_click_reaction: move |emoji: String| {
+                    ch.send(MessagesCommand::React((user_did.clone(), message().inner.clone(), emoji)));
+                },
+                pending: props.pending,
+                pinned: message().inner.pinned(),
+                attachments_pending_uploads: pending_uploads.cloned(),
+                on_resend: move |(txt, file): (Option<String>, FileLocation)|{
+                    match txt.clone() {
+                        Some(_) => {
+                            state
+                            .write()
+                            .decrement_outgoing_messages(chat_data.read().active_chat.id(), message().inner.id());
+                        },
+                        None => {
+                            state
+                            .write()
+                            .remove_outgoing_attachment(chat_data.read().active_chat.id(), message().inner.id(), file.clone());
+                        },
+                    }
+                    to_send.with_mut(|s|s.messages_to_send.push((txt, vec![file])));
+                },
+                on_delete: move |file| {
+                    state
+                    .write()
+                    .remove_outgoing_attachment(chat_data.read().active_chat.id(), message().inner.id(), file);
+                },
+                parse_markdown: render_markdown,
+                transform_ascii_emojis: should_transform_ascii_emojis,
+                on_download: move |(file, temp_dir): (warp::constellation::file::File, Option<PathBuf>)| {
+                    if temp_dir.is_some() {
+                        preview_file_in_the_message.set((true, Some(file.clone())));
+                    } else {
+                        download_file(&file, message().inner.conversation_id(), message().inner.id(), pending_downloads, ch);
                     }
                 },
-                script {
-                    r#"
+                on_edit: move |update: String| {
+                    edit_msg.write().edit = None;
+                    state.write().ui.ignore_focus = false;
+                    let msg = update.split('\n').map(|x| x.to_string()).collect::<Vec<String>>();
+                    if  message().inner.lines() == msg || !msg.iter().any(|x| !x.trim().is_empty()) {
+                        return;
+                    }
+                    ch.send(MessagesCommand::EditMessage { conv_id: message().inner.conversation_id(), msg_id: message().inner.id(), msg})
+                }
+            },
+            script {
+                r#"
                 (() => {{
                     Prism.highlightAll();
                 }})();
                 "#
-                } // Highlights Pre blocks
-            }
-        )
+            } // Highlights Pre blocks
+        }
+    )
 }
 
 #[derive(Props, Clone, PartialEq)]

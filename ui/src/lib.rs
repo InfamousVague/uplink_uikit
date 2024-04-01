@@ -252,8 +252,8 @@ fn app_layout() -> Element {
             KeyboardShortcuts {
                 on_global_shortcut: move |shortcut| {
                     match shortcut {
-                        GlobalShortcut::ToggleMute => utils::keyboard::shortcut_handlers::audio::toggle_mute(ToggleType::Mute),
-                        GlobalShortcut::ToggleDeafen => utils::keyboard::shortcut_handlers::audio::toggle_deafen(ToggleType::Deafen),
+                        GlobalShortcut::ToggleMute => utils::keyboard::shortcut_handlers::audio::toggle(state, ToggleType::Mute),
+                        GlobalShortcut::ToggleDeafen => utils::keyboard::shortcut_handlers::audio::toggle(state, ToggleType::Deafen),
                         GlobalShortcut::IncreaseFontSize => utils::keyboard::shortcut_handlers::font::increase_size(state),
                         GlobalShortcut::DecreaseFontSize => utils::keyboard::shortcut_handlers::font::decrease_size(state),
                         GlobalShortcut::OpenCloseDevTools => utils::keyboard::shortcut_handlers::dev::open_close_dev_tools(),

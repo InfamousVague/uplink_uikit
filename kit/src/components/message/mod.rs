@@ -179,6 +179,8 @@ fn wrap_links_with_a_tags(text: &str) -> (String, Vec<String>) {
 pub fn Message(props: Props) -> Element {
     //  log::trace!("render Message");
     let props_signal = use_signal(|| props.clone());
+    let props_signal2 = use_signal(|| props.clone());
+
     let loading = props.loading.unwrap_or_default();
     let is_remote = props.remote.unwrap_or_default();
     let order = props.order.unwrap_or(Order::Last);
@@ -224,15 +226,24 @@ pub fn Message(props: Props) -> Element {
             .collect::<Vec<_>>() // Add this line to collect the cloned values into a new vector
     });
 
-    let single = cx
-        .props
+    let single = props_signal()
         .attachments_pending_uploads
         .map(|v| v.len() < 2)
         .unwrap_or_default();
 
-    let pending_attachment_list = cx.props.attachments_pending_uploads.as_ref().map(|vec| {
-        vec.iter().map(|(location, prog)| {
-            let file = progress_file(prog);
+    let with_text_signal = use_signal(|| props.with_text.clone());
+    let attachments_pending = props_signal2
+        .clone()
+        .read()
+        .attachments_pending_uploads
+        .clone();
+
+    let binding = attachments_pending.clone();
+    let pending_attachment_list = binding.as_ref().map(|vec| {
+        vec.iter().cloned().map(|(location, prog)| {
+            let location_signal = use_signal(|| location.clone());
+
+            let file = progress_file(&prog.clone());
             rsx!(FileEmbed {
                 key: "{file}",
                 filename: file,
@@ -243,21 +254,21 @@ pub fn Message(props: Props) -> Element {
                 on_press: move |_| {},
                 on_resend_msg: move |_| {
                     if single {
-                        if let Some(e) = &cx.props.on_resend {
-                            e.call((cx.props.with_text.clone(), location.clone()))
+                        if let Some(e) = &props.on_resend {
+                            e.call((with_text_signal(), location_signal()))
                         }
                     } else {
-                        if let Some(e) = &cx.props.on_delete {
-                            e.call(location.clone())
+                        if let Some(e) = &props.on_delete {
+                            e.call(location_signal())
                         }
-                        if let Some(e) = &cx.props.on_resend {
-                            e.call((None, location.clone()))
+                        if let Some(e) = &props.on_resend {
+                            e.call((None, location_signal()))
                         }
                     }
                 },
                 on_delete_msg: move |_| {
-                    if let Some(e) = &cx.props.on_delete {
-                        e.call(location.clone())
+                    if let Some(e) = &props.on_delete {
+                        e.call(location_signal())
                     }
                 },
             })
@@ -312,7 +323,7 @@ pub fn Message(props: Props) -> Element {
                     {props.with_content.as_ref()},
                 },
             ))},
-            {(props.with_text.is_some() && props.editing).then(||
+            {(props_signal().with_text.is_some() && props.editing).then(||
                 rsx! (
                     p {
                         class: "text",
