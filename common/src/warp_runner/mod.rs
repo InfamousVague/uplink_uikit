@@ -224,13 +224,16 @@ async fn handle_login(notify: Arc<Notify>) {
                             let _ = rsp.send(Err(e));
                             continue;
                         };
+                        println!("Problem here to create account");
                         match warp.multipass.create_identity(Some(&username), Some(&seed_words)).await {
                             Ok(_id) =>  match wait_for_multipass(&mut warp, notify.clone()).await {
                                 Ok(ident) => {
+                                    println!("Created account");
                                     let _ = rsp.send(Ok(ident));
                                     break Some(warp);
                                 },
                                 Err(e) => {
+                                    println!("Problem here to create account");
                                     warp.tesseract.lock();
                                     let _ = rsp.send(Err(e));
                                     continue;
