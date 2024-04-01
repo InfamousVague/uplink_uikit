@@ -84,11 +84,6 @@ pub fn FileTransferElement(props: TransferProps) -> Element {
                         ProgressIndicator {
                             progress: progress
                         },
-                        {f.description.map(|desc|rsx!(div {
-                            class: "file-progress-description",
-                            aria_label: "file-progress-description",
-                            {desc.to_string()}
-                        }))},
                         p {
                             class: "transfer-progress-percentage",
                             aria_label: "transfer-progress-percentage",

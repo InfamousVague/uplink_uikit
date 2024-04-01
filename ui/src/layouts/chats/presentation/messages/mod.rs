@@ -616,7 +616,7 @@ fn render_message(props: MessageProps) -> Element {
     if let Some(info) = &message().in_reply_to {
         reply_user = state.read().get_identity(&info.2).unwrap_or_default();
     }
-    let to_send = use_context::<Signal<MessagesToSend>>();
+    let mut to_send = use_context::<Signal<MessagesToSend>>();
 
     rsx!(
         div {
