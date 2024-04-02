@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use common::language::get_local_text;
 use common::warp_runner::{RayGunCmd, WarpCmd};
 use common::{
@@ -377,9 +379,8 @@ impl Extension for EmojiSelector {
     }
 
     fn render(&self, runtime: std::rc::Rc<Runtime>) -> Element {
-        // TODO(Migration_0.5): Verify this item later
-        // use_hook(move || RuntimeGuard::new(runtime.clone()));
-        let _guard = RuntimeGuard::new(runtime.clone());
+        // HACK(Migration_0.5): use_hook does not return referece anymore, just clone, so necessary to wrap it in Rc
+        use_hook(move || Rc::new(RuntimeGuard::new(runtime.clone())));
         let styles = self.stylesheet();
         rsx!(
             style { "{styles}" },
