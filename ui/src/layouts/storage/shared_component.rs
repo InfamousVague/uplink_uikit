@@ -363,25 +363,30 @@ fn resolve_directory_name(dir: &Directory, state: &State) -> String {
     let folder_name = dir.name();
     // Try to check and resolve the foldername for chats
     match Uuid::from_str(&folder_name) {
-        Ok(id) => state
-            .get_chat_by_id(id)
-            .and_then(|c| {
-                c.conversation_name.or(match c.settings {
-                    ConversationSettings::Direct(_) => {
-                        // If DM try use the other users name
-                        let own = state.did_key();
-                        let other = c.participants.iter().find(|id| !own.eq(id));
-                        other.and_then(|o| state.get_identity(o)).map(|id| {
-                            get_local_text_with_args(
-                                "files.direct-message-name",
-                                vec![("with", id.username())],
-                            )
-                        })
-                    }
-                    ConversationSettings::Group(_) => None,
+        Ok(id) => {
+            log::debug!("with id {id}");
+            state
+                .get_chat_by_id(id)
+                .and_then(|c| {
+                    log::debug!("chat type {:?}", c.settings);
+                    c.conversation_name.or(match c.settings {
+                        ConversationSettings::Direct(_) => {
+                            // If DM try use the other users name
+                            let own = state.did_key();
+                            let other = c.participants.iter().find(|id| !own.eq(id));
+                            log::debug!("other {:?}", other.and_then(|o| state.get_identity(o)));
+                            other.and_then(|o| state.get_identity(o)).map(|id| {
+                                get_local_text_with_args(
+                                    "files.direct-message-name",
+                                    vec![("with", id.username())],
+                                )
+                            })
+                        }
+                        ConversationSettings::Group(_) => None,
+                    })
                 })
-            })
-            .unwrap_or(folder_name),
+                .unwrap_or(folder_name)
+        }
         Err(_) => folder_name,
     }
 }
