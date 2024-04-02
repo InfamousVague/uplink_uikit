@@ -479,7 +479,7 @@ pub fn ChatText(props: ChatMessageProps) -> Element {
                 aria_label: "message-text-{props.text}",
                 dangerous_inner_html: "{formatted_text}",
             },
-            {links.first().and_then(|l| rsx!(
+            {links.first().map(|l| rsx!(
                 EmbedLinks {
                     link: l.to_string(),
                     remote: props.remote
@@ -894,7 +894,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
                                 {identity.username().to_string()}
                             }
                         }
-                        {identity.status_message().and_then(|s| rsx!(
+                        {identity.status_message().map(|s| rsx!(
                                 div {
                                     id: "profile-status",
                                     aria_label: "profile-status",
