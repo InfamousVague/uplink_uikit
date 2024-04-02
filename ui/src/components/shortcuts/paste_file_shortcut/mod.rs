@@ -88,15 +88,13 @@ pub fn PasteFilesShortcut(props: ShortCutProps) -> Element {
     });
 
     let _ = use_global_shortcut((key, modifiers), move || {
-        move || {
-            // HACK: Shorcut is pushing 2 times, it is an other hack to avoid paste more than one time
-            debounced_callback(
-                || {
-                    command_pressed.with_mut(|i| *i = true);
-                },
-                Duration::from_millis(250),
-            );
-        };
+        // HACK: Shorcut is pushing 2 times, it is an other hack to avoid paste more than one time
+        debounced_callback(
+            || {
+                command_pressed.with_mut(|i| *i = true);
+            },
+            Duration::from_millis(250),
+        );
     });
     None
 }

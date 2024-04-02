@@ -1,4 +1,5 @@
 use std::backtrace::Backtrace;
+use std::rc::Rc;
 
 use super::*;
 
@@ -18,29 +19,29 @@ pub fn use_warp_runner() {
         // Now turn on the warp runner and save it to the hook so it doesn't get dropped
         let mut runner = warp_runner::WarpRunner::new();
         runner.run();
-        runner
+        Rc::new(runner)
     });
 }
 
 pub(crate) fn use_bootstrap(identity: &multipass::identity::Identity) -> Option<Signal<State>> {
     let desktop = use_window();
-    use_context_provider(|| DownloadState::default);
-    use_context_provider(|| components::settings::sidebar::Page::Profile);
-    use_context_provider(|| TransferTracker::default);
+    use_context_provider(|| Signal::new(DownloadState::default()));
+    use_context_provider(|| Signal::new(components::settings::sidebar::Page::Profile));
+    use_context_provider(|| Signal::new(TransferTracker::default()));
     use_context_provider(|| {
-        let mut state = State::load();
+        let state = Signal::new(State::load());
 
         if STATIC_ARGS.use_mock {
-            assert!(state.initialized);
+            assert!(state().initialized);
         } else {
-            state.set_own_identity(identity.clone().into());
+            state().set_own_identity(identity.clone().into());
         }
 
         // TODO: This overlay needs to be fixed in windows
-        if cfg!(not(target_os = "windows")) && state.configuration.general.enable_overlay {
+        if cfg!(not(target_os = "windows")) && state().configuration.general.enable_overlay {
             let overlay_test = VirtualDom::new(OverlayDom);
             let window = desktop.new_window(overlay_test, make_config());
-            state.ui.overlays.push(window);
+            state().ui.overlays.push(window);
         }
 
         let size = scaled_window_size(desktop.inner_size(), &desktop);
@@ -49,11 +50,11 @@ pub(crate) fn use_bootstrap(identity: &multipass::identity::Identity) -> Option<
             focused: desktop.is_focused(),
             maximized: desktop.is_maximized(),
             minimized: desktop.is_minimized(),
-            full_screen: state.ui.metadata.full_screen,
+            full_screen: state().ui.metadata.full_screen,
             minimal_view: size.width < 600,
         };
-        state.ui.metadata = window_meta;
-        state.set_warp_ch(WARP_CMD_CH.tx.clone());
+        state().ui.metadata = window_meta;
+        state().set_warp_ch(WARP_CMD_CH.tx.clone());
 
         state
     });
