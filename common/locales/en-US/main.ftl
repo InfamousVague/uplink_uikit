@@ -203,6 +203,7 @@ files = Files
     .transfer-finishing = Finishing...
     .transfer-cancelling = Cancelling...
     .transfer-error = { $error }
+    .direct-message-name = DM: { $with }
 
 settings = Settings
     .settings = Settings
