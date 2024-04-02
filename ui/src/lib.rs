@@ -705,8 +705,8 @@ fn use_app_coroutines() -> Option<()> {
             loop {
                 sleep(Duration::from_secs(1)).await;
                 if state.write_silent().ui.call_info.update_active_call() {
-                    // TODO(Migration_0.5): Verify this function later
-                    // state.notify_consumers();
+                    // HACK(Migration_0.5): Change notify customers to write()
+                    state.write();
                 }
             }
         }

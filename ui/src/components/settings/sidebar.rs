@@ -84,7 +84,7 @@ pub fn emit(props: Props, e: Page) {
 }
 
 #[allow(non_snake_case)]
-pub fn Sidebar(_props: Props) -> Element {
+pub fn Sidebar(props: Props) -> Element {
     let state = use_context::<Signal<State>>();
     let page = use_context::<Signal<Page>>();
     let _router = dioxus_router::hooks::use_navigator();
@@ -232,13 +232,13 @@ pub fn Sidebar(_props: Props) -> Element {
                 routes: routes.clone(),
                 active: active_route.to,
                 bubble: true,
-                onnavigate: move |_route| {
+                onnavigate: move |route| {
                     // TODO(Migration_0.5): Look this
-                    // if state.read().configuration.audiovideo.interface_sounds {
-                    //    sounds::Play(sounds::Sounds::Interaction);
-                    // }
+                    if state.read().configuration.audiovideo.interface_sounds {
+                       sounds::Play(sounds::Sounds::Interaction);
+                    }
 
-                    // emit(props, Page::from_str(route).unwrap());
+                    emit(props, Page::from_str(route).unwrap());
                 }
             }
         }
