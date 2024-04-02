@@ -4,6 +4,7 @@ use common::icons::outline::Shape as Icon;
 use common::language::get_local_text;
 
 use common::state::State;
+use common::sounds;
 use dioxus::prelude::*;
 use kit::{
     components::nav::Nav,
@@ -233,12 +234,11 @@ pub fn Sidebar(props: Props) -> Element {
                 active: active_route.to,
                 bubble: true,
                 onnavigate: move |route| {
-                    // TODO(Migration_0.5): Look this
                     if state.read().configuration.audiovideo.interface_sounds {
                        sounds::Play(sounds::Sounds::Interaction);
                     }
 
-                    emit(props, Page::from_str(route).unwrap());
+                    emit(props.clone(), Page::from_str(route).unwrap());
                 }
             }
         }
