@@ -339,7 +339,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                         {identity.username().to_string()}
                     }
                 }
-                {identity.status_message().and_then(|s| rsx!(
+                {identity.status_message().map(|s| rsx!(
                         div {
                             id: "profile-status",
                             aria_label: "profile-status",
