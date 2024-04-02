@@ -326,7 +326,7 @@ fn is_image(filename: String) -> bool {
     true
 }
 
-fn show_download_or_minus_button_if_enabled<'a>(
+fn show_download_or_minus_button_if_enabled(
     props: Props,
     with_download_button: bool,
     btn_icon: common::icons::outline::Shape,

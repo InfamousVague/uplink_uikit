@@ -99,7 +99,7 @@ struct GlobalShortcutProps {
     global_shortcut: GlobalShortcut,
 }
 
-fn RenderGlobalShortCuts<'a>(props: GlobalShortcutProps) -> Element {
+fn RenderGlobalShortCuts(props: GlobalShortcutProps) -> Element {
     let command_pressed = use_signal(|| false);
 
     if *command_pressed.read() {

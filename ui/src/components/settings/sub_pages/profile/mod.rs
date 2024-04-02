@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use std::rc::Rc;
-use std::sync::Arc;
+
+
 
 use arboard::Clipboard;
 use common::get_images_dir;

@@ -483,8 +483,7 @@ pub fn ChatText(props: ChatMessageProps) -> Element {
                 EmbedLinks {
                     link: l.to_string(),
                     remote: props.remote
-                })
-            )}
+                }))}
         }
     )
 }
@@ -895,8 +894,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
                                 {identity.username().to_string()}
                             }
                         }
-                        {identity.status_message().and_then(|s|{
-                            rsx!(
+                        {identity.status_message().and_then(|s| rsx!(
                                 div {
                                     id: "profile-status",
                                     aria_label: "profile-status",
@@ -907,7 +905,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
                                     }
                                 }
                             )
-                        })},
+                        )},
                     },
                     Button {
                         aria_label: String::from("embed-identity-button"),
