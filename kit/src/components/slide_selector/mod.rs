@@ -9,7 +9,6 @@ pub enum ButtonsFormat {
     Arrows,
 }
 
-// TODO(Migration_0.5): See this T problem later
 #[derive(Props, Clone)]
 pub struct Props<T: Clone + 'static> {
     values: Vec<T>,
