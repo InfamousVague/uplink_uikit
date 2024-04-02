@@ -625,10 +625,10 @@ pub fn ProfileSettings() -> Element {
                             }
                         }
                     }
-                    // TODO(Migration_0.5): See it later Darius
+                    // TODO(Migration_0.5):
                     if let Some(phrase) = seed_phrase.read().clone() {
                         {
-                        let phrase2 = phrase.split_whitespace().collect::<Vec<&str>>();
+                        let phrase2 = phrase.split_whitespace().map(ToString::to_string).collect::<Vec<_>>();
                         let words3 = phrase2.clone();
                         let words2 = words3.clone();
                         rsx!(
