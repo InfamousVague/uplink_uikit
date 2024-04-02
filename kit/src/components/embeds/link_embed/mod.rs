@@ -56,7 +56,7 @@ pub struct LinkEmbedProps {
 #[allow(non_snake_case)]
 pub fn EmbedLinks(props: LinkEmbedProps) -> Element {
     let props_link = use_signal(|| props.link.clone());
-    // TODO(Migration_0.5): Before it was a use_future, verify if it keep same behavior
+    // HACK(Migration_0.5): Before migration, it was use_future, verify if it keep same behavior
     let fetch_meta = use_resource(move || async move { get_meta(props_link()).await });
 
     let fetch_meta_result = fetch_meta.read();

@@ -13,11 +13,12 @@ use common::notifications::{NotificationAction, NOTIFICATION_LISTENER};
 use common::profile_update_channel::PROFILE_CHANNEL_LISTENER;
 use common::state::data_transfer::{TrackerType, TransferTracker};
 use common::state::settings::GlobalShortcut;
-use common::state::ui::Layout;
+use common::state::ui::{Layout, WindowMeta};
 use common::state::ToastNotification;
 use common::warp_runner::ui_adapter::MessageEvent;
 use common::warp_runner::WarpEvent;
 use common::{get_extras_dir, warp_runner, STATIC_ARGS, WARP_CMD_CH, WARP_EVENT_CH};
+use dioxus::desktop::tao::event::Event as WryEvent;
 
 use dioxus::prelude::*;
 use dioxus_desktop::tao::dpi::{LogicalPosition, PhysicalPosition, PhysicalSize};
@@ -63,7 +64,7 @@ use crate::utils::async_task_queue::{ListenerAction, ACTION_LISTENER};
 use crate::utils::keyboard::shortcut_handlers::audio::ToggleType;
 use crate::utils::keyboard::KeyboardShortcuts;
 
-use dioxus_desktop::DesktopService;
+use dioxus_desktop::{use_wry_event_handler, DesktopService, WindowEvent};
 use tokio::sync::{mpsc, Mutex};
 use tokio::time::{sleep, Duration};
 use tracing::log::{self};
@@ -165,7 +166,7 @@ pub fn main_lib() {
         main_menu.init_for_nsapp();
     }
 
-    // TODO(Migration_0.5): Verify this function later
+    // HACK(Migration_0.5): New way after migration, to launch the app
     // 5. Finally, launch the app
     LaunchBuilder::new()
         .with_cfg(desktop!(webview_config::webview_config()))
@@ -417,100 +418,95 @@ fn use_app_coroutines() -> Option<()> {
     //     not loaded from Warp. however, warp_runner continues to operate normally.
     //
 
-    // There is currently an issue in Tauri/Wry where the window size is not reported properly.
-    // Thus we bind to the resize event itself and update the size from the webview.
-    // TODO(Migration_0.5): Verify this function later
-    // let mut webview = use_signal(|| desktop.clone().webview);
-    let _first_resize = use_signal(|| true);
+    let first_resize = use_signal(|| true);
 
-    // TODO(Migration_0.5): Verify this function later
-    // use_wry_event_handler({
-    //     to_owned![state, desktop, first_resize];
-    //     move |event, _| match event {
-    //         WindowEvent {
-    //             event: WindowEvent::Focused(focused),
-    //             ..
-    //         } => {
-    //             //log::trace!("FOCUS CHANGED {:?}", *focused);
-    //             if state.read().ui.metadata.focused != *focused {
-    //                 state.write().ui.metadata.focused = *focused;
+    use_wry_event_handler({
+        to_owned![state, desktop, first_resize];
+        move |event, _| match event {
+            WryEvent::WindowEvent {
+                event: WindowEvent::Focused(focused),
+                ..
+            } => {
+                //log::trace!("FOCUS CHANGED {:?}", *focused);
+                if state.read().ui.metadata.focused != *focused {
+                    state.write().ui.metadata.focused = *focused;
 
-    //                 if *focused {
-    //                     state.write().ui.notifications.clear_badge();
-    //                     let _ = state.write().save();
-    //                 }
-    //             }
-    //         }
-    //         WindowEvent {
-    //             event: WindowEvent::CloseRequested,
-    //             ..
-    //         } => state
-    //             .write()
-    //             .mutate(Action::ClearAllPopoutWindows(desktop.clone())),
-    //         WindowEvent {
-    //             event: WindowEvent::Moved(_),
-    //             ..
-    //         } => {
-    //             // Dont use the arg provided by the WindowEvent as its not right on mac
-    //             let position =
-    //                 scaled_window_position(desktop.outer_position().unwrap_or_default(), &desktop);
-    //             state.write_silent().ui.window_position = Some((position.x, position.y));
-    //             let _ = state.write().save();
-    //         }
-    //         WindowEvent {
-    //             event: WindowEvent::Resized(_),
-    //             ..
-    //         } => {
-    //             let current_position =
-    //                 scaled_window_position(desktop.outer_position().unwrap_or_default(), &desktop);
-    //             let (pos_x, pos_y) = state
-    //                 .read()
-    //                 .ui
-    //                 .window_position
-    //                 .unwrap_or(current_position.into());
-    //             let (width, height) = state.read().ui.window_size.unwrap_or((950, 600));
-    //             if *first_resize.read() {
-    //                 if state.read().ui.metadata.full_screen {
-    //                     desktop.set_fullscreen(true);
-    //                 } else {
-    //                     desktop.set_inner_size(LogicalSize::new(width, height));
-    //                     desktop.set_maximized(state.read().ui.metadata.maximized);
-    //                 }
-    //                 desktop.set_outer_position(LogicalPosition::new(pos_x, pos_y));
-    //                 *first_resize.write_silent() = false;
-    //             }
-    //             let size = scaled_window_size(desktop.inner_size(), &desktop);
-    //             let metadata = state.read().ui.metadata.clone();
-    //             let new_metadata = WindowMeta {
-    //                 focused: desktop.is_focused(),
-    //                 maximized: desktop.is_maximized(),
-    //                 minimized: desktop.is_minimized(),
-    //                 full_screen: desktop.fullscreen().is_some(),
-    //                 minimal_view: size.width < 600,
-    //             };
-    //             let mut changed = false;
-    //             if metadata != new_metadata {
-    //                 state.write_silent().ui.sidebar_hidden = new_metadata.minimal_view;
-    //                 state.write_silent().ui.metadata = new_metadata;
-    //                 changed = true;
-    //             }
-    //             if size.width != width || size.height != height {
-    //                 state.write_silent().ui.window_size = Some((size.width, size.height));
-    //                 let _ = state.write_silent().save();
-    //                 changed = true;
-    //             }
-    //             if current_position.x != pos_x || current_position.y != pos_y {
-    //                 state.write_silent().ui.window_position =
-    //                     Some((current_position.x, current_position.y));
-    //                 changed = true;
-    //             }
-    //             if changed {
-    //                 let _ = state.write().save();
-    //             }
-    //         }
-    //         _ => {}
-    //     }
-    // });
+                    if *focused {
+                        state.write().ui.notifications.clear_badge();
+                        let _ = state.write().save();
+                    }
+                }
+            }
+            WryEvent::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                ..
+            } => state
+                .write()
+                .mutate(Action::ClearAllPopoutWindows(desktop.clone())),
+            WryEvent::WindowEvent {
+                event: WindowEvent::Moved(_),
+                ..
+            } => {
+                // Dont use the arg provided by the WindowEvent as its not right on mac
+                let position =
+                    scaled_window_position(desktop.outer_position().unwrap_or_default(), &desktop);
+                state.write_silent().ui.window_position = Some((position.x, position.y));
+                let _ = state.write().save();
+            }
+            WryEvent::WindowEvent {
+                event: WindowEvent::Resized(_),
+                ..
+            } => {
+                let current_position =
+                    scaled_window_position(desktop.outer_position().unwrap_or_default(), &desktop);
+                let (pos_x, pos_y) = state
+                    .read()
+                    .ui
+                    .window_position
+                    .unwrap_or(current_position.into());
+                let (width, height) = state.read().ui.window_size.unwrap_or((950, 600));
+                if *first_resize.read() {
+                    if state.read().ui.metadata.full_screen {
+                        desktop.set_fullscreen(true);
+                    } else {
+                        desktop.set_inner_size(LogicalSize::new(width, height));
+                        desktop.set_maximized(state.read().ui.metadata.maximized);
+                    }
+                    desktop.set_outer_position(LogicalPosition::new(pos_x, pos_y));
+                    *first_resize.write_silent() = false;
+                }
+                let size = scaled_window_size(desktop.inner_size(), &desktop);
+                let metadata = state.read().ui.metadata.clone();
+                let new_metadata = WindowMeta {
+                    focused: desktop.is_focused(),
+                    maximized: desktop.is_maximized(),
+                    minimized: desktop.is_minimized(),
+                    full_screen: desktop.fullscreen().is_some(),
+                    minimal_view: size.width < 600,
+                };
+                let mut changed = false;
+                if metadata != new_metadata {
+                    state.write_silent().ui.sidebar_hidden = new_metadata.minimal_view;
+                    state.write_silent().ui.metadata = new_metadata;
+                    changed = true;
+                }
+                if size.width != width || size.height != height {
+                    state.write_silent().ui.window_size = Some((size.width, size.height));
+                    let _ = state.write_silent().save();
+                    changed = true;
+                }
+                if current_position.x != pos_x || current_position.y != pos_y {
+                    state.write_silent().ui.window_position =
+                        Some((current_position.x, current_position.y));
+                    changed = true;
+                }
+                if changed {
+                    let _ = state.write().save();
+                }
+            }
+            _ => {}
+        }
+    });
 
     // update state in response to warp events
     let _ = use_resource(move || {

@@ -29,7 +29,7 @@ impl Extension for ClearAll {
     }
 
     fn render<'a>(&self, runtime: std::rc::Rc<Runtime>) -> Element {
-        use_hook(|| RuntimeGuard::new(runtime.clone()));
+        use_hook(move || Rc::new(RuntimeGuard::new(runtime.clone())));
         let styles = self.stylesheet();
 
         rsx! (
