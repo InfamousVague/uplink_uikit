@@ -135,7 +135,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
             };
 
             tokio::time::sleep(to_sleep).await;
-            // TODO(Migration_0.5): Look into this unwrap later
+            // HACK(Migration_0.5): Unwrap here doesn't bring a problem
             update_fn()(scope_id_signal().unwrap());
         }
     });

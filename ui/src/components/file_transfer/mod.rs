@@ -14,7 +14,7 @@ pub struct Props {
 
 pub fn FileTransferModal(props: Props) -> Element {
     let file_tracker = use_context::<Signal<TransferTracker>>();
-    // TODO(Migration_0.5): See this unwrap later
+    // HACK(Migration_0.5): Unwrap here doesn't bring a problem
     props.state.write_silent().scope_ids.file_transfer = Some(current_scope_id().unwrap().0);
     let tracker = file_tracker.read();
     let (file_progress_upload, file_progress_download) = (

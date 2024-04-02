@@ -363,14 +363,13 @@ pub fn InputRich(props: Props) -> Element {
         }
     });
 
-    // TODO(MIGRATION_0.5): Before it was use_effect, verify if it keeps the same behavior
-    use_future(move || {
+    use_effect(move || {
         to_owned![listener_data];
         let rich_editor: String = include_str!("./rich_editor_handler.js")
             .replace("$EDITOR_ID", &id2)
             .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
             .replace("$INIT", &value().replace('"', "\\\"").replace('\n', "\\n"));
-        async move {
+        spawn(async move {
             let mut eval_result = eval(&rich_editor);
             loop {
                 if let Ok(val) = eval_result.recv().await {
@@ -403,7 +402,7 @@ pub fn InputRich(props: Props) -> Element {
                     }
                 }
             }
-        }
+        });
     });
 
     if let Some(pending) = listener_data.write_silent().take() {

@@ -80,7 +80,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     let is_loading = !state_matches_active_chat || !chat_data.read().active_chat.is_initialized;
     let mut can_send = use_signal(|| state.read().active_chat_has_draft());
     let mut update_script = use_signal(String::new);
-    // TODO(Migration_0.5): Look after migration
+    // HACK(Migration_0.5): Changed use_hook to use_signal
     let upload_button_menu_uuid = use_signal(|| Uuid::new_v4().to_string());
     let mut show_storage_modal = use_signal(|| false);
 
