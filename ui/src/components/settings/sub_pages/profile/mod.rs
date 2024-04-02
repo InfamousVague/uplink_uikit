@@ -1,4 +1,6 @@
 use std::path::PathBuf;
+use std::rc::Rc;
+use std::sync::Arc;
 
 use arboard::Clipboard;
 use common::get_images_dir;
@@ -77,9 +79,8 @@ pub fn ProfileSettings() -> Element {
     let no_banner_picture = banner.eq("\0") || banner.is_empty();
 
     let mut show_remove_seed = use_signal(|| false);
-    let mut seed_phrase = use_signal(|| None);
+    let mut seed_phrase: Signal<Option<String>> = use_signal(|| None);
     let seed_words_ch: Coroutine<()> = use_coroutine(|mut rx: UnboundedReceiver<()>| {
-        to_owned![seed_phrase];
         async move {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
             while rx.next().await.is_some() {
@@ -624,76 +625,78 @@ pub fn ProfileSettings() -> Element {
                             }
                         }
                     }
-                    // TODO(Migration_0.5): See it later
-                    // if let Some(phrase) = seed_phrase.read().clone() {
-                    //     {let words = phrase.clone().split_whitespace().collect::<Vec<&str>>();
-                    //     let words2 = words.clone();
-                    //     rsx!(
-                    //         Button {
-                    //             text: get_local_text("uplink.copy-seed"),
-                    //             aria_label: "copy-seed-button".to_string(),
-                    //             icon: Icon::BookmarkSquare,
-                    //             onpress: move |_| {
-                    //                 match Clipboard::new() {
-                    //                     Ok(mut c) => {
-                    //                         match c.set_text(words2.clone().join("\n").to_string()) {
-                    //                             Ok(_) => state.write().mutate(Action::AddToastNotification(
-                    //                                 ToastNotification::init(
-                    //                                     "".into(),
-                    //                                     get_local_text("uplink.copied-seed"),
-                    //                                     None,
-                    //                                     2,
-                    //                                 ),
-                    //                             )),
-                    //                             Err(e) => log::warn!("Unable to set text to clipboard: {e}"),
-                    //                         }
-                    //                     },
-                    //                     Err(e) => {
-                    //                         log::warn!("Unable to create clipboard reference: {e}");
-                    //                     }
-                    //                 };
-                    //             },
-                    //             appearance: Appearance::Secondary
-                    //         },
-                    //         SettingSectionSimple {
-                    //             aria_label: "seed-words-section".to_string(),
-                    //             div {
-                    //                 class: "seed-words",
-                    //                 {words.chunks_exact(2).enumerate().map(|(idx, vals)| rsx! {
-                    //                     div {
-                    //                         class: "row",
-                    //                         div {
-                    //                             class: "col",
-                    //                             span {
-                    //                                 aria_label: "seed-word-number-{((idx * 2) + 1).to_string()}",
-                    //                                 class: "num disable-select",
-                    //                                 {((idx * 2) + 1).to_string()},
-                    //                             },
-                    //                             span {
-                    //                                 aria_label: "seed-word-value-{((idx * 2) + 1).to_string()}",
-                    //                                 class: "val",
-                    //                                 {vals.first().cloned().unwrap_or_default()}
-                    //                             }
-                    //                         },
-                    //                         div {
-                    //                             class: "col",
-                    //                             span {
-                    //                                 aria_label: "seed-word-number-{((idx * 2) + 2).to_string()}",
-                    //                                 class: "num disable-select",
-                    //                                 {((idx * 2) + 2).to_string()},
-                    //                             },
-                    //                             span {
-                    //                                 aria_label: "seed-word-value-{((idx * 2) + 2).to_string()}",
-                    //                                 class: "val",
-                    //                                 {vals.get(1).cloned().unwrap_or_default()},
-                    //                             }
-                    //                         }
-                    //                     }
-                    //                 })}
-                    //             }
-                    //         }
-                    //     )}
-                    // },
+                    // TODO(Migration_0.5): See it later Darius
+                    if let Some(phrase) = seed_phrase.read().clone() {
+                        {
+                        let phrase2 = phrase.split_whitespace().collect::<Vec<&str>>();
+                        let words3 = phrase2.clone();
+                        let words2 = words3.clone();
+                        rsx!(
+                            Button {
+                                text: get_local_text("uplink.copy-seed"),
+                                aria_label: "copy-seed-button".to_string(),
+                                icon: Icon::BookmarkSquare,
+                                onpress: move |_| {
+                                    match Clipboard::new() {
+                                        Ok(mut c) => {
+                                            match c.set_text(words2.clone().join("\n").to_string()) {
+                                                Ok(_) => state.write().mutate(Action::AddToastNotification(
+                                                    ToastNotification::init(
+                                                        "".into(),
+                                                        get_local_text("uplink.copied-seed"),
+                                                        None,
+                                                        2,
+                                                    ),
+                                                )),
+                                                Err(e) => log::warn!("Unable to set text to clipboard: {e}"),
+                                            }
+                                        },
+                                        Err(e) => {
+                                            log::warn!("Unable to create clipboard reference: {e}");
+                                        }
+                                    };
+                                },
+                                appearance: Appearance::Secondary
+                            },
+                            SettingSectionSimple {
+                                aria_label: "seed-words-section".to_string(),
+                                div {
+                                    class: "seed-words",
+                                    // {words3.chunks_exact(2).enumerate().map(|(idx, vals)| rsx! {
+                                    //     div {
+                                    //         class: "row",
+                                    //         div {
+                                    //             class: "col",
+                                    //             span {
+                                    //                 aria_label: "seed-word-number-{((idx * 2) + 1).to_string()}",
+                                    //                 class: "num disable-select",
+                                    //                 {((idx * 2) + 1).to_string()},
+                                    //             },
+                                    //             span {
+                                    //                 aria_label: "seed-word-value-{((idx * 2) + 1).to_string()}",
+                                    //                 class: "val",
+                                    //                 {vals.first().cloned().unwrap_or_default()}
+                                    //             }
+                                    //         },
+                                    //         div {
+                                    //             class: "col",
+                                    //             span {
+                                    //                 aria_label: "seed-word-number-{((idx * 2) + 2).to_string()}",
+                                    //                 class: "num disable-select",
+                                    //                 {((idx * 2) + 2).to_string()},
+                                    //             },
+                                    //             span {
+                                    //                 aria_label: "seed-word-value-{((idx * 2) + 2).to_string()}",
+                                    //                 class: "val",
+                                    //                 {vals.get(1).cloned().unwrap_or_default()},
+                                    //             }
+                                    //         }
+                                    //     }
+                                    // })}
+                                }
+                            }
+                        )}
+                    },
                     SettingSectionSimple {
                         aria_label: "store-recovery-seed-on-account-section".to_string(),
                         Checkbox {
