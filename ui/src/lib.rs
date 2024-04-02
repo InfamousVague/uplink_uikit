@@ -167,7 +167,6 @@ pub fn main_lib() {
 
     // TODO(Migration_0.5): Verify this function later
     // 5. Finally, launch the app
-    // dioxus_desktop::launch::launch(app, Vec::new(), webview_config::webview_config())
     LaunchBuilder::new()
         .with_cfg(desktop!(webview_config::webview_config()))
         .launch(app);
