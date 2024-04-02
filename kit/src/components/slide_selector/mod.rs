@@ -10,34 +10,26 @@ pub enum ButtonsFormat {
 }
 
 // TODO(Migration_0.5): See this T problem later
-#[derive(Props)]
-pub struct Props {
-    // values: Vec<T>,
+#[derive(Props, Clone)]
+pub struct Props<T: Clone + 'static> {
+    values: Vec<T>,
     initial_index: usize,
     #[props(optional)]
     buttons_format: Option<ButtonsFormat>,
-    // onset: EventHandler<T>,
+    onset: EventHandler<T>,
 }
 
-impl Clone for Props {
-    fn clone(&self) -> Self {
-        Self {
-            // values: self.values.clone(),
-            initial_index: self.initial_index,
-            buttons_format: self.buttons_format.clone(),
-            // onset: self.onset.clone(),
-        }
-    }
-}
-
-impl PartialEq for Props {
+impl<T: Clone> PartialEq for Props<T> {
     fn eq(&self, other: &Self) -> bool {
         self.initial_index == other.initial_index && self.buttons_format == other.buttons_format
     }
 }
 
 #[allow(non_snake_case)]
-pub fn SlideSelector(props: Props) -> Element {
+pub fn SlideSelector<T>(props: Props<T>) -> Element
+where
+    T: Clone,
+{
     let mut index = use_signal(|| props.initial_index);
     if *index.read() != props.initial_index {
         index.set(props.initial_index);

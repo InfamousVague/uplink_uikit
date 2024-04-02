@@ -625,12 +625,11 @@ pub fn ProfileSettings() -> Element {
                             }
                         }
                     }
-                    // TODO(Migration_0.5):
                     if let Some(phrase) = seed_phrase.read().clone() {
                         {
                         let phrase2 = phrase.split_whitespace().map(ToString::to_string).collect::<Vec<_>>();
-                        let words3 = phrase2.clone();
-                        let words2 = words3.clone();
+                        let words = phrase2.clone();
+                        let words2 = words.clone();
                         rsx!(
                             Button {
                                 text: get_local_text("uplink.copy-seed"),
@@ -662,37 +661,37 @@ pub fn ProfileSettings() -> Element {
                                 aria_label: "seed-words-section".to_string(),
                                 div {
                                     class: "seed-words",
-                                    // {words3.chunks_exact(2).enumerate().map(|(idx, vals)| rsx! {
-                                    //     div {
-                                    //         class: "row",
-                                    //         div {
-                                    //             class: "col",
-                                    //             span {
-                                    //                 aria_label: "seed-word-number-{((idx * 2) + 1).to_string()}",
-                                    //                 class: "num disable-select",
-                                    //                 {((idx * 2) + 1).to_string()},
-                                    //             },
-                                    //             span {
-                                    //                 aria_label: "seed-word-value-{((idx * 2) + 1).to_string()}",
-                                    //                 class: "val",
-                                    //                 {vals.first().cloned().unwrap_or_default()}
-                                    //             }
-                                    //         },
-                                    //         div {
-                                    //             class: "col",
-                                    //             span {
-                                    //                 aria_label: "seed-word-number-{((idx * 2) + 2).to_string()}",
-                                    //                 class: "num disable-select",
-                                    //                 {((idx * 2) + 2).to_string()},
-                                    //             },
-                                    //             span {
-                                    //                 aria_label: "seed-word-value-{((idx * 2) + 2).to_string()}",
-                                    //                 class: "val",
-                                    //                 {vals.get(1).cloned().unwrap_or_default()},
-                                    //             }
-                                    //         }
-                                    //     }
-                                    // })}
+                                    {words.chunks_exact(2).enumerate().map(|(idx, vals)| rsx! {
+                                        div {
+                                            class: "row",
+                                            div {
+                                                class: "col",
+                                                span {
+                                                    aria_label: "seed-word-number-{((idx * 2) + 1).to_string()}",
+                                                    class: "num disable-select",
+                                                    {((idx * 2) + 1).to_string()},
+                                                },
+                                                span {
+                                                    aria_label: "seed-word-value-{((idx * 2) + 1).to_string()}",
+                                                    class: "val",
+                                                    {vals.first().cloned().unwrap_or_default()}
+                                                }
+                                            },
+                                            div {
+                                                class: "col",
+                                                span {
+                                                    aria_label: "seed-word-number-{((idx * 2) + 2).to_string()}",
+                                                    class: "num disable-select",
+                                                    {((idx * 2) + 2).to_string()},
+                                                },
+                                                span {
+                                                    aria_label: "seed-word-value-{((idx * 2) + 2).to_string()}",
+                                                    class: "val",
+                                                    {vals.get(1).cloned().unwrap_or_default()},
+                                                }
+                                            }
+                                        }
+                                    })}
                                 }
                             }
                         )}

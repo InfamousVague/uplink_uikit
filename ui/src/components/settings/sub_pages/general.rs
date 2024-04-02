@@ -115,11 +115,11 @@ pub fn GeneralSettings() -> Element {
                 section_description: get_local_text("settings-general.font-scaling-description"),
                 SlideSelector {
                     buttons_format: ButtonsFormat::PlusAndMinus,
-                    // values: font_options,
+                    values: font_options,
                     initial_index: initial_font_idx,
-                    // onset: move |value| {
-                    //     state.write().mutate(Action::SetFontScale( value ));
-                    // }
+                    onset: move |value| {
+                        state.write().mutate(Action::SetFontScale( value ));
+                    }
                 }
             },
             SettingSection {
