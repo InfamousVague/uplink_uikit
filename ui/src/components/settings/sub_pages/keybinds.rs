@@ -74,6 +74,7 @@ pub struct KeybindSectionProps {
     pub shortcut: GlobalShortcut,
     pub section_label: String,
     pub aria_label: Option<String>,
+    pub is_recording: UseState<Option<GlobalShortcut>>,
 }
 
 pub fn check_for_conflicts(shortcut: Shortcut, shortcuts: Vec<(GlobalShortcut, Shortcut)>) -> bool {
@@ -91,14 +92,19 @@ pub fn check_for_conflicts(shortcut: Shortcut, shortcuts: Vec<(GlobalShortcut, S
 pub fn KeybindSection(cx: Scope<KeybindSectionProps>) -> Element {
     let state = use_shared_state::<State>(cx)?;
     let keybind_section_id = cx.props.id.clone();
-    let is_recording = use_state(cx, || false);
+    let is_recording = cx
+        .props
+        .is_recording
+        .as_ref()
+        .map(|key| cx.props.shortcut.eq(key))
+        .unwrap_or_default();
     let update_keybind = use_ref(cx, || None);
     let system_shortcut = Shortcut::get_system_shortcut(state, cx.props.shortcut.clone());
     let new_keybind_has_one_key = use_ref(cx, || false);
     let new_keybind_has_at_least_one_modifier = use_ref(cx, || false);
     let aria_label = cx.props.aria_label.clone().unwrap_or_default();
 
-    if update_keybind.read().is_some() && !is_recording.get() {
+    if update_keybind.read().is_some() && !is_recording {
         let (keys, modifiers) = update_keybind.read().clone().unwrap();
         state
             .write_silent()
@@ -139,10 +145,10 @@ pub fn KeybindSection(cx: Scope<KeybindSectionProps>) -> Element {
     let _ = eval(&script);
     let keybind_section_id_clone = keybind_section_id.clone();
 
-    use_effect(cx, is_recording, |is_recording| {
+    use_effect(cx, &is_recording, |is_recording| {
         to_owned![eval];
         async move {
-            if *is_recording {
+            if is_recording {
                 let unfocus_script =
                     UNFOCUS_DIV_ON_SUBMIT.replace("$UUID", keybind_section_id_clone.as_str());
                 let _ = eval(&unfocus_script);
@@ -151,11 +157,11 @@ pub fn KeybindSection(cx: Scope<KeybindSectionProps>) -> Element {
     });
 
     let mut keybind_class = "keybind-section-keys".to_owned();
-    if **is_recording {
+    if is_recording {
         keybind_class.push_str(" recording");
     }
 
-    if *is_recording.get() && !state.read().settings.is_recording_new_keybind {
+    if is_recording && !state.read().settings.is_recording_new_keybind {
         state.write().settings.is_recording_new_keybind = true;
     }
 
@@ -169,10 +175,10 @@ pub fn KeybindSection(cx: Scope<KeybindSectionProps>) -> Element {
             id: format_args!("{}", keybind_section_id),
             class: "keybind-section",
             aria_label: "{aria_label}",
-            (**is_recording).then(|| rsx!(div {
+            is_recording.then(|| rsx!(div {
                 class: "keybind-section-mask",
                 onclick: move |_| {
-                    is_recording.set(false);
+                    cx.props.is_recording.set(None);
                     state.write().settings.is_recording_new_keybind = false;
                 }
             })),
@@ -186,12 +192,12 @@ pub fn KeybindSection(cx: Scope<KeybindSectionProps>) -> Element {
                 aria_label: "keybind-section-keys",
                 contenteditable: true,
                 onfocus: move |_| {
-                    is_recording.set(true);
+                    cx.props.is_recording.set(Some(cx.props.shortcut.clone()));
                 },
                 onkeydown: move |evt| {
 
                     if evt.data.code() == Code::Escape {
-                        is_recording.set(false);
+                        cx.props.is_recording.set(None);
                         evt.stop_propagation();
                         return;
                     }
@@ -210,18 +216,17 @@ pub fn KeybindSection(cx: Scope<KeybindSectionProps>) -> Element {
                     }
 
                     let binding2 = Shortcut::reorder_keybind_string(binding);
-
                     recorded_bindings.set(binding2);
                     evt.stop_propagation();
                 },
                 onkeyup: move |_| {
-                    if *is_recording.get() && *new_keybind_has_one_key.read() && *new_keybind_has_at_least_one_modifier.read() {
+                    if is_recording && *new_keybind_has_one_key.read() && *new_keybind_has_at_least_one_modifier.read() {
                         let (keys, modifiers) = Shortcut::string_to_keycode_and_modifiers_state(recorded_bindings.get().clone());
                         *update_keybind.write_silent() = Some((keys, modifiers));
                     }
                     *new_keybind_has_one_key.write_silent() = false;
                     *new_keybind_has_at_least_one_modifier.write_silent() = false;
-                    is_recording.set(false);
+                    cx.props.is_recording.set(None);
                     state.write().settings.is_recording_new_keybind = false;
                 },
                 if has_conflicts {
@@ -233,12 +238,12 @@ pub fn KeybindSection(cx: Scope<KeybindSectionProps>) -> Element {
                             }
                         )),
                         Keybind {
-                            keys: if **is_recording { recorded_bindings.get().clone() } else { bindings },
+                            keys: if is_recording { recorded_bindings.get().clone() } else { bindings },
                         }
                     })
                 } else {
                     rsx!(Keybind {
-                        keys: if **is_recording { recorded_bindings.get().clone() } else { bindings },
+                        keys: if is_recording { recorded_bindings.get().clone() } else { bindings },
                     })
                 }
             },
@@ -268,7 +273,7 @@ pub fn KeybindSettings(cx: Scope) -> Element {
     let bindings = state.read().settings.keybinds.clone();
     let state2 = state.clone();
     let state3 = state.clone();
-
+    let is_recording = use_state(cx, || None);
     use_component_lifecycle(
         cx,
         move || {
@@ -313,49 +318,56 @@ pub fn KeybindSettings(cx: Scope) -> Element {
                 id: format!("{:?}", GlobalShortcut::IncreaseFontSize),
                 section_label: get_local_text("settings-keybinds.increase-font-size"),
                 bindings: bindings.clone(),
-                shortcut: GlobalShortcut::IncreaseFontSize
+                shortcut: GlobalShortcut::IncreaseFontSize,
+                is_recording: is_recording.clone(),
             }
             KeybindSection {
                 aria_label: "decrease-font-size-section".into(),
                 id: format!("{:?}", GlobalShortcut::DecreaseFontSize),
                 section_label: get_local_text("settings-keybinds.decrease-font-size"),
                 bindings: bindings.clone(),
-                shortcut: GlobalShortcut::DecreaseFontSize
+                shortcut: GlobalShortcut::DecreaseFontSize,
+                is_recording: is_recording.clone(),
             }
             KeybindSection {
                 aria_label: "toggle-mute-section".into(),
                 id: format!("{:?}", GlobalShortcut::ToggleMute),
                 section_label: get_local_text("settings-keybinds.toggle-mute"),
                 bindings: bindings.clone(),
-                shortcut: GlobalShortcut::ToggleMute
+                shortcut: GlobalShortcut::ToggleMute,
+                is_recording: is_recording.clone(),
             }
             KeybindSection {
                 aria_label: "toggle-deafen-section".into(),
                 id: format!("{:?}", GlobalShortcut::ToggleDeafen),
                 section_label: get_local_text("settings-keybinds.toggle-deafen"),
                 bindings: bindings.clone(),
-                shortcut: GlobalShortcut::ToggleDeafen
+                shortcut: GlobalShortcut::ToggleDeafen,
+                is_recording: is_recording.clone(),
             }
             KeybindSection {
                 aria_label: "open-close-dev-tools-section".into(),
                 id: format!("{:?}", GlobalShortcut::OpenCloseDevTools),
                 section_label: get_local_text("settings-keybinds.open-close-dev-tools"),
                 bindings: bindings.clone(),
-                shortcut: GlobalShortcut::OpenCloseDevTools
+                shortcut: GlobalShortcut::OpenCloseDevTools,
+                is_recording: is_recording.clone(),
             }
             KeybindSection {
                 aria_label: "toggle-devmode-section".into(),
                 id: format!("{:?}", GlobalShortcut::ToggleDevmode),
                 section_label: get_local_text("settings-keybinds.toggle-devmode"),
                 bindings: bindings.clone(),
-                shortcut: GlobalShortcut::ToggleDevmode
+                shortcut: GlobalShortcut::ToggleDevmode,
+                is_recording: is_recording.clone(),
             }
             KeybindSection {
                 aria_label: "hide-focus-uplink-section".into(),
                 id: format!("{:?}", GlobalShortcut::SetAppVisible),
                 section_label: get_local_text("settings-keybinds.hide-focus-uplink"),
                 bindings: bindings.clone(),
-                shortcut: GlobalShortcut::SetAppVisible
+                shortcut: GlobalShortcut::SetAppVisible,
+                is_recording: is_recording.clone(),
             }
         }
     ))
