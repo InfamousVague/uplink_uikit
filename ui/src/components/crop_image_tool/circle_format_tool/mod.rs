@@ -57,7 +57,6 @@ pub fn CropCircleImageModal(props: Props) -> Element {
     let _ = use_effect(move || {
         spawn(async move {
             while image_dimensions.read().width == 0 && image_dimensions.read().height == 0 {
-                println!("Looping");
                 tokio::time::sleep(std::time::Duration::from_millis(10)).await;
                 verify_image_dimensions.set(true);
             }
@@ -67,7 +66,6 @@ pub fn CropCircleImageModal(props: Props) -> Element {
     });
 
     if verify_image_dimensions() {
-        println!("Getting result");
         let eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
         spawn(async move {
             if let Ok(val) = eval_result.join().await {
