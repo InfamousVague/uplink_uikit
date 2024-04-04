@@ -41,6 +41,7 @@ pub fn CropRectImageModal(props: Props) -> Element {
     let mut crop_image = use_signal(|| true);
     let cropped_image_pathbuf = use_signal(PathBuf::new);
     let mut clicked_button_to_crop = use_signal(|| false);
+    let mut verify_image_dimensions = use_signal(|| false);
 
     let image_dimensions = use_signal(|| ImageDimensions {
         height: 0,
@@ -53,22 +54,29 @@ pub fn CropRectImageModal(props: Props) -> Element {
         crop_image.set(false);
     }
 
-    let _ = use_resource(move || {
-        to_owned![image_dimensions];
-        async move {
+    let _ = use_effect(move || {
+        spawn(async move {
             while image_dimensions.read().width == 0 && image_dimensions.read().height == 0 {
-                let eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
-                if let Ok(val) = eval_result.join().await {
-                    *image_dimensions.write_silent() = ImageDimensions {
-                        height: val["height"].as_i64().unwrap_or_default(),
-                        width: val["width"].as_i64().unwrap_or_default(),
-                    };
-                }
+                tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                verify_image_dimensions.set(true);
             }
             let _ = eval(ADJUST_CROP_RECTANGLE_SIZE_SCRIPT);
             let _ = eval(MOVE_IMAGE_SCRIPT);
-        }
+        });
     });
+
+    if verify_image_dimensions() {
+        let eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
+        spawn(async move {
+            if let Ok(val) = eval_result.join().await {
+                *image_dimensions.write_silent() = ImageDimensions {
+                    height: val["height"].as_i64().unwrap_or_default(),
+                    width: val["width"].as_i64().unwrap_or_default(),
+                };
+                verify_image_dimensions.set(false);
+            }
+        });
+    }
 
     use_component_lifecycle(
         || {},
