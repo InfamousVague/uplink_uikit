@@ -17,8 +17,7 @@ pub fn init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
         to_owned![ch];
         spawn(async move {
             // replicate behavior from before refactor
-            let eval_result = eval(SETUP_CONTEXT_PARENT);
-            let _ = eval_result.join().await;
+            let _ = eval(SETUP_CONTEXT_PARENT);
 
             let chat_id = chat_data.read().active_chat.id();
             let chat_behavior = chat_data.read().get_chat_behavior(chat_id);
