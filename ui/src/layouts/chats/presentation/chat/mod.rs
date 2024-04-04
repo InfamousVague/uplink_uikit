@@ -38,9 +38,9 @@ use warp::crypto::DID;
 pub fn Compose() -> Element {
     log::trace!("rendering compose");
     use_context_provider(|| ChatData::default);
-    use_context_provider(|| ScrollBtn::new);
-    use_context_provider(|| MessagesToSend::default);
-    use_context_provider(|| MessagesToEdit::default);
+    use_context_provider(|| Signal::new(ScrollBtn::new()));
+    use_context_provider(|| Signal::new(MessagesToSend::default()));
+    use_context_provider(|| Signal::new(MessagesToEdit::default()));
     let mut state = use_context::<Signal<State>>();
     let mut chat_data = use_context::<Signal<ChatData>>();
 
@@ -71,7 +71,7 @@ pub fn Compose() -> Element {
                 if let Ok(s) = eval_result.recv().await {
                     match serde_json::from_str::<(f64, f64, DID)>(s.as_str().unwrap_or_default()) {
                         Ok((x, y, did)) => {
-                            if let Some(id) = state.read().get_identity(&did) {
+                            if let Some(id) = state.peek().get_identity(&did) {
                                 quickprofile_data.set(Some((x, y, id, false)));
                             }
                         }
@@ -87,7 +87,7 @@ pub fn Compose() -> Element {
     use_effect(move || {
         to_owned![quick_profile_uuid, update_script, identity_profile];
         spawn(async move {
-            if let Some((x, y, id, right)) = quickprofile_data.read().as_ref() {
+            if let Some((x, y, id, right)) = quickprofile_data.peek().as_ref() {
                 let script = SHOW_CONTEXT
                     .replace("UUID", &quick_profile_uuid())
                     .replace("$PAGE_X", &x.to_string())
@@ -108,16 +108,17 @@ pub fn Compose() -> Element {
     let is_owner = creator.map(|id| id == user_did).unwrap_or_default();
 
     if init.value()().is_some() {
-        if let Some(chat) = state.read().get_active_chat() {
-            let metadata = data::Metadata::new(&state.read(), &chat);
-            if chat_data.read().active_chat.metadata_changed(&metadata) {
+        if let Some(chat) = state.peek().get_active_chat() {
+            let metadata = data::Metadata::new(&state.peek(), &chat);
+            if chat_data.peek().active_chat.metadata_changed(&metadata) {
                 // If the metadata has changed, we should cancel out all actions to modify it.
                 if show_rename_group() {
                     show_rename_group.set(false);
                 }
                 // Now we can continue
                 if !show_group_settings() && show_manage_members().is_none() {
-                    chat_data.write().active_chat.set_metadata(metadata);
+                    // chat_data.with_mut(|f| f.active_chat.set_metadata(metadata));
+                    // chat_data.write().active_chat.set_metadata(metadata);
                 }
             }
         }

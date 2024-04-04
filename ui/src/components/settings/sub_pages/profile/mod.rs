@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-
-
 use arboard::Clipboard;
 use common::get_images_dir;
 use common::icons::Icon as IconElement;
@@ -442,7 +440,7 @@ pub fn ProfileSettings() -> Element {
                             icon: Icon::Plus,
                             aria_label: "add-picture-button".to_string(),
                             onpress: move |_| {
-                            set_profile_picture(open_crop_image_modal);
+                                // set_profile_picture(open_crop_image_modal);
                             }
                         },
                     },
