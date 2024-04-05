@@ -37,14 +37,14 @@ use warp::crypto::DID;
 #[allow(non_snake_case)]
 pub fn Compose() -> Element {
     log::trace!("rendering compose");
-    use_context_provider(|| ChatData::default);
+    use_context_provider(|| Signal::new(ChatData::default()));
     use_context_provider(|| Signal::new(ScrollBtn::new()));
     use_context_provider(|| Signal::new(MessagesToSend::default()));
     use_context_provider(|| Signal::new(MessagesToEdit::default()));
     let mut state = use_context::<Signal<State>>();
     let mut chat_data = use_context::<Signal<ChatData>>();
 
-    let init = coroutines::init_chat_data(state, chat_data);
+    let mut init = coroutines::init_chat_data(state, chat_data);
     coroutines::handle_warp_events(state, chat_data);
 
     state.write_silent().ui.current_layout = ui::Layout::Compose;
@@ -107,10 +107,10 @@ pub fn Compose() -> Element {
     let user_did: DID = state.read().did_key();
     let is_owner = creator.map(|id| id == user_did).unwrap_or_default();
 
-    if init.value()().is_some() {
-        if let Some(chat) = state.peek().get_active_chat() {
-            let metadata = data::Metadata::new(&state.peek(), &chat);
-            if chat_data.peek().active_chat.metadata_changed(&metadata) {
+    if init() {
+        if let Some(chat) = state.read().get_active_chat() {
+            let metadata = data::Metadata::new(&state.read(), &chat);
+            if chat_data.read().active_chat.metadata_changed(&metadata) {
                 // If the metadata has changed, we should cancel out all actions to modify it.
                 if show_rename_group() {
                     show_rename_group.set(false);
@@ -118,7 +118,7 @@ pub fn Compose() -> Element {
                 // Now we can continue
                 if !show_group_settings() && show_manage_members().is_none() {
                     // chat_data.with_mut(|f| f.active_chat.set_metadata(metadata));
-                    // chat_data.write().active_chat.set_metadata(metadata);
+                    chat_data.write_silent().active_chat.set_metadata(metadata);
                 }
             }
         }
@@ -205,7 +205,7 @@ pub fn Compose() -> Element {
         CallControl {
             in_chat: true
         },
-        if init.value()().is_none() {
+        if init() {
            {rsx!(
                 div {
                     id: "messages",
