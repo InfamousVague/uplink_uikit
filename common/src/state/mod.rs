@@ -74,6 +74,7 @@ pub struct State {
     friends: friends::Friends,
     #[serde(skip)]
     pub storage: storage::Storage,
+    #[serde(skip)]
     pub scope_ids: scope_ids::ScopeIds,
     pub settings: settings::Settings,
     pub ui: ui::UI,

@@ -211,6 +211,7 @@ impl Chat {
 #[derive(Clone, Serialize, Debug, Default, Deserialize)]
 pub struct Chats {
     // All active chats from warp.
+    #[serde(skip)]
     pub all: HashMap<Uuid, Chat>,
     // Chat to display / interact with currently.
     pub active: Option<Uuid>,
