@@ -68,7 +68,7 @@ pub fn run_verifications_and_update_storage(
 }
 
 pub fn get_items_from_current_directory(ch: Coroutine<ChanCmd>) {
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![ch];
         async move {
             sleep(Duration::from_secs(1)).await;
@@ -193,7 +193,7 @@ pub fn add_files_in_queue_to_upload(
 pub fn use_allow_block_folder_nav(files_in_queue_to_upload: Signal<Vec<PathBuf>>) {
     // Block directories navigation if there is a file been uploaded
     // use_future here to verify before render elements on first render
-    let _ = use_resource(move || async move {
+    let _ = use_future(move || async move {
         allow_folder_navigation(files_in_queue_to_upload().is_empty());
     });
     // This is to run on all re-renders
