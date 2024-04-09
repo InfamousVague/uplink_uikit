@@ -185,8 +185,8 @@ pub fn ProfileSettings() -> Element {
             }
         }
     });
-    let should_update_clone = should_update();
-    if let Some(ident) = should_update_clone {
+
+    if let Some(ident) = should_update() {
         log::trace!("Updating ProfileSettings");
         let mut ident = ident.clone();
         let current = state.read().get_own_identity();
@@ -327,13 +327,13 @@ pub fn ProfileSettings() -> Element {
 
     let store_phrase = use_signal(|| true);
 
-    if *first_render.read() {
+    if first_render() {
         seed_phrase_exists.send(());
         first_render.set(false);
     }
 
     rsx!(
-        {loading_indicator.read().then(|| rsx!(
+        {loading_indicator().then(|| rsx!(
             div {
                 id: "overlay-load-shadow-for-profile-page",
                 class: "overlay-load-shadow-for-profile-page",
@@ -597,7 +597,7 @@ pub fn ProfileSettings() -> Element {
                     FancySelect {
                         initial_value: get_status_option(&online_status),
                         width: 190,
-                        options: identity_status_values.iter().map(get_status_option).collect(),
+                        options: identity_status_values.iter().map(|status| get_status_option(status)).collect(),
                         onselect: move |value: String| {
                             let status = serde_json::from_str::<IdentityStatus>(&value).unwrap_or(IdentityStatus::Online);
                             ch.send(ChanCmd::Status(status));

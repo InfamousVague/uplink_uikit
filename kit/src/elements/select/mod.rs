@@ -102,19 +102,16 @@ pub fn FancySelect(props: FancySelectProps) -> Element {
                 class: "fancy-select-wrap",
                 position: "relative",
                 width: format_args!("{}px", props.width),
-                onclick: move |e| {
-                    let b = visible.with(|f| *f);
-                    visible.with_mut(|f| *f = !b);
-                    e.stop_propagation()
+                onclick: move |_| {
+                    visible.with_mut(|f| *f = !*f);
                 },
                 div {
                     class: "fancy-select",
                     {initial_element}
                 },
-                {visible.take().then(move || {
+                {visible().then(move || {
                     let mut visible2 = visible;
                     let mut visible3 = visible;
-
                     rsx!(
                         div {
                             class: "fancy-select-options",
