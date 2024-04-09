@@ -81,7 +81,7 @@ pub fn get_items_from_current_directory(ch: Coroutine<ChanCmd>) {
 pub fn allow_drag_event_for_non_macos_systems(mut are_files_hovering_app: Signal<bool>) {
     use dioxus_desktop::wry::FileDropEvent;
 
-    use_resource(move || {
+    use_future(move || {
         async move {
             // ondragover function from div does not work on windows
             loop {
@@ -505,7 +505,7 @@ pub fn start_upload_file_listener(
     let files_been_uploaded = upload_file_controller.files_been_uploaded;
     let files_in_queue_to_upload = upload_file_controller.files_in_queue_to_upload;
 
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![
             state,
             controller,

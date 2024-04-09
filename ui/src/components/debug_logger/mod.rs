@@ -35,7 +35,7 @@ pub fn DebugLogger() -> Element {
 
     let logs_to_show = use_signal(logger::load_debug_log);
 
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![logs_to_show];
         async move {
             let mut log_ch = logger::subscribe();

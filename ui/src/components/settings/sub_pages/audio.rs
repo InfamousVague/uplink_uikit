@@ -232,7 +232,7 @@ pub fn AudioSettings() -> Element {
         }
     });
 
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![ch];
         async move {
             loop {

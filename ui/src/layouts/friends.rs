@@ -44,7 +44,7 @@ pub fn FriendsLayout() -> Element {
 
     // this is a hack to deal with a change in how Dioxus routing works. The `route` hook used to be shared
     // between elements.
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![route];
         async move {
             let mut ch = NOTIFICATION_LISTENER.tx.subscribe();

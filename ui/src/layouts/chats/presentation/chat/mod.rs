@@ -42,9 +42,9 @@ pub fn Compose() -> Element {
     use_context_provider(|| Signal::new(MessagesToSend::default()));
     use_context_provider(|| Signal::new(MessagesToEdit::default()));
     let mut state = use_context::<Signal<State>>();
-    let mut chat_data = use_context::<Signal<ChatData>>();
+    let chat_data = use_context::<Signal<ChatData>>();
 
-    let mut init = coroutines::init_chat_data(state, chat_data);
+    let init = coroutines::init_chat_data(state, chat_data);
     coroutines::handle_warp_events(state, chat_data);
 
     state.write_silent().ui.current_layout = ui::Layout::Compose;
@@ -205,7 +205,7 @@ pub fn Compose() -> Element {
         CallControl {
             in_chat: true
         },
-        if init() {
+        if !init() {
            {rsx!(
                 div {
                     id: "messages",

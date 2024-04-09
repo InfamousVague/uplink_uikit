@@ -19,7 +19,7 @@ pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![chat_data];
         async move {
             let mut ch = WARP_EVENT_CH.tx.subscribe();

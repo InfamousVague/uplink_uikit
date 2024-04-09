@@ -71,7 +71,7 @@ pub fn PasteFilesShortcut(props: ShortCutProps) -> Element {
     }
 
     // HACK: Shorcut is pushing 2 times, it is an other hack to avoid paste more than one time
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![command_pressed, files_local_path_to_upload];
         async move {
             loop {

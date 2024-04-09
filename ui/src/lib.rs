@@ -224,7 +224,7 @@ fn app() -> Element {
     bootstrap::use_bootstrap(&identity)?;
 
     // 4. Throw up a loading screen until our assets are ready
-    if use_loaded_assets().value().read().is_none() {
+    if !use_loaded_assets()() {
         return rsx! { LoadingWash {} };
     }
 
@@ -509,7 +509,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // update state in response to warp events
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         let schedule: Arc<dyn Fn(ScopeId) + Send + Sync> = schedule_update_any();
         async move {
             // don't process warp events until friends and chats have been loaded
@@ -557,7 +557,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // focus handler for notifications
-    let _ = use_resource(move || async move {
+    let _ = use_future(move || async move {
         let channel = common::notifications::FOCUS_SCHEDULER.rx.clone();
         let mut ch = channel.lock().await;
         while (ch.recv().await).is_some() {
@@ -566,7 +566,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // Listen to profile updates
-    let _ = use_resource(move || async move {
+    let _ = use_future(move || async move {
         while !state.read().initialized {
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
@@ -599,7 +599,7 @@ fn use_app_coroutines() -> Option<()> {
     let file_tracker = use_context::<Signal<TransferTracker>>();
 
     // Listen to async tasks actions that should be handled on main thread
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         let schedule: Arc<dyn Fn(ScopeId) + Send + Sync> = schedule_update_any();
         async move {
             let channel = ACTION_LISTENER.rx.clone();
@@ -684,7 +684,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // clear toasts
-    let _ = use_resource(move || async move {
+    let _ = use_future(move || async move {
         loop {
             sleep(Duration::from_secs(1)).await;
             if !state.read().has_toasts() {
@@ -696,7 +696,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     //Update active call
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         async move {
             loop {
                 sleep(Duration::from_secs(1)).await;
@@ -709,7 +709,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // clear typing indicator
-    let _ = use_resource(move || async move {
+    let _ = use_future(move || async move {
         loop {
             sleep(Duration::from_secs(STATIC_ARGS.typing_indicator_timeout)).await;
             if state.write_silent().clear_typing_indicator(Instant::now()) {
@@ -720,7 +720,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // periodically refresh message timestamps and friend's status messages
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         async move {
             loop {
                 // simply triggering an update will refresh the message timestamps
@@ -732,7 +732,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // check for updates
-    let _ = use_resource(move || async move {
+    let _ = use_future(move || async move {
         loop {
             let latest_release = match utils::auto_updater::check_for_release().await {
                 Ok(opt) => match opt {
@@ -758,7 +758,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // control child windows
-    let _ = use_resource(move || async move {
+    let _ = use_future(move || async move {
         let window_cmd_rx = WINDOW_CMD_CH.rx.clone();
         let mut ch = window_cmd_rx.lock().await;
         while let Some(cmd) = ch.recv().await {
@@ -768,7 +768,7 @@ fn use_app_coroutines() -> Option<()> {
 
     // init state from warp
     // also init extensions
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![state];
         async move {
             if state.read().initialized {
@@ -821,7 +821,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // initialize files
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![items_init, state];
         async move {
             if *items_init.read() {
@@ -852,7 +852,7 @@ fn use_app_coroutines() -> Option<()> {
     });
 
     // detect when new extensions are placed in the "extensions" folder, and load them.
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![state];
         async move {
             let (tx, mut rx) = futures::channel::mpsc::unbounded();
@@ -1148,7 +1148,7 @@ fn use_router_notification_listener() -> Option<()> {
     // this use_future replaces the notification_action_handler.
     let state = use_context::<Signal<State>>();
     let navigator = use_navigator();
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![state, navigator];
         async move {
             let mut ch = NOTIFICATION_LISTENER.tx.subscribe();

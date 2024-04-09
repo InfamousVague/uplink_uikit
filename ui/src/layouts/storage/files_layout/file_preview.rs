@@ -87,7 +87,7 @@ fn FilePreview(props: Props) -> Element {
         }
     }
 
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![
             temp_dir,
             file_path_in_local_disk,

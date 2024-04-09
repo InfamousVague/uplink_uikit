@@ -19,14 +19,15 @@ pub fn LoadingWash() -> Element {
     }
 }
 
-pub fn use_loaded_assets() -> Resource<Result<(), tokio::task::JoinError>> {
+pub fn use_loaded_assets() -> Signal<bool> {
     let desktop = dioxus_desktop::use_window();
     let state = use_context::<Signal<State>>();
+    let mut assets_loaded = use_signal(|| false);
 
-    use_resource(move || {
+    use_future(move || {
         to_owned![desktop, state];
         async move {
-            let res = tokio::task::spawn_blocking(|| {
+            let _ = tokio::task::spawn_blocking(|| {
                 crate::utils::unzip_prism_langs();
             })
             .await;
@@ -40,7 +41,8 @@ pub fn use_loaded_assets() -> Resource<Result<(), tokio::task::JoinError>> {
             }
             desktop.set_min_inner_size(Some(LogicalSize::new(300.0, 500.0)));
 
-            res
+            assets_loaded.set(true);
         }
-    })
+    });
+    assets_loaded
 }
