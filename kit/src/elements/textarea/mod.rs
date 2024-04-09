@@ -128,7 +128,7 @@ pub fn Input(props: Props) -> Element {
     let text_value = use_signal(|| value.clone());
     let value_signal = use_signal(|| value.clone());
 
-    let _ = use_future(move || {
+    let _ = use_resource(move || {
         to_owned![cursor_position, show_char_counter];
         async move {
             *cursor_position.write_silent() = Some(value_signal.read().chars().count() as i64);
@@ -341,8 +341,8 @@ pub fn InputRich(props: Props) -> Element {
     let placeholder = use_signal(|| placeholder.clone());
 
     // Sync changed to the editor
-    let _ = use_future(move || {
-        to_owned![sync_script, text_value, disabled];
+    let _ = use_resource(move || {
+        to_owned![sync_script, value, text_value, disabled];
         async move {
             let update = !text_value.read().eq(&value());
             let _ = eval(

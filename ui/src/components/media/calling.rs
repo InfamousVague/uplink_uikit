@@ -115,7 +115,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
     let scope_id_signal = use_signal(|| scope_id);
     let answer_time_signal = use_signal(|| active_call_answer_time);
 
-    let _ = use_future(move || async move {
+    let _ = use_resource(move || async move {
         loop {
             let dur_sec = Duration::from_secs(1);
             let dur_min = Duration::from_secs(60);

@@ -203,7 +203,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
 
     let current_chat = use_signal(|| active_chat_id);
 
-    let _ = use_future(move || async move {
+    let _ = use_resource(move || async move {
         loop {
             tokio::time::sleep(Duration::from_secs(STATIC_ARGS.typing_indicator_refresh)).await;
             if !current_chat.read().is_nil() {
