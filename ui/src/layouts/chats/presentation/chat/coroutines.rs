@@ -101,7 +101,7 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Sign
         active_chat_id
     });
     let mut chat_active = use_signal(|| false);
-    let _ = use_resource(move || {
+    let _ = use_future(move || {
         to_owned![state, chat_data];
         async move {
             while !state.read().initialized {
@@ -132,12 +132,9 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Sign
                 Ok((messages, behavior)) => {
                     log::debug!("init_chat_data");
 
-                    chat_data.write_silent().set_active_chat(
-                        &state.read(),
-                        &conv_id,
-                        behavior,
-                        messages,
-                    );
+                    chat_data
+                        .write()
+                        .set_active_chat(&state.read(), &conv_id, behavior, messages);
                     chat_active.set(true);
                 }
                 Err(e) => log::error!("{e}"),
