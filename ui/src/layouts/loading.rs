@@ -31,17 +31,18 @@ pub fn use_loaded_assets() -> Signal<bool> {
                 crate::utils::unzip_prism_langs();
             })
             .await;
+            println!("Assets loaded");
+            assets_loaded.set(true);
 
             // Here we set the size larger, and bump up the min size in preparation for rendering the main app.
-            if state.read().ui.window_maximized {
+            if state().ui.window_maximized {
                 desktop.set_outer_position(LogicalPosition::new(0, 0));
                 desktop.set_maximized(true);
             } else {
                 desktop.set_inner_size(LogicalSize::new(950.0, 600.0));
             }
             desktop.set_min_inner_size(Some(LogicalSize::new(300.0, 500.0)));
-
-            assets_loaded.set(true);
+            println!("Assets loaded - 2");
         }
     });
     assets_loaded

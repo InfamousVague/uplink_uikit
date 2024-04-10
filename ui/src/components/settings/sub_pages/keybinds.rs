@@ -259,15 +259,13 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
 pub fn KeybindSettings() -> Element {
     let mut state = use_context::<Signal<State>>();
     let bindings = state.read().settings.keybinds.clone();
-    let mut state2 = state;
-    let mut state3 = state;
 
     use_component_lifecycle(
         move || {
-            state2.write().mutate(Action::PauseGlobalKeybinds(true));
+            state.write().mutate(Action::PauseGlobalKeybinds(true));
         },
         move || {
-            state3.write().mutate(Action::PauseGlobalKeybinds(false));
+            state.write().mutate(Action::PauseGlobalKeybinds(false));
         },
     );
 

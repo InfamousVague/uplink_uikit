@@ -101,7 +101,7 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Sign
         active_chat_id
     });
     let mut chat_active = use_signal(|| false);
-    use_resource(move || {
+    let _ = use_resource(move || {
         to_owned![state, chat_data];
         async move {
             while !state.read().initialized {

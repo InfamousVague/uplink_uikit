@@ -29,19 +29,19 @@ pub(crate) fn use_bootstrap(identity: &multipass::identity::Identity) -> Option<
     use_context_provider(|| Signal::new(components::settings::sidebar::Page::Profile));
     use_context_provider(|| Signal::new(TransferTracker::default()));
     use_context_provider(|| {
-        let state = Signal::new(State::load());
+        let mut state = Signal::new(State::load());
 
         if STATIC_ARGS.use_mock {
             assert!(state().initialized);
         } else {
-            state().set_own_identity(identity.clone().into());
+            state.write().set_own_identity(identity.clone().into());
         }
 
         // TODO: This overlay needs to be fixed in windows
         if cfg!(not(target_os = "windows")) && state().configuration.general.enable_overlay {
             let overlay_test = VirtualDom::new(OverlayDom);
             let window = desktop.new_window(overlay_test, make_config());
-            state().ui.overlays.push(window);
+            state.write().ui.overlays.push(window);
         }
 
         let size = scaled_window_size(desktop.inner_size(), &desktop);
@@ -53,8 +53,8 @@ pub(crate) fn use_bootstrap(identity: &multipass::identity::Identity) -> Option<
             full_screen: state().ui.metadata.full_screen,
             minimal_view: size.width < 600,
         };
-        state().ui.metadata = window_meta;
-        state().set_warp_ch(WARP_CMD_CH.tx.clone());
+        state.write().ui.metadata = window_meta;
+        state.write().set_warp_ch(WARP_CMD_CH.tx.clone());
 
         state
     });

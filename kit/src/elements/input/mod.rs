@@ -388,6 +388,7 @@ pub fn Input(props: Props) -> Element {
     });
 
     let focus_just_on_render = props.focus_just_on_render.unwrap_or_default();
+
     use_component_lifecycle(
         move || {
             if focus_just_on_render {
