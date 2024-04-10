@@ -364,7 +364,7 @@ pub fn Message<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
         },
         div {
             class: "{reactions_class}",
-            aria_label: "message-reaction-container",
+            aria_label: "message-reactions-container",
             cx.props.reactions.iter().map(|reaction| {
                 let reaction_count = reaction.reaction_count;
                 let emoji = &reaction.emoji;
