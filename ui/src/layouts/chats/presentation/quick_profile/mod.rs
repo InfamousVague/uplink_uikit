@@ -85,7 +85,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
 
     let update_script_signal = use_signal(|| props.update_script);
 
-    let _ = use_future(move || async move {
+    let _ = use_resource(move || async move {
         if !update_script_signal()().is_empty() {
             _ = eval(&update_script_signal()());
         }
