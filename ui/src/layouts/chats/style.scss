@@ -39,8 +39,11 @@
 .message-reactions-container {
   display: inline-flex;
   flex-direction: row;
+  flex-wrap: wrap;
   color: var(--text-color);
   justify-content: flex-end;
+  scale: 0.8;
+  transform-origin: left;
 
   &.pointer {
     cursor: pointer
