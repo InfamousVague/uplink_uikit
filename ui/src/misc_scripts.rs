@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use super::*;
 
 const PRISM_SCRIPT: &str = include_str!("../extra/assets/scripts/prism.js");
@@ -17,12 +19,12 @@ pub fn PrismScripts() -> Element {
 
 fn use_prism_path() -> String {
     let hook_result = &use_hook(|| {
-        format!(
+        Rc::new(format!(
             r"Prism.plugins.autoloader.languages_path = '{}';",
             get_prism_path().to_string_lossy()
-        )
+        ))
     });
-    hook_result.clone()
+    hook_result.clone().as_str().to_string()
 }
 
 fn get_prism_path() -> PathBuf {
