@@ -634,14 +634,8 @@ pub struct CallDialogProps<'a> {
 #[allow(unused)]
 #[allow(non_snake_case)]
 pub fn CallDialog<'a>(cx: Scope<'a, CallDialogProps<'a>>) -> Element<'a> {
-    let with_accept_btn = match cx.props.with_accept_btn.clone() {
-        Some(w_a_b) => w_a_b,
-        None => None,
-    };
-    let with_deny_btn = match cx.props.with_deny_btn.clone() {
-        Some(w_d_b) => w_d_b,
-        None => None,
-    };
+    let with_accept_btn = cx.props.with_accept_btn.clone().unwrap_or_default();
+    let with_deny_btn = cx.props.with_deny_btn.clone().unwrap_or_default();
     cx.render(rsx! (
         div {
             class:format_args!("call-dialog {}", if cx.props.in_chat {"in-chat"} else {""}),
