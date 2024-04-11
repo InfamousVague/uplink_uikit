@@ -42,7 +42,7 @@ pub fn Compose() -> Element {
     use_context_provider(|| Signal::new(MessagesToSend::default()));
     use_context_provider(|| Signal::new(MessagesToEdit::default()));
     let mut state = use_context::<Signal<State>>();
-    let chat_data = use_context::<Signal<ChatData>>();
+    let mut chat_data = use_context::<Signal<ChatData>>();
 
     let init = coroutines::init_chat_data(state, chat_data);
     coroutines::handle_warp_events(state, chat_data);
@@ -117,8 +117,7 @@ pub fn Compose() -> Element {
                 }
                 // Now we can continue
                 if !show_group_settings() && show_manage_members().is_none() {
-                    // chat_data.with_mut(|f| f.active_chat.set_metadata(metadata));
-                    chat_data.write_silent().active_chat.set_metadata(metadata);
+                    chat_data.with_mut(|f| f.active_chat.set_metadata(metadata));
                 }
             }
         }
