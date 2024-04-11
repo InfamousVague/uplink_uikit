@@ -34,5 +34,9 @@
   <string>Uplink</string>
   <key>NSRequiresAquaSystemAppearance</key>
   <string>NO</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Calling</string>
+  <key>NSCameraUsageDescription</key>
+  <string>Calling</string>
 </dict>
 </plist>
