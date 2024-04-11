@@ -12,7 +12,6 @@ env:
 
 jobs:
   build:
-
     runs-on:
       labels: windows-latest-8-cores
 
@@ -25,7 +24,7 @@ jobs:
       - name: Get rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.75.0
+          toolchain: 1.77.2
           target: x86_64-pc-windows-msvc
 
       - name: Install Wix
@@ -43,16 +42,16 @@ jobs:
 
       - name: Build Uplink
         run: cargo build --release -F production_mode
-      
-      - name: Build Installer 
+
+      - name: Build Installer
         run: cargo wix --package uplink --no-build --nocapture
-        
+
       - name: Sign Windows Installer
         uses: dlemstra/code-sign-action@v1
         with:
-          certificate: '${{ secrets.WINDOWS_CERTIFICATE }}'
-          password: '${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}'
-          folder: 'target/wix'
+          certificate: "${{ secrets.WINDOWS_CERTIFICATE }}"
+          password: "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
+          folder: "target/wix"
           recursive: true
           files: |
             target/wix/*.msi

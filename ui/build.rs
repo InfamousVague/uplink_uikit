@@ -12,9 +12,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let version = rustc_version::version().unwrap();
 
     if cfg!(feature = "production_mode") {
-        // the command: `rustup install 1.75.0` will ensure that the compiler matches
-        if version.major != 1 || version.minor != 75 || version.patch != 0 {
-            panic!("rustc version != 1.75.0");
+        // the command: `rustup install 1.77.2` will ensure that the compiler matches
+        if version.major != 1 || version.minor != 77 || version.patch != 2 {
+            panic!("rustc version != 1.77.2");
         }
     }
 
