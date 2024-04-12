@@ -79,6 +79,7 @@ pub fn generate_mock() -> State {
         active_media: None,
         in_sidebar,
         favorites: vec![],
+        readd_sidebars: false,
     };
     let friends = Friends {
         all: HashSet::from_iter(identities.iter().map(|x| x.did_key())),

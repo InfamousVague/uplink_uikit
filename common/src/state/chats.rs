@@ -223,6 +223,9 @@ pub struct Chats {
     pub in_sidebar: VecDeque<Uuid>,
     // Favorite Chats
     pub favorites: Vec<Uuid>,
+    // If there was a problem with loading state or state was deleted we readd all existing chats to the sidebar.
+    #[serde(skip)]
+    pub readd_sidebars: bool,
 }
 
 impl Chats {
