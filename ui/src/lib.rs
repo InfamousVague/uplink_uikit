@@ -389,7 +389,7 @@ fn use_auto_updater() -> Option<()> {
 
 fn use_app_coroutines() -> Option<()> {
     let desktop = use_window();
-    let desktop_signal = use_signal(|| desktop.clone());
+    let mut desktop_signal = use_signal(|| desktop.clone());
 
     let mut state = use_context::<Signal<State>>();
 
@@ -561,7 +561,7 @@ fn use_app_coroutines() -> Option<()> {
         let channel = common::notifications::FOCUS_SCHEDULER.rx.clone();
         let mut ch = channel.lock().await;
         while (ch.recv().await).is_some() {
-            desktop_signal().set_focus();
+            desktop_signal.write().set_focus();
         }
     });
 

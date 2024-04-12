@@ -131,7 +131,7 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Sign
             match r {
                 Ok((messages, behavior)) => {
                     log::debug!("init_chat_data");
-
+                    println!("init_chat_data: {:?}", conv_id);
                     chat_data
                         .write()
                         .set_active_chat(&state.read(), &conv_id, behavior, messages);

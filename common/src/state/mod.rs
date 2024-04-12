@@ -1397,7 +1397,11 @@ impl State {
         friends_by_first_letter
     }
     pub fn has_friend_with_did(&self, did: &DID) -> bool {
-        self.friends.all.contains(did)
+        println!("Checking if friend with DID: {:?}", did);
+        println!("Friends: {:?}", self.friends.all);
+        let contains_friend = self.friends.all.contains(did);
+        println!("Contains friend: {:?}", contains_friend);
+        contains_friend
     }
     fn remove_friend(&mut self, did: &DID) {
         // Remove the friend from the all field of the friends struct
