@@ -502,19 +502,36 @@ pub fn get_chatbar(props: ChatProps) -> Element {
             }).unwrap_or(None)},
             with_file_upload:
                 rsx!(
+                    if update_script().contains(&upload_button_menu_uuid()) {
+                        div {
+                            z_index: "0",
+                            top: "0",
+                            left: "0",
+                            height: "100%",
+                            width: "100%",
+                            position: "fixed",
+                            onclick: move |e| {
+                                let script = SHOW_CONTEXT;
+                                update_script.set(script.to_string());
+                                e.stop_propagation();
+                            },
+
+                        }
+                    }
                     Button {
                         icon: icons::outline::Shape::Plus,
                         disabled: is_loading || disabled,
                         aria_label: "upload-button".to_string(),
                         appearance: Appearance::Primary,
                         onpress: move |e: Event<MouseData>| {
-                            let mouse_data = e;
+                            let mouse_data = e.clone();
                             let script = SHOW_CONTEXT
                                 .replace("UUID", &upload_button_menu_uuid())
                                 .replace("$PAGE_X", &mouse_data.page_coordinates().x.to_string())
                                 .replace("$PAGE_Y", &mouse_data.page_coordinates().y.to_string())
                                 .replace("$SELF", "false");
                             update_script.set(script);
+                            e.stop_propagation();
                         },
                         tooltip: rsx!(
                             Tooltip {
