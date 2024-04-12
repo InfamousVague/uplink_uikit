@@ -183,8 +183,9 @@ pub fn FilesLayout() -> Element {
                     }
                 }
             },
-            onclick: move |_| {
+            onclick: move |e| {
                 storage_controller.write().finish_renaming_item(false);
+                e.stop_propagation();
             },
             if show_slimbar {
                 {rsx!(
@@ -217,9 +218,10 @@ pub fn FilesLayout() -> Element {
                                             text: get_local_text("files.new-folder"),
                                         }
                                     ),
-                                    onpress: move |_| {
+                                    onpress: move |e: MouseEvent| {
                                         if !*upload_file_controller.files_been_uploaded.read() {
-                                            storage_controller.write().finish_renaming_item(true);
+                                            storage_controller.with_mut(|f| f.finish_renaming_item(true));
+                                            e.stop_propagation();
                                         }
                                     },
                                 },

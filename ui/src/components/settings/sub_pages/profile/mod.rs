@@ -434,13 +434,15 @@ pub fn ProfileSettings() -> Element {
                         onclick: move |mouse_event_data: Event<MouseData>| {
                             if mouse_event_data.modifiers() != Modifiers::CONTROL {
                                 set_profile_picture(open_crop_image_modal);
+                                mouse_event_data.stop_propagation();
                             }
                         },
                         Button {
                             icon: Icon::Plus,
                             aria_label: "add-picture-button".to_string(),
-                            onpress: move |_| {
-                                // set_profile_picture(open_crop_image_modal);
+                            onpress: move |e: MouseEvent| {
+                                set_profile_picture(open_crop_image_modal);
+                                e.stop_propagation();
                             }
                         },
                     },

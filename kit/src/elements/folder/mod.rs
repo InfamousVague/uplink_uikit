@@ -65,6 +65,9 @@ pub fn Folder(props: Props) -> Element {
                     format_args!("folder {}", if disabled { "disabled" } else { "" })
                 },
                 aria_label: "{aria_label}",
+                onclick: move |e| {
+                    e.stop_propagation();
+                },
                 div {
                     class: "icon alignment",
                     onclick: move |_| emit_press(props_signal.read().clone()),
