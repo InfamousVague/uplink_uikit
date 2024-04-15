@@ -80,7 +80,6 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>) -> Element {
         to_owned![account_exists];
         async move {
             if account_exists().is_some() {
-                println!("1 - Account exist is some");
                 return;
             }
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
@@ -95,7 +94,6 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>) -> Element {
 
             let exists = rx.await.unwrap_or(false);
             log::debug!("account_exists: {}", exists);
-            println!("2 - Account exist is some");
             account_exists.set(Some(exists));
         }
     });
@@ -168,11 +166,6 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>) -> Element {
         // if you need special chars, select action to allow or block and pass a vec! with each char necessary, mainly if alpha_numeric_only is true
         special_chars: None,
     };
-
-    println!(
-        "3 - Account exist loading: {:?}",
-        account_exists().is_none()
-    );
 
     let loading = account_exists().is_none();
 
