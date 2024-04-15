@@ -102,7 +102,6 @@ pub fn DebugLogger() -> Element {
                                 appearance: if filter_level() == Level::Info { Appearance::Info } else { Appearance::Secondary },
                                 onpress: move |_| {
                                     filter_level.set(Level::Info);
-                                    println!("Info - filter_level: {:?}", filter_level());
                                 },
                                 tooltip: rsx!(
                                     Tooltip {
@@ -194,9 +193,6 @@ pub fn DebugLogger() -> Element {
                         {logs_to_show.iter().filter(
                             |x| x.level == filter_level() || filter_level() == Level::Debug
                         ).map(|log| {
-                            if filter_level() != Level::Debug {
-                                println!("filter_level: {:?}", filter_level());
-                            }
                             let log_datetime = log.datetime;
                             let log_level = log.level;
                             let log_message = log.message.clone();
