@@ -1,44 +1,23 @@
 use common::icons::outline::Shape as Icon;
 use common::language::get_local_text;
-use common::state::configuration::Configuration;
-use common::{
-    sounds,
-    warp_runner::{MultiPassCmd, WarpCmd},
-    WARP_CMD_CH,
-};
 use dioxus::prelude::*;
 use dioxus_desktop::{use_window, LogicalSize};
-use futures::channel::oneshot;
-use futures::StreamExt;
 use kit::elements::label::Label;
 use kit::elements::{
     button::Button,
     input::{Input, Options, Validation},
 };
 use tracing::log;
-use warp::multipass;
 
 use crate::AuthPages;
 
 pub const MIN_USERNAME_LEN: i32 = 4;
 pub const MAX_USERNAME_LEN: i32 = 32;
 
-struct CreateAccountCmd {
-    username: String,
-    passphrase: String,
-    seed_words: String,
-}
-
 #[component]
-pub fn Layout(
-    cx: Scope,
-    page: UseState<AuthPages>,
-    pin: UseRef<String>,
-    seed_words: UseRef<String>,
-) -> Element {
+pub fn Layout(cx: Scope, page: UseState<AuthPages>, user_name: UseRef<String>) -> Element {
     log::trace!("rendering enter username layout");
     let window = use_window(cx);
-    let loading = use_state(cx, || false);
 
     if !matches!(&*page.current(), AuthPages::Success(_)) {
         window.set_inner_size(LogicalSize {
@@ -47,7 +26,6 @@ pub fn Layout(
         });
     }
 
-    let username = use_state(cx, String::new);
     //let error = use_state(cx, String::new);
     let button_disabled = use_state(cx, || true);
 
@@ -67,57 +45,9 @@ pub fn Layout(
         special_chars: None,
     };
 
-    let ch = use_coroutine(cx, |mut rx: UnboundedReceiver<CreateAccountCmd>| {
-        to_owned![page, loading];
-        async move {
-            let config = Configuration::load_or_default();
-            let warp_cmd_tx = WARP_CMD_CH.tx.clone();
-            while let Some(CreateAccountCmd {
-                username,
-                passphrase,
-                seed_words,
-            }) = rx.next().await
-            {
-                loading.set(true);
-                let (tx, rx) =
-                    oneshot::channel::<Result<multipass::identity::Identity, warp::error::Error>>();
-
-                if let Err(e) = warp_cmd_tx.send(WarpCmd::MultiPass(MultiPassCmd::CreateIdentity {
-                    username,
-                    tesseract_passphrase: passphrase,
-                    seed_words,
-                    rsp: tx,
-                })) {
-                    log::error!("failed to send warp command: {}", e);
-                    continue;
-                }
-
-                let res = rx.await.expect("failed to get response from warp_runner");
-
-                match res {
-                    Ok(ident) => {
-                        if config.audiovideo.interface_sounds {
-                            sounds::Play(sounds::Sounds::On);
-                        }
-
-                        page.set(AuthPages::Success(ident));
-                    }
-                    // todo: notify user
-                    Err(e) => log::error!("create identity failed: {}", e),
-                }
-            }
-        }
-    });
-
     cx.render(rsx!(
-        loading.get().then(|| rsx!(
-            div {
-                class: "overlay-load-shadow",
-            },
-        )),
         div {
             id: "unlock-layout",
-            class: format_args!("{}", if *loading.get() {"progress"} else {""}),
             aria_label: "unlock-layout",
             Label {
                 text: get_local_text("auth.enter-username")
@@ -134,7 +64,6 @@ pub fn Layout(
                 icon: Icon::Identification,
                 aria_label: "username-input".into(),
                 disable_onblur: true,
-                disabled: *loading.get(),
                 placeholder: get_local_text("auth.enter-username"),
                 options: Options {
                     with_validation: Some(username_validation),
@@ -147,15 +76,11 @@ pub fn Layout(
                     if *button_disabled.get() != should_disable {
                         button_disabled.set(should_disable);
                     }
-                    username.set(val);
+                    user_name.set(val);
                 },
                 onreturn: move |_| {
                     if !*button_disabled.get() {
-                        ch.send(CreateAccountCmd {
-                            username: username.get().to_string(),
-                            passphrase: pin.read().to_string(),
-                            seed_words: seed_words.read().to_string()
-                        });
+                        page.set(AuthPages::CopySeedWords);
                     }
                 }
             },
@@ -163,14 +88,9 @@ pub fn Layout(
                 text:  get_local_text("unlock.create-account"),
                 aria_label: "create-account-button".into(),
                 appearance: kit::elements::Appearance::Primary,
-                loading: *loading.get(),
-                disabled: *button_disabled.get() || *loading.get(),
+                disabled: *button_disabled.get(),
                 onpress: move |_| {
-                    ch.send(CreateAccountCmd {
-                        username: username.get().to_string(),
-                        passphrase: pin.read().to_string(),
-                        seed_words: seed_words.read().to_string()
-                    });
+                    page.set(AuthPages::CopySeedWords);
                 }
             }
         }
