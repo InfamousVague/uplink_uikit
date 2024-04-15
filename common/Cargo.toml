@@ -26,7 +26,7 @@ chrono = { workspace = true }
 rand = { workspace = true }
 image = { workspace = true }
 names = "0.14.0"
-# titlecase = { workspace = true }
+titlecase = { workspace = true }
 substring = "1.4.5"
 plot_icon = "0.3.0"
 tracing.workspace = true

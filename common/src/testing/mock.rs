@@ -10,8 +10,7 @@ use lipsum::lipsum;
 use names::Generator;
 use rand::{seq::SliceRandom, Rng};
 use substring::Substring;
-// TODO: Investigate recursives `Join` from `joinery` (would be irrelevant if `titlecase` is replaced)
-// use titlecase::titlecase;
+use titlecase::titlecase;
 use uuid::Uuid;
 use warp::{
     constellation::{directory::Directory, file::File},
@@ -162,8 +161,8 @@ fn generate_random_chat(me: Identity, identities: &[Identity]) -> Chat {
 fn fake_id() -> Identity {
     let mut id = Identity::default();
     let mut generator = Generator::default();
-    let username = generator.next().unwrap().replace('-', " ");
-    // username = titlecase(&username);
+    let mut username = generator.next().unwrap().replace('-', " ");
+    username = titlecase(&username);
 
     let mut rng = rand::thread_rng();
     let status_len = rng.gen_range(4..10);

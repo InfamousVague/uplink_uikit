@@ -39,7 +39,7 @@ colored = { workspace = true }
 notify = { workspace = true }
 rand = { workspace = true }
 notify-rust = { workspace = true }
-# titlecase = { workspace = true }
+titlecase = { workspace = true }
 muda = { workspace = true }
 
 tempfile = { workspace = true }

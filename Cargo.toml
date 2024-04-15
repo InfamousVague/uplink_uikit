@@ -64,7 +64,7 @@ colored = "2.1.0"
 notify = "6.1.1"
 rand = "0.8"
 notify-rust = { version = "4.10.0", default-features = false, features = ["d"] }
-# titlecase = "2.2.1"
+titlecase = "2.2.1"
 log = { version = "0.4.21", features = ["std"] }
 
 tempfile = "3.10.1"
