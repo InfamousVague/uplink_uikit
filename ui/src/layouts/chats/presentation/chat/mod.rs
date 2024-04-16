@@ -79,6 +79,9 @@ pub fn Compose() -> Element {
                             log::error!("failed to deserialize message: {}: {}", s, e);
                         }
                     }
+                } else {
+                    // HACK(Migration_0.5): This is a temporary fix to prevent the loop from crashing
+                    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
                 }
             }
         });

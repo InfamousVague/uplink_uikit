@@ -13,7 +13,6 @@ chrono = { workspace = true }
 dioxus = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-# dioxus-core = { workspace = true }
 dioxus-desktop = { workspace = true, features = ["transparent"] }
 dioxus-hooks = { workspace = true }
 dioxus-html = { workspace = true }
@@ -33,6 +32,7 @@ emojis = "0.6.1"
 unic-segment = "0.9"
 unic-emoji-char = "0.9"
 tracing = { workspace = true }
+tokio = { workspace = true }
 
 [dependencies.uuid]
 workspace = true

@@ -60,6 +60,7 @@ pub fn Layout(pin: Signal<String>, page: Signal<AuthPages>) -> Element {
         spawn(async move {
             let mut eval_result = eval(include_str!("./enter_seed_handler.js"));
             loop {
+                println!("6 - infinite loop");
                 if let Ok(val) = eval_result.recv().await {
                     let paste = val
                         .to_string()

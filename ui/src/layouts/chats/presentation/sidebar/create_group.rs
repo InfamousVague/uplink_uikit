@@ -1,4 +1,8 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    rc::Rc,
+    thread,
+};
 
 use crate::{layouts::chats::data::get_input_options, UplinkRoute};
 use common::{
@@ -62,11 +66,12 @@ pub fn CreateGroup(props: Props) -> Element {
     // the leading underscore is to pass this to a prop named "friends"
     let _friends = State::get_friends_by_first_letter(friends_list);
 
-    let ch = use_coroutine(|mut rx: UnboundedReceiver<()>| {
+    let ch = use_coroutine(|mut rx: UnboundedReceiver<MouseEvent>| {
         to_owned![selected_friends, chat_with, group_name];
         async move {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
-            while rx.next().await.is_some() {
+            while let Some(mouse_event) = rx.next().await {
+                println!("Arriving here");
                 let recipients: Vec<DID> = selected_friends.read().iter().cloned().collect();
                 let group_name: Option<String> = group_name.read().as_ref().cloned();
                 let group_name_string = group_name.clone().unwrap_or_default();
@@ -100,6 +105,7 @@ pub fn CreateGroup(props: Props) -> Element {
                     }
                 };
                 chat_with.set(Some(id));
+                props.oncreate.call(mouse_event);
             }
         }
     });
@@ -172,8 +178,7 @@ pub fn CreateGroup(props: Props) -> Element {
                 onpress: move |e| {
                     log::info!("create dm button");
                     if group_name.read().is_some() {
-                        ch.send(());
-                        props.oncreate.call(e);
+                        ch.send(e);
                     } else {
                         state
                         .write()

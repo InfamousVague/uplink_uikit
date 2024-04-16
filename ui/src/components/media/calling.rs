@@ -703,6 +703,7 @@ pub fn CallUserImageGroup(props: CallUserImageProps) -> Element {
         spawn(async move {
             let mut eval_result = eval(include_str!("./resize_handler.js"));
             loop {
+                println!("3 - infinite loop");
                 match eval_result.recv().await {
                     Ok(value) => {
                         amount.set(value.as_f64().unwrap_or(3_f64) as i64);
