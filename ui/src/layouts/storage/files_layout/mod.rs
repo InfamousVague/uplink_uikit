@@ -181,7 +181,6 @@ pub fn FilesLayout() -> Element {
                 if upload_file_controller.are_files_hovering_app.with(|i| !(i)) {
                     let file_drop_event = get_drag_event();
                     if let FileDropEvent::Hovered { .. } = file_drop_event {
-                            println!("Updating here");
                             upload_file_controller.are_files_hovering_app.with_mut(|i| *i = true);
 
                     }
