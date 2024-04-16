@@ -19,10 +19,12 @@ use common::warp_runner::ui_adapter::MessageEvent;
 use common::warp_runner::WarpEvent;
 use common::{get_extras_dir, warp_runner, STATIC_ARGS, WARP_CMD_CH, WARP_EVENT_CH};
 use dioxus::desktop::tao::event::Event as WryEvent;
+use dioxus::{html::HasFileData, prelude::dioxus_elements::FileEngine};
 
 use dioxus::prelude::*;
 use dioxus_desktop::tao::dpi::{LogicalPosition, PhysicalPosition, PhysicalSize};
 
+use dioxus_desktop::wry::FileDropEvent;
 use dioxus_desktop::{tao::dpi::LogicalSize, use_window};
 
 use dioxus_router::prelude::{use_navigator, Outlet, Routable, Router};
@@ -61,6 +63,7 @@ use crate::layouts::settings::SettingsLayout;
 use crate::layouts::storage::files_layout::FilesLayout;
 use crate::misc_scripts::*;
 use crate::utils::async_task_queue::{ListenerAction, ACTION_LISTENER};
+use crate::utils::get_drag_event::{BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX, DRAG_EVENT};
 use crate::utils::keyboard::shortcut_handlers::audio::ToggleType;
 use crate::utils::keyboard::KeyboardShortcuts;
 
@@ -248,9 +251,50 @@ fn app_layout() -> Element {
 
     let state = use_context::<Signal<State>>();
 
+    let read_files = move |file_engine: Arc<dyn FileEngine>| async move {
+        let files = file_engine.files();
+        return files;
+        // for file_name in &files {
+        //     if let Some(contents) = file_engine.read_file_to_string(file_name).await {
+        //         // files_uploaded.write().push(UploadedFile {
+        //         //     name: file_name.clone(),
+        //         //     contents,
+        //         // });
+        //     }
+        // }
+    };
+
     rsx! {
         AppStyle {}
         div { id: "app-wrap",
+            ondrop: move |evt| async move {
+                let mut files_path = vec![];
+                if let Some(file_engine) = evt.files() {
+                    files_path =  read_files(file_engine).await;
+                }
+                let paths: Vec<PathBuf> = files_path.iter().map(|s| PathBuf::from(s)).collect();
+                *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = true;
+                *DRAG_EVENT.write() = FileDropEvent::Dropped { paths: paths, position: (0, 0) };
+            },
+            ondragover: move |evt| async move {
+                match *DRAG_EVENT.read() {
+                    FileDropEvent::Hovered { .. } => {
+                        let mut files_path = vec![];
+                        if let Some(file_engine) = evt.files() {
+                            files_path =  read_files(file_engine).await;
+                        }
+                        let paths: Vec<PathBuf> = files_path.iter().map(|s| PathBuf::from(s)).collect();
+                        *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = false;
+                        *DRAG_EVENT.write() = FileDropEvent::Hovered { paths: paths, position: (0, 0) };
+                    }
+                    _ => {
+                    }
+                }
+            },
+            ondragend: move |e| {
+                *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = true;
+                *DRAG_EVENT.write() = FileDropEvent::Cancelled;
+            },
             Titlebar {},
             KeyboardShortcuts {
                 on_global_shortcut: move |shortcut| {
