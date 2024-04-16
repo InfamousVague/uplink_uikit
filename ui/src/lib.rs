@@ -254,15 +254,22 @@ fn app_layout() -> Element {
     let read_files = move |file_engine: Arc<dyn FileEngine>| async move {
         let files = file_engine.files();
         return files;
-        // for file_name in &files {
-        //     if let Some(contents) = file_engine.read_file_to_string(file_name).await {
-        //         // files_uploaded.write().push(UploadedFile {
-        //         //     name: file_name.clone(),
-        //         //     contents,
-        //         // });
-        //     }
-        // }
     };
+
+    let mut is_hovering: Signal<(Vec<String>, bool, bool)> =
+        use_signal(|| (Vec::new(), false, false));
+
+    if is_hovering().1 {
+        let paths: Vec<PathBuf> = is_hovering().0.iter().map(|s| PathBuf::from(s)).collect();
+        *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = false;
+        *DRAG_EVENT.write() = FileDropEvent::Hovered {
+            paths: paths,
+            position: (0, 0),
+        };
+    } else if is_hovering().2 {
+        *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = true;
+        *DRAG_EVENT.write() = FileDropEvent::Cancelled;
+    }
 
     rsx! {
         AppStyle {}
@@ -275,25 +282,20 @@ fn app_layout() -> Element {
                 let paths: Vec<PathBuf> = files_path.iter().map(|s| PathBuf::from(s)).collect();
                 *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = true;
                 *DRAG_EVENT.write() = FileDropEvent::Dropped { paths: paths, position: (0, 0) };
+                is_hovering.set((Vec::new(), false, false));
+
             },
             ondragover: move |evt| async move {
-                match *DRAG_EVENT.read() {
-                    FileDropEvent::Hovered { .. } => {
-                        let mut files_path = vec![];
-                        if let Some(file_engine) = evt.files() {
-                            files_path =  read_files(file_engine).await;
-                        }
-                        let paths: Vec<PathBuf> = files_path.iter().map(|s| PathBuf::from(s)).collect();
-                        *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = false;
-                        *DRAG_EVENT.write() = FileDropEvent::Hovered { paths: paths, position: (0, 0) };
+                if !is_hovering().1 {
+                    let mut files_path = vec![];
+                    if let Some(file_engine) = evt.files() {
+                        files_path =  read_files(file_engine).await;
                     }
-                    _ => {
-                    }
+                    is_hovering.set((files_path, true, false));
                 }
             },
-            ondragend: move |e| {
-                *BLOCK_CANCEL_DRAG_EVENT_FOR_LINUX.write() = true;
-                *DRAG_EVENT.write() = FileDropEvent::Cancelled;
+            ondragleave: move |_| {
+                is_hovering.set((Vec::new(), false, true));
             },
             Titlebar {},
             KeyboardShortcuts {

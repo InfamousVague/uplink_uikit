@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use std::path::Path;
 
+use std::path::PathBuf;
 use std::time::Duration;
 
 use common::icons::outline::Shape as Icon;
@@ -30,6 +31,7 @@ use warp::raygun::Location;
 pub mod controller;
 pub mod file_preview;
 
+use crate::components::files::upload_progress_bar::FileHoverHandler;
 use crate::layouts::chats::ChatSidebar;
 use crate::layouts::slimbar::SlimbarLayout;
 use crate::layouts::storage::files_layout::file_preview::open_file_preview_modal;
@@ -175,14 +177,17 @@ pub fn FilesLayout() -> Element {
                         }});
                 }
             },
-            ondragover: move |_| {
-                let file_drop_event = get_drag_event();
-                if let FileDropEvent::Hovered { .. } = file_drop_event {
-                    if upload_file_controller.are_files_hovering_app.with(|i| !(i)) {
-                        println!("Updating here");
-                        upload_file_controller.are_files_hovering_app.with_mut(|i| *i = true);
+            ondragover: move |_| async move {
+                if upload_file_controller.are_files_hovering_app.with(|i| !(i)) {
+                    let file_drop_event = get_drag_event();
+                    if let FileDropEvent::Hovered { .. } = file_drop_event {
+                            println!("Updating here");
+                            upload_file_controller.are_files_hovering_app.with_mut(|i| *i = true);
+
                     }
                 }
+
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
             },
             onclick: move |e| {
                 storage_controller.write().finish_renaming_item(false);
@@ -294,6 +299,13 @@ pub fn FilesLayout() -> Element {
                             }
                         }
                     },
+            FileHoverHandler {
+                are_files_hovering_app: upload_file_controller.are_files_hovering_app,
+                files_been_uploaded: upload_file_controller.files_been_uploaded,
+                on_update: move |files_to_upload: Vec<PathBuf>|  {
+                    functions::add_files_in_queue_to_upload(upload_file_controller.files_in_queue_to_upload, files_to_upload);
+                },
+            },
             SendFilesLayoutModal {
                 send_files_from_storage: send_files_from_storage,
                 send_files_start_location: SendFilesStartLocation::Storage,
