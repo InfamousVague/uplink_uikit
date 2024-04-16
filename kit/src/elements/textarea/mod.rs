@@ -363,16 +363,17 @@ pub fn InputRich(props: Props) -> Element {
         }
     });
 
+    let mut id_signal = use_signal(|| id.clone());
+    if id_signal() != id {
+        id_signal.set(id.clone());
+    }
+
     use_effect(move || {
         to_owned![listener_data];
-        let rich_editor: String = include_str!("./rich_editor_handler.js")
-            .replace("$EDITOR_ID", &id2)
-            .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
-            .replace("$INIT", &value().replace('"', "\\\"").replace('\n', "\\n"));
         spawn(async move {
-            let mut eval_result = eval(&rich_editor);
+            let mut eval_result = use_signal(|| eval(""));
             loop {
-                if let Ok(val) = eval_result.recv().await {
+                if let Ok(val) = eval_result().recv().await {
                     let input = INPUT_REGEX.captures(val.as_str().unwrap_or_default());
                     // Instead of escaping all needed chars just try extract the input string
                     let data = if let Some(capt) = input {
@@ -400,6 +401,15 @@ pub fn InputRich(props: Props) -> Element {
                             log::error!("failed to deserialize message: {}: {}", val, e);
                         }
                     }
+                } else {
+                    println!("Failing eval here every time");
+                    let rich_editor: String = include_str!("./rich_editor_handler.js")
+                        .replace("$EDITOR_ID", &id_signal())
+                        .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
+                        .replace("$INIT", &value().replace('"', "\\\"").replace('\n', "\\n"));
+                    eval_result.set(eval(&rich_editor));
+                    // HACK(Migration_0.5): Sleep Added
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                 }
             }
         });
@@ -408,18 +418,25 @@ pub fn InputRich(props: Props) -> Element {
     if let Some(pending) = listener_data.write_silent().take() {
         pending.iter().for_each(|val| match val.to_owned() {
             JSTextData::Input(txt) => {
+                println!("Calling onchange: {txt}");
                 *text_value.write_silent() = txt.clone();
                 onchange.call((txt, true))
             }
             JSTextData::Cursor(cursor) => {
+                println!("Calling cursor");
+
                 if let Some(e) = oncursor_update {
                     e.call((text_value.read().clone(), cursor));
                 }
             }
             JSTextData::Submit => {
+                println!("Calling submit");
+
                 onreturn.call((text_value.read().clone(), true, Code::Enter));
             }
             JSTextData::KeyPress(code) => {
+                println!("Calling keypress");
+
                 if matches!(code, Code::ArrowDown | Code::ArrowUp) {
                     if let Some(e) = onup_down_arrow {
                         e.call(code);
@@ -427,6 +444,8 @@ pub fn InputRich(props: Props) -> Element {
                 }
             }
             JSTextData::Init => {
+                println!("Calling init");
+
                 let focus_script = include_str!("./focus.js").replace("$UUID", &id);
                 let _ = eval(&focus_script);
             }

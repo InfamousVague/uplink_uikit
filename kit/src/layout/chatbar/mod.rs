@@ -243,6 +243,7 @@ pub fn Chatbar(props: Props) -> Element {
                         }
                     },
                     onchange: move |(v, _)| {
+                        println!("OnChange: kit/src/layout/chatbar/mod.rs: {}", v);
                         props.onchange.call(v);
                         *is_suggestion_modal_closed.write_silent() = false;
                     },
