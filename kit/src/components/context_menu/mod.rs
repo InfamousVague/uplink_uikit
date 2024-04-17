@@ -4,6 +4,7 @@ use dioxus::{
     prelude::*,
 };
 use dioxus_desktop::use_window;
+use tracing::log;
 use warp::crypto::DID;
 
 use crate::components::indicator::Indicator;
@@ -182,13 +183,38 @@ pub fn ContextMenu(props: Props) -> Element {
     let devmode = props.devmode.unwrap_or(false);
     let with_click = use_signal(|| props.left_click_trigger.unwrap_or_default());
     let id_signal = use_signal(|| id.clone());
+    let script = include_str!("./context.js")
+        .replace("UUID", &id_signal.read())
+        .replace("ON_CLICK", &format!("{}", with_click.read()));
+    let mut eval_result = use_signal(|| eval(&script));
+    let mut is_eval_error = use_signal(|| false);
+
+    // New dioxus take a time to load a component and it returns an error on JS
+    // So it evaluate script again with correct component
+    if is_eval_error() {
+        let script2 = include_str!("./context.js")
+            .replace("UUID", &id_signal.read())
+            .replace("ON_CLICK", &format!("{}", with_click.read()));
+        let eval_result2 = eval(&script2);
+        eval_result.set(eval_result2);
+    }
 
     // Handles the hiding and showing of the context menu
     use_effect(move || {
-        let script = include_str!("./context.js")
-            .replace("UUID", &id_signal.read())
-            .replace("ON_CLICK", &format!("{}", with_click.read()));
-        let _ = eval(&script);
+        spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+                match eval_result().await {
+                    Ok(_) => {
+                        log::debug!("Context menu script evaluated successfully.");
+                        break;
+                    }
+                    Err(_) => {
+                        is_eval_error.set(true);
+                    }
+                }
+            }
+        });
     });
 
     rsx! {
