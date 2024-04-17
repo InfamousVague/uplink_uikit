@@ -211,6 +211,7 @@ impl Chat {
 #[derive(Clone, Serialize, Debug, Default, Deserialize)]
 pub struct Chats {
     // All active chats from warp.
+    #[serde(skip)]
     pub all: HashMap<Uuid, Chat>,
     // Chat to display / interact with currently.
     pub active: Option<Uuid>,
@@ -222,6 +223,8 @@ pub struct Chats {
     pub in_sidebar: VecDeque<Uuid>,
     // Favorite Chats
     pub favorites: Vec<Uuid>,
+    // If there was a problem with loading state or state was deleted we readd all existing chats to the sidebar.
+    pub readd_sidebars: bool,
 }
 
 impl Chats {

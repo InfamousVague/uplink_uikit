@@ -74,6 +74,7 @@ pub struct State {
     friends: friends::Friends,
     #[serde(skip)]
     pub storage: storage::Storage,
+    #[serde(skip)]
     pub scope_ids: scope_ids::ScopeIds,
     pub settings: settings::Settings,
     pub ui: ui::UI,
@@ -786,6 +787,8 @@ impl State {
             return State::load_mock();
         };
 
+        let mut success = true;
+
         let mut state = {
             match fs::read_to_string(&STATIC_ARGS.cache_path) {
                 Ok(contents) => match serde_json::from_str(&contents) {
@@ -794,11 +797,13 @@ impl State {
                         log::error!(
                             "state.json failed to deserialize: {e}. Initializing State with default values"
                         );
+                        success = false;
                         State::default()
                     }
                 },
                 Err(_) => {
                     log::info!("state.json not found. Initializing State with default values");
+                    success = false;
                     State::default()
                 }
             }
@@ -806,6 +811,10 @@ impl State {
         // not sure how these defaulted to true, but this should serve as additional
         // protection in the future
         state.initialized = false;
+
+        if !success {
+            state.chats.readd_sidebars = true;
+        }
 
         if state.settings.font_scale() == 0.0 {
             state.settings.set_font_scale(1.0);
@@ -878,6 +887,13 @@ impl State {
             }
         }
         self.identities.extend(identities.drain());
+
+        if self.chats.readd_sidebars {
+            self.chats.readd_sidebars = false;
+            self.chats
+                .in_sidebar
+                .append(&mut self.chats.all.keys().cloned().collect())
+        }
 
         self.initialized = true;
     }

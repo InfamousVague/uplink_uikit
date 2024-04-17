@@ -7,13 +7,21 @@ use dioxus_desktop::{use_window, LogicalSize};
 use kit::elements::{button::Button, label::Label, Appearance};
 use tokio::time::sleep;
 
-use crate::get_app_style;
-
 use super::AuthPages;
+use crate::get_app_style;
+use common::state::configuration::Configuration;
+use common::{
+    sounds,
+    warp_runner::{MultiPassCmd, WarpCmd},
+    WARP_CMD_CH,
+};
+use futures::channel::oneshot;
+use futures::StreamExt;
+use warp::multipass;
 
 // styles for this layout are in layouts/style.scss
 #[component]
-pub fn Layout(cx: Scope, page: UseState<AuthPages>, seed_words: UseRef<String>) -> Element {
+pub fn Layout(cx: Scope, page: UseState<AuthPages>, username: String, pin: String) -> Element {
     let state = use_ref(cx, State::load);
     let window = use_window(cx);
 
@@ -24,20 +32,18 @@ pub fn Layout(cx: Scope, page: UseState<AuthPages>, seed_words: UseRef<String>) 
         });
     }
 
-    let words = use_future(cx, (), |_| {
-        to_owned![seed_words];
-        async move {
-            let mnemonic = warp::crypto::keypair::generate_mnemonic_phrase(
-                warp::crypto::keypair::PhraseType::Standard,
-            )
-            .into_phrase();
-
-            seed_words.set(mnemonic.clone());
+    let words = use_future(cx, (), |_| async move {
+        let mnemonic = warp::crypto::keypair::generate_mnemonic_phrase(
+            warp::crypto::keypair::PhraseType::Standard,
+        )
+        .into_phrase();
+        (
+            mnemonic.clone(),
             mnemonic
                 .split_ascii_whitespace()
                 .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-        }
+                .collect::<Vec<String>>(),
+        )
     });
 
     cx.render(rsx!(
@@ -53,25 +59,76 @@ pub fn Layout(cx: Scope, page: UseState<AuthPages>, seed_words: UseRef<String>) 
                 aria_label: "copy-seed-words".into(),
                 text: get_local_text("copy-seed-words")
             },
-            if let Some(words) = words.value() {
-                rsx!{ SeedWords { page: page.clone(), words: words.clone() } }
+            if let Some((seed_words, words)) = words.value() {
+                rsx!{ SeedWords { page: page.clone(), username: username.clone(), pin: pin.clone(), seed_words: seed_words.clone(), words: words.clone() } }
             }
         }
     ))
 }
 
 #[component]
-fn SeedWords(cx: Scope, page: UseState<AuthPages>, words: Vec<String>) -> Element {
+fn SeedWords(
+    cx: Scope,
+    page: UseState<AuthPages>,
+    username: String,
+    pin: String,
+    seed_words: String,
+    words: Vec<String>,
+) -> Element {
     let copied = use_ref(cx, || false);
+    let loading = use_state(cx, || false);
+
     use_future(cx, copied, |current| async move {
         if *current.read() {
             sleep(Duration::from_secs(3)).await;
             *current.write() = false;
         }
     });
+
+    let ch = use_coroutine(cx, |mut rx: UnboundedReceiver<()>| {
+        to_owned![page, loading, username, pin, seed_words];
+        async move {
+            let config = Configuration::load_or_default();
+            let warp_cmd_tx = WARP_CMD_CH.tx.clone();
+            while let Some(()) = rx.next().await {
+                loading.set(true);
+                let (tx, rx) =
+                    oneshot::channel::<Result<multipass::identity::Identity, warp::error::Error>>();
+
+                if let Err(e) = warp_cmd_tx.send(WarpCmd::MultiPass(MultiPassCmd::CreateIdentity {
+                    username: username.clone(),
+                    tesseract_passphrase: pin.clone(),
+                    seed_words: seed_words.clone(),
+                    rsp: tx,
+                })) {
+                    log::error!("failed to send warp command: {}", e);
+                    continue;
+                }
+
+                let res = rx.await.expect("failed to get response from warp_runner");
+
+                match res {
+                    Ok(ident) => {
+                        if config.audiovideo.interface_sounds {
+                            sounds::Play(sounds::Sounds::On);
+                        }
+
+                        page.set(AuthPages::Success(ident));
+                    }
+                    // todo: notify user
+                    Err(e) => log::error!("create identity failed: {}", e),
+                }
+            }
+        }
+    });
     render! {
+        loading.get().then(|| rsx!(
+            div {
+                class: "overlay-load-shadow",
+            },
+        )),
         div {
-            class: "seed-words",
+            class: format_args!("seed-words {}", if *loading.get() {"progress"} else {""}),
             words.chunks_exact(2).enumerate().map(|(idx, vals)| rsx! {
                 div {
                     class: "row",
@@ -126,6 +183,7 @@ fn SeedWords(cx: Scope, page: UseState<AuthPages>, words: Vec<String>) -> Elemen
             class: "controls",
             Button {
                 text: get_local_text("uplink.go-back"),
+                disabled: *loading.get(),
                 aria_label: "back-button".into(),
                 icon: icons::outline::Shape::ChevronLeft,
                 onpress: move |_| page.set(AuthPages::CreateOrRecover),
@@ -133,9 +191,11 @@ fn SeedWords(cx: Scope, page: UseState<AuthPages>, words: Vec<String>) -> Elemen
             },
             Button {
                 aria_label: "i-saved-it-button".into(),
+                disabled: *loading.get(),
+                loading: *loading.get(),
                 text: get_local_text("copy-seed-words.finished"),
                 onpress: move |_| {
-                    page.set(AuthPages::EnterUserName);
+                    ch.send(());
                 }
             }
         }
