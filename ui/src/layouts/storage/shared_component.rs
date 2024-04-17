@@ -16,6 +16,7 @@ use dioxus::prelude::*;
 use kit::components::context_menu::{ContextItem, ContextMenu};
 use kit::elements::file::File;
 use kit::elements::folder::Folder;
+use uuid::Uuid;
 use warp::constellation::item::Item;
 use warp::raygun::Location;
 
@@ -87,6 +88,7 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
     let send_files_mode = props.send_files_mode;
     let mut storage_controller = props.storage_controller;
     let storage_controller_immutable = props.storage_controller;
+    let mut is_renaming_item: Signal<Option<Uuid>> = use_signal(|| None);
     let ch = use_coroutine_handle();
 
     rsx!(span {
@@ -145,8 +147,9 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                 icon: Icon::Pencil,
                                 aria_label: "folder-rename".to_string(),
                                 text: get_local_text("files.rename"),
-                                onpress: move |_| {
+                                onpress: move |e: Event<MouseData>| {
                                     storage_controller.with_mut(|i| i.is_renaming_map = Some(key));
+                                    e.stop_propagation();
                                 }
                             },
                             hr {},
@@ -242,7 +245,9 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                 aria_label: "files-rename".to_string(),
                                 text: get_local_text("files.rename"),
                                 onpress: move |_| {
-                                    storage_controller.with_mut(|i| i.is_renaming_map = Some(key));
+                                    // storage_controller.with_mut(|i| i.is_renaming_map = Some(key));
+                                    storage_controller.write().update_is_renaming_map(Some(key));
+                                    is_renaming_item.set(Some(key));
                                 }
                             },
                             if !send_files_mode {
@@ -276,11 +281,17 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                             },
                             File {
                                 key: "{key}-file",
+                                file_id: file_id.clone(),
                                 thumbnail: thumbnail_to_base64(&file),
                                 text: file.name(),
                                 aria_label: file.name(),
-                                with_rename: storage_controller.with(|i| i.is_renaming_map == Some(key)),
+                                with_rename: is_renaming_item.clone(),
                                 onpress: move |_| {
+                                    if let Some(id)  = is_renaming_item() {
+                                        if id == file_id {
+                                            return;
+                                        }
+                                    }
                                     if send_files_mode {
                                         toggle_selected_file(storage_controller, file_path2.clone());
                                         return;
@@ -316,10 +327,12 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                     storage_controller.with_mut(|i| i.show_file_modal = Some(file4));
                                 },
                                 onrename: move |(val, key_code)| {
+
                                     let new_name: String = val;
                                     if new_name == file_name3 {
                                         storage_controller.with(|i| i.is_renaming_map.is_none());
                                         storage_controller.write().finish_renaming_item(false);
+                                        is_renaming_item.set(None);
                                         return;
                                     };
                                     if  storage_controller.read().files_list.iter().any(|file| file.name() == new_name) {
@@ -335,7 +348,7 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                         ));
                                         return;
                                     }
-                                    storage_controller.with(|i| i.is_renaming_map.is_none());
+                                    is_renaming_item.set(None);
                                     storage_controller.write().finish_renaming_item(false);
                                     if key_code == Code::Enter && !new_name.is_empty() && !new_name.chars().all(char::is_whitespace) {
                                         ch.send(ChanCmd::RenameItem{old_name: file_name.clone(), new_name});

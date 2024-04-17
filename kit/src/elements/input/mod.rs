@@ -382,9 +382,21 @@ pub fn Input(props: Props) -> Element {
     let focus_script_signal = use_signal(|| focus_script.clone());
 
     use_effect(move || {
-        if *focus_signal.read() {
-            let _ = eval(&focus_script_signal.read());
-        }
+        spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+                if *focus_signal.read() {
+                    let eval_result = eval(&focus_script_signal.read());
+                    match eval_result.await {
+                        Ok(_) => {
+                            break;
+                        }
+                        Err(_) => {}
+                    }
+                }
+            }
+        });
     });
 
     let focus_just_on_render = props.focus_just_on_render.unwrap_or_default();
