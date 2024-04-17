@@ -24,7 +24,7 @@ use warp::multipass;
 pub fn Layout(page: Signal<AuthPages>, username: String, pin: String) -> Element {
     let state = use_signal(State::load);
     let window = use_window();
-    let words: Signal<Option<(String, Vec<String>)>> = use_signal(|| None);
+    let mut words: Signal<Option<(String, Vec<String>)>> = use_signal(|| None);
 
     if !matches!(&*page.read(), AuthPages::Success(_)) {
         window.set_inner_size(LogicalSize {
@@ -33,7 +33,7 @@ pub fn Layout(page: Signal<AuthPages>, username: String, pin: String) -> Element
         });
     }
 
-    use_resource(move || async move {
+    let _ = use_future(move || async move {
         let mnemonic = warp::crypto::keypair::generate_mnemonic_phrase(
             warp::crypto::keypair::PhraseType::Standard,
         )
@@ -75,7 +75,7 @@ fn SeedWords(
     seed_words: String,
     words: Vec<String>,
 ) -> Element {
-    let copied = use_signal(|| false);
+    let mut copied = use_signal(|| false);
     let loading = use_signal(|| false);
 
     use_future(move || async move {
@@ -188,13 +188,13 @@ fn SeedWords(
             Button {
                 text: get_local_text("uplink.go-back"),
                 disabled: loading(),
-                aria_label: "back-button".into(),
+                aria_label: "back-button".to_string(),
                 icon: icons::outline::Shape::ChevronLeft,
                 onpress: move |_| page.set(AuthPages::CreateOrRecover),
                 appearance: Appearance::Secondary
             },
             Button {
-                aria_label: "i-saved-it-button".into(),
+                aria_label: "i-saved-it-button".to_string(),
                 disabled: loading(),
                 loading: loading(),
                 text: get_local_text("copy-seed-words.finished"),
