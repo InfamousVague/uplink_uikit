@@ -26,7 +26,6 @@ pub fn Layout(page: Signal<AuthPages>, user_name: Signal<String>) -> Element {
         });
     }
 
-    let mut username = use_signal(String::new);
     let _error = use_signal(String::new);
     let mut button_disabled = use_signal(|| true);
 
