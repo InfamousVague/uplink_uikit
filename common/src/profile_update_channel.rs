@@ -47,7 +47,7 @@ pub fn fetch_identity_data(identities: &[Identity]) {
                 Ok(res) => res.ok(),
                 Err(e) => {
                     log::error!("error fetching profile pic {e}");
-                    return;
+                    Option::None
                 }
             };
             let (tx, rx) = oneshot::channel();
@@ -59,7 +59,7 @@ pub fn fetch_identity_data(identities: &[Identity]) {
                 Ok(res) => res.ok(),
                 Err(e) => {
                     log::error!("error fetching profile banner {e}");
-                    return;
+                    Option::None
                 }
             };
             if profile_picture.is_some() || profile_banner.is_some() {
