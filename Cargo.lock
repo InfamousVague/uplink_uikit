@@ -4284,7 +4284,7 @@ dependencies = [
  "httpdate",
  "itoa 1.0.11",
  "pin-project-lite",
- "socket2 0.5.6",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -8096,9 +8096,9 @@ dependencies = [
 
 [[package]]
 name = "rust-ipfs"
-version = "0.11.5"
+version = "0.11.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b55859215030ffd9bc8db80bba746e722c66a45337a7a5a5e1c118736b4b512c"
+checksum = "ee84d89c1d9cf864a95d7d5682f2258cac1290125a84674bf47db3f6b8e21fc2"
 dependencies = [
  "anyhow",
  "async-stream",
