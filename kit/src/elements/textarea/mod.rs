@@ -415,27 +415,27 @@ pub fn InputRich(props: Props) -> Element {
         });
     });
 
-    if let Some(pending) = listener_data.write_silent().take() {
+    if let Some(pending) = listener_data.read().as_ref() {
         pending.iter().for_each(|val| match val.to_owned() {
             JSTextData::Input(txt) => {
-                println!("Calling onchange: {txt}");
+                log::debug!("Calling onchange: {txt}");
                 *text_value.write_silent() = txt.clone();
                 onchange.call((txt, true))
             }
             JSTextData::Cursor(cursor) => {
-                println!("Calling cursor");
+                log::debug!("Calling cursor");
 
                 if let Some(e) = oncursor_update {
                     e.call((text_value.read().clone(), cursor));
                 }
             }
             JSTextData::Submit => {
-                println!("Calling submit");
+                log::debug!("Calling submit");
 
                 onreturn.call((text_value.read().clone(), true, Code::Enter));
             }
             JSTextData::KeyPress(code) => {
-                println!("Calling keypress");
+                log::debug!("Calling keypress");
 
                 if matches!(code, Code::ArrowDown | Code::ArrowUp) {
                     if let Some(e) = onup_down_arrow {
@@ -444,14 +444,15 @@ pub fn InputRich(props: Props) -> Element {
                 }
             }
             JSTextData::Init => {
-                println!("Calling init");
+                log::debug!("Calling init");
 
                 let focus_script = include_str!("./focus.js").replace("$UUID", &id);
                 let _ = eval(&focus_script);
             }
         });
     }
-
+    // bandaid fix
+    listener_data.write_silent().take();
     rsx! (
         div {
             id: "input-group-{id}",
