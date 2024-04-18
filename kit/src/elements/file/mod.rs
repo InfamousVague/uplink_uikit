@@ -3,7 +3,6 @@ use std::ffi::OsStr;
 use common::return_correct_icon;
 use dioxus::prelude::*;
 use dioxus_elements::input_data::keyboard_types::Code;
-use uuid::Uuid;
 
 use crate::elements::input::{Input, Options, Size, SpecialCharsAction, Validation};
 use dioxus_html::input_data::keyboard_types::Modifiers;
@@ -13,7 +12,6 @@ use common::{icons::outline::Shape as Icon, is_video};
 
 #[derive(Props, Clone, PartialEq)]
 pub struct Props {
-    file_id: Uuid,
     text: String,
     #[props(optional)]
     thumbnail: Option<String>,
@@ -22,7 +20,7 @@ pub struct Props {
     #[props(optional)]
     aria_label: Option<String>,
     #[props(optional)]
-    with_rename: Signal<Option<Uuid>>,
+    with_rename: Option<bool>,
     #[props(optional)]
     onrename: Option<EventHandler<(String, Code)>>,
     #[props(optional)]
@@ -65,7 +63,7 @@ pub fn File(props: Props) -> Element {
 
     let aria_label = get_aria_label(props_signal.read().clone());
     let placeholder = file_name.clone();
-    let with_rename = props.with_rename.clone();
+    let with_rename = props.with_rename.unwrap_or_default();
     let disabled = props.disabled.unwrap_or_default();
     let thumbnail = props.thumbnail.clone().unwrap_or_default();
     let is_video = is_video(&props.text.clone());
@@ -110,44 +108,41 @@ pub fn File(props: Props) -> Element {
                         }
                     }
                 },
-                if let Some(id) = with_rename() {
-                    if id == props.file_id {
-                        {rsx! (
-                             div {
-                                 margin_top: "12px",
-                             },
-                             Input {
-                                     aria_label: "file-name-input".to_string(),
-                                     disabled: disabled,
-                                     placeholder: String::new(),
-                                     default_text: placeholder,
-                                     select_on_focus: true,
-                                     focus_just_on_render: true,
-                                     focus: true,
-                                     size: Size::Small,
-                                     options: Options {
-                                         react_to_esc_key: true,
-                                         with_validation: Some(Validation {
-                                             alpha_numeric_only: true,
-                                             special_chars: Some((SpecialCharsAction::Block, vec!['\\', '/'])),
-                                             min_length: Some(1),
-                                             max_length: Some(64),
-                                             ..Validation::default()
-                                         }),
-                                         ..Options::default()
-                                     },
-                                     // todo: use is_valid
-                                     onreturn: move |(s, is_valid, key_code)| {
-                                         if is_valid || key_code == Code::Escape  {
-                                             let new_name = format!("{}{}", s, file_extension);
-                                             emit(props_signal.read().clone(), new_name, key_code)
-                                         }
-                                     }
-                                 }
-                             )}
-                    }
-                }
-                {(with_rename().is_none()).then(|| rsx! (
+                {with_rename.then(||
+                    rsx! (
+                        div {
+                            margin_top: "12px",
+                        },
+                        Input {
+                                aria_label: "file-name-input".to_string(),
+                                disabled: disabled,
+                                placeholder: String::new(),
+                                default_text: placeholder,
+                                select_on_focus: true,
+                                focus: true,
+                                size: Size::Small,
+                                options: Options {
+                                    react_to_esc_key: true,
+                                    with_validation: Some(Validation {
+                                        alpha_numeric_only: true,
+                                        special_chars: Some((SpecialCharsAction::Block, vec!['\\', '/'])),
+                                        min_length: Some(1),
+                                        max_length: Some(64),
+                                        ..Validation::default()
+                                    }),
+                                    ..Options::default()
+                                },
+                                // todo: use is_valid
+                                onreturn: move |(s, is_valid, key_code)| {
+                                    if is_valid || key_code == Code::Escape  {
+                                        let new_name = format!("{}{}", s, file_extension);
+                                        emit(props_signal.read().clone(), new_name, key_code)
+                                    }
+                                }
+                            }
+                        )
+                  )},
+                {(!with_rename).then(|| rsx! (
                     label {
                         class: "file-name item-alignment",
                         padding_top: "8px",
