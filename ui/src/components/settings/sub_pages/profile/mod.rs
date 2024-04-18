@@ -422,8 +422,9 @@ pub fn ProfileSettings() -> Element {
                             disabled: no_profile_picture,
                             aria_label: "clear-avatar".to_string(),
                             text: get_local_text("settings-profile.clear-avatar"),
-                            onpress: move |_| {
+                            onpress: move |e: MouseEvent| {
                                 ch.send(ChanCmd::ClearProfile);
+                                e.stop_propagation();
                             }
                         }
                     ),
@@ -441,8 +442,10 @@ pub fn ProfileSettings() -> Element {
                             icon: Icon::Plus,
                             aria_label: "add-picture-button".to_string(),
                             onpress: move |e: MouseEvent| {
-                                set_profile_picture(open_crop_image_modal);
-                                e.stop_propagation();
+                                if e.modifiers() != Modifiers::CONTROL {
+                                    set_profile_picture(open_crop_image_modal);
+                                    e.stop_propagation();
+                                }
                             }
                         },
                     },
