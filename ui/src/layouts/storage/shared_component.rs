@@ -145,8 +145,9 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                 icon: Icon::Pencil,
                                 aria_label: "folder-rename".to_string(),
                                 text: get_local_text("files.rename"),
-                                onpress: move |_| {
+                                onpress: move |e: MouseEvent| {
                                     storage_controller.with_mut(|i| i.is_renaming_map = Some(key));
+                                    e.stop_propagation();
                                 }
                             },
                             hr {},
@@ -191,9 +192,15 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                     ch.send(ChanCmd::RenameItem{old_name: folder_name2.clone(), new_name: val});
                                 }
                             },
-                            onpress: move |_| {
-                                storage_controller.with_mut(|i| i.is_renaming_map = None);
-                                ch.send(ChanCmd::OpenDirectory(folder_name.clone()));
+                            onpress: move |e: MouseEvent| {
+                                if storage_controller.with(|i| i.is_renaming_map == Some(key)) {
+                                    return;
+                                }
+                                if e.modifiers() != Modifiers::CONTROL {
+                                    storage_controller.with_mut(|i| i.is_renaming_map = None);
+                                    ch.send(ChanCmd::OpenDirectory(folder_name.clone()));
+                                }
+
                             },
                             disabled: deleting,
                         }
@@ -241,8 +248,9 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                 icon: Icon::Pencil,
                                 aria_label: "files-rename".to_string(),
                                 text: get_local_text("files.rename"),
-                                onpress: move |_| {
+                                onpress: move |e: MouseEvent| {
                                     storage_controller.with_mut(|i| i.is_renaming_map = Some(key));
+                                    e.stop_propagation();
                                 }
                             },
                             if !send_files_mode {
@@ -281,6 +289,9 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                 aria_label: file.name(),
                                 with_rename: storage_controller.with(|i| i.is_renaming_map == Some(key)),
                                 onpress: move |_| {
+                                    if storage_controller.with(|i| i.is_renaming_map == Some(key)) {
+                                        return;
+                                    }
                                     if send_files_mode {
                                         toggle_selected_file(storage_controller, file_path2.clone());
                                         return;

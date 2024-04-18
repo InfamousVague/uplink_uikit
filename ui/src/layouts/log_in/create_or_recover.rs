@@ -39,7 +39,7 @@ pub fn Layout(page: Signal<AuthPages>) -> Element {
                     aria_label: "create-button".to_string(),
                     text: get_local_text("create-or-recover.create"),
                     onpress: move |_| {
-                        page.set(AuthPages::CopySeedWords);
+                        page.set(AuthPages::EnterUserName);
                     }
                 },
                 Button {

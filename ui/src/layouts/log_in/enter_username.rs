@@ -1,39 +1,23 @@
 use common::icons::outline::Shape as Icon;
 use common::language::get_local_text;
-use common::state::configuration::Configuration;
-use common::{
-    sounds,
-    warp_runner::{MultiPassCmd, WarpCmd},
-    WARP_CMD_CH,
-};
 use dioxus::prelude::*;
 use dioxus_desktop::{use_window, LogicalSize};
-use futures::channel::oneshot;
-use futures::StreamExt;
 use kit::elements::label::Label;
 use kit::elements::{
     button::Button,
     input::{Input, Options, Validation},
 };
 use tracing::log;
-use warp::multipass;
 
 use crate::AuthPages;
 
 pub const MIN_USERNAME_LEN: i32 = 4;
 pub const MAX_USERNAME_LEN: i32 = 32;
 
-struct CreateAccountCmd {
-    username: String,
-    passphrase: String,
-    seed_words: String,
-}
-
 #[component]
-pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>, seed_words: Signal<String>) -> Element {
+pub fn Layout(page: Signal<AuthPages>, user_name: Signal<String>) -> Element {
     log::trace!("rendering enter username layout");
     let window = use_window();
-    let mut loading = use_signal(|| false);
 
     if !matches!(&*page.read(), AuthPages::Success(_)) {
         window.set_inner_size(LogicalSize {
@@ -42,7 +26,6 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>, seed_words: Signal<S
         });
     }
 
-    let mut username = use_signal(String::new);
     let _error = use_signal(String::new);
     let mut button_disabled = use_signal(|| true);
 
@@ -62,57 +45,9 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>, seed_words: Signal<S
         special_chars: None,
     };
 
-    let ch = use_coroutine(|mut rx: UnboundedReceiver<CreateAccountCmd>| {
-        to_owned![page];
-        async move {
-            let config = Configuration::load_or_default();
-            let warp_cmd_tx = WARP_CMD_CH.tx.clone();
-            while let Some(CreateAccountCmd {
-                username,
-                passphrase,
-                seed_words,
-            }) = rx.next().await
-            {
-                loading.set(true);
-                let (tx, rx) =
-                    oneshot::channel::<Result<multipass::identity::Identity, warp::error::Error>>();
-
-                if let Err(e) = warp_cmd_tx.send(WarpCmd::MultiPass(MultiPassCmd::CreateIdentity {
-                    username,
-                    tesseract_passphrase: passphrase,
-                    seed_words,
-                    rsp: tx,
-                })) {
-                    log::error!("failed to send warp command: {}", e);
-                    continue;
-                }
-
-                let res = rx.await.expect("failed to get response from warp_runner");
-
-                match res {
-                    Ok(ident) => {
-                        if config.audiovideo.interface_sounds {
-                            sounds::Play(sounds::Sounds::On);
-                        }
-
-                        page.set(AuthPages::Success(ident));
-                    }
-                    // todo: notify user
-                    Err(e) => log::error!("create identity failed: {}", e),
-                }
-            }
-        }
-    });
-
     rsx!(
-        {loading().then(|| rsx!(
-            div {
-                class: "overlay-load-shadow",
-            },
-        ))},
         div {
             id: "unlock-layout",
-            class: format_args!("{}", if loading() {"progress"} else {""}),
             aria_label: "unlock-layout",
             Label {
                 text: get_local_text("auth.enter-username")
@@ -129,7 +64,6 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>, seed_words: Signal<S
                 icon: Icon::Identification,
                 aria_label: "username-input".to_string(),
                 disable_onblur: true,
-                disabled: loading(),
                 placeholder: get_local_text("auth.enter-username"),
                 options: Options {
                     with_validation: Some(username_validation),
@@ -142,15 +76,11 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>, seed_words: Signal<S
                     if button_disabled() != should_disable {
                         button_disabled.set(should_disable);
                     }
-                    username.set(val);
+                    user_name.set(val);
                 },
                 onreturn: move |_| {
                     if !button_disabled() {
-                        ch.send(CreateAccountCmd {
-                            username: username().to_string(),
-                            passphrase: pin.read().to_string(),
-                            seed_words: seed_words.read().to_string()
-                        });
+                        page.set(AuthPages::CopySeedWords);
                     }
                 }
             },
@@ -158,14 +88,9 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>, seed_words: Signal<S
                 text:  get_local_text("unlock.create-account"),
                 aria_label: "create-account-button".to_string(),
                 appearance: kit::elements::Appearance::Primary,
-                loading: loading(),
-                disabled: button_disabled() || loading(),
+                disabled: button_disabled(),
                 onpress: move |_| {
-                    ch.send(CreateAccountCmd {
-                        username: username().to_string(),
-                        passphrase: pin.read().to_string(),
-                        seed_words: seed_words.read().to_string()
-                    });
+                    page.set(AuthPages::CopySeedWords);
                 }
             }
         }

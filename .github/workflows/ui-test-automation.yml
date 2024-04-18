@@ -264,16 +264,6 @@ jobs:
           sudo xattr -r -d com.apple.quarantine /Applications/Uplink.app
           sudo xattr -r -d com.apple.quarantine /Applications/Uplink2.app
 
-      - name: Install Appium Server 💻
-        run: |
-          npm install -g appium@next
-          appium -v
-
-      - name: Install Appium Driver 💻
-        run: |
-          appium driver install mac2
-          appium driver list
-
       - name: Update MacOS runner to not autocorrect text
         run: |
           defaults write -g NSAutomaticCapitalizationEnabled -bool false
@@ -412,16 +402,6 @@ jobs:
           sudo xattr -r -d com.apple.quarantine /Applications/Uplink2.app
           sudo xattr -r -d com.apple.quarantine /Applications/Uplink3.app
 
-      - name: Install Appium Server 💻
-        run: |
-          npm install -g appium@next
-          appium -v
-
-      - name: Install Appium Driver 💻
-        run: |
-          appium driver install mac2
-          appium driver list
-
       - name: Update MacOS runner to not autocorrect text
         run: |
           defaults write -g NSAutomaticCapitalizationEnabled -bool false
@@ -559,16 +539,6 @@ jobs:
           cp -r C:\Program` Files\uplink\extensions\emoji_selector.dll C:\Program` Files\extensions
           cp -r C:\Program` Files\uplink\extra\themes\ $home/.uplink/themes
           cp -r C:\Program` Files\uplink\extensions\emoji_selector.dll $home/.uplink/extensions
-
-      - name: Install and Run Appium Server 💻
-        run: |
-          npm install -g appium@next
-          appium -v
-
-      - name: Install Appium Driver 💻
-        run: |
-          appium driver install --source=npm appium-windows-driver
-          appium driver list
 
       - name: Setup FFMPEG to record screen
         uses: FedericoCarboni/setup-ffmpeg@v2

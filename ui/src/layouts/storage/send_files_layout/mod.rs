@@ -161,19 +161,6 @@ fn ChatsToSelect(props: ChatsToSelectProps) -> Element {
                     height: "80px",
                     padding: "16px",
                     display: "inline-flex",
-                    Checkbox {
-                        disabled: false,
-                        width: "1em".to_string(),
-                        height: "1em".to_string(),
-                        is_checked: is_checked,
-                        on_click: move |_| {
-                            if is_checked {
-                                storage_controller.with_mut(|f| f.chats_selected_to_send.retain(|uuid| chat.id != *uuid));
-                            } else {
-                                storage_controller.with_mut(|f| f.chats_selected_to_send.push(chat.id));
-                            }
-                        }
-                    }
                     User {
                         username: participants_name,
                         subtext: subtext_val,

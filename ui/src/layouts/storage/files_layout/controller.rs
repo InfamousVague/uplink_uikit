@@ -98,6 +98,11 @@ impl StorageController {
         }
     }
 
+    pub fn update_is_renaming_map(&mut self, id: Option<Uuid>) {
+        println!("Updating is renaming map");
+        self.is_renaming_map = id;
+    }
+
     pub fn finish_renaming_item(&mut self, should_toggle: bool) {
         self.is_renaming_map.take();
         if should_toggle {
