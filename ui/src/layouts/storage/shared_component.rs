@@ -192,12 +192,15 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                                     ch.send(ChanCmd::RenameItem{old_name: folder_name2.clone(), new_name: val});
                                 }
                             },
-                            onpress: move |_| {
+                            onpress: move |e: MouseEvent| {
                                 if storage_controller.with(|i| i.is_renaming_map == Some(key)) {
                                     return;
                                 }
-                                storage_controller.with_mut(|i| i.is_renaming_map = None);
-                                ch.send(ChanCmd::OpenDirectory(folder_name.clone()));
+                                if e.modifiers() != Modifiers::CONTROL {
+                                    storage_controller.with_mut(|i| i.is_renaming_map = None);
+                                    ch.send(ChanCmd::OpenDirectory(folder_name.clone()));
+                                }
+
                             },
                             disabled: deleting,
                         }

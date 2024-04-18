@@ -21,7 +21,7 @@ pub struct Props {
     #[props(optional)]
     onrename: Option<EventHandler<(String, Code)>>,
     #[props(optional)]
-    onpress: Option<EventHandler>,
+    onpress: Option<EventHandler<MouseEvent>>,
     #[props(optional)]
     loading: Option<bool>,
 }
@@ -36,9 +36,9 @@ pub fn emit(props: Props, s: String, key_code: Code) {
     }
 }
 
-pub fn emit_press(props: Props) {
+pub fn emit_press(props: Props, mouse_event: MouseEvent) {
     if let Some(f) = props.onpress.as_ref() {
-        f.call(())
+        f.call(mouse_event)
     }
 }
 
@@ -70,7 +70,7 @@ pub fn Folder(props: Props) -> Element {
                 },
                 div {
                     class: "icon alignment",
-                    onclick: move |_| emit_press(props_signal.read().clone()),
+                    onclick: move |mouse_event: MouseEvent| emit_press(props_signal.read().clone(), mouse_event),
                     IconElement {
                         icon: icon,
                     },
