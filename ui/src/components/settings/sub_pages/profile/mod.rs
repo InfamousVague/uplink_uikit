@@ -259,6 +259,7 @@ pub fn ProfileSettings() -> Element {
 
                 match res {
                     Ok(ident) => {
+                        state.write().set_own_identity(ident.clone());
                         should_update.set(Some(ident));
                     }
                     Err(e) => {
@@ -397,8 +398,9 @@ pub fn ProfileSettings() -> Element {
                             disabled: no_banner_picture,
                             text: get_local_text("settings-profile.clear-banner"),
                             aria_label: "clear-banner".to_string(),
-                            onpress: move |_| {
+                            onpress: move |e: MouseEvent| {
                                 ch.send(ChanCmd::ClearBanner);
+                                e.stop_propagation();
                             }
                         }
                     ),
