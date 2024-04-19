@@ -339,7 +339,8 @@ pub fn InputRich(props: Props) -> Element {
         .replace("$MULTI_LINE", &format!("{}", true));
     let sync_script = include_str!("./sync_data.js").replace("$UUID", &sig_id.peek());
     let disabled = is_disabled;
-    let mut text_value = use_signal(|| value.clone());
+
+    let mut text_value = use_hook(|| CopyValue::new(value.clone()));
 
     // Sync changed to the editor
     let value2 = value.clone();
@@ -347,7 +348,8 @@ pub fn InputRich(props: Props) -> Element {
     let _ = use_resource(use_reactive!(|(value2, placeholder2, disabled)| {
         to_owned![sync_script];
         async move {
-            let update = !text_value.peek().eq(&value2);
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            let update = !text_value.read().eq(&value2);
             let _ = eval(
                 &sync_script
                     .clone()
@@ -366,18 +368,16 @@ pub fn InputRich(props: Props) -> Element {
     }));
 
     use_effect(move || {
+        log::debug!("init");
         let rich_editor: String = include_str!("./rich_editor_handler.js")
             .replace("$EDITOR_ID", &sig_id())
             .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
             .replace("$INIT", &value.replace('"', "\\\"").replace('\n', "\\n"));
-        log::debug!("initrot");
         spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
             let mut eval_res = eval(&rich_editor);
             loop {
-                let t = eval_res.recv().await;
-                log::debug!("reeee {:?}", t);
-                if let Ok(val) = t {
-                    log::debug!("{}", val);
+                if let Ok(val) = eval_res.recv().await {
                     let input = INPUT_REGEX.captures(val.as_str().unwrap_or_default());
                     // Instead of escaping all needed chars just try extract the input string
                     let data = if let Some(capt) = input {
@@ -386,133 +386,52 @@ pub fn InputRich(props: Props) -> Element {
                     } else {
                         serde_json::from_str::<JSTextData>(val.as_str().unwrap_or_default())
                     };
-                    // match data {
-                    //     Ok(data) => match data {
-                    //         JSTextData::Input(txt) => {
-                    //             log::debug!("Calling onchange: {txt}");
-                    //             //*text_value.write() = txt.clone();
-                    //             onchange.call((txt, true))
-                    //         }
-                    //         JSTextData::Cursor(cursor) => {
-                    //             log::debug!("Calling cursor");
+                    match data {
+                        Ok(data) => match data {
+                            JSTextData::Input(txt) => {
+                                log::debug!("Calling onchange: {txt}");
+                                *text_value.write() = txt.clone();
+                                onchange.call((txt, true))
+                            }
+                            JSTextData::Cursor(cursor) => {
+                                log::debug!("Calling cursor");
 
-                    //             if let Some(e) = oncursor_update {
-                    //                 //e.call((text_value.peek().clone(), cursor));
-                    //             }
-                    //         }
-                    //         JSTextData::Submit => {
-                    //             log::debug!("Calling submit");
+                                if let Some(e) = oncursor_update {
+                                    e.call((text_value.read().clone(), cursor));
+                                }
+                            }
+                            JSTextData::Submit => {
+                                log::debug!("Calling submit");
 
-                    //             //onreturn.call((text_value.peek().clone(), true, Code::Enter));
-                    //         }
-                    //         JSTextData::KeyPress(code) => {
-                    //             log::debug!("Calling keypress");
+                                onreturn.call((text_value.read().clone(), true, Code::Enter));
+                            }
+                            JSTextData::KeyPress(code) => {
+                                log::debug!("Calling keypress");
 
-                    //             if matches!(code, Code::ArrowDown | Code::ArrowUp) {
-                    //                 if let Some(e) = onup_down_arrow {
-                    //                     e.call(code);
-                    //                 };
-                    //             }
-                    //         }
-                    //         JSTextData::Init => {
-                    //             log::debug!("Calling init");
+                                if matches!(code, Code::ArrowDown | Code::ArrowUp) {
+                                    if let Some(e) = onup_down_arrow {
+                                        e.call(code);
+                                    };
+                                }
+                            }
+                            JSTextData::Init => {
+                                log::debug!("Calling init");
 
-                    //             let focus_script =
-                    //                 include_str!("./focus.js").replace("$UUID", &sig_id.peek());
-                    //             let _ = eval(&focus_script);
-                    //         }
-                    //     },
-                    //     Err(e) => {
-                    //         log::error!("failed to deserialize message: {}: {}", val, e);
-                    //     }
-                    // }
+                                let focus_script =
+                                    include_str!("./focus.js").replace("$UUID", &sig_id.peek());
+                                let _ = eval(&focus_script);
+                            }
+                        },
+                        Err(e) => {
+                            log::error!("failed to deserialize message: {}: {}", val, e);
+                        }
+                    }
+                } else {
+                    break;
                 }
             }
         });
     });
-    // use_effect(move || {
-    //     to_owned![listener_data];
-    //     spawn(async move {
-    //         let mut eval_result = use_signal(|| eval(""));
-    //         loop {
-    //             if let Ok(val) = eval_result().recv().await {
-    //                 let input = INPUT_REGEX.captures(val.as_str().unwrap_or_default());
-    //                 Instead of escaping all needed chars just try extract the input string
-    //                 let data = if let Some(capt) = input {
-    //                     let txt = capt.get(1).map(|t| t.as_str()).unwrap_or_default();
-    //                     Ok(JSTextData::Input(txt.to_string()))
-    //                 } else {
-    //                     serde_json::from_str::<JSTextData>(val.as_str().unwrap_or_default())
-    //                 };
-    //                 match data {
-    //                     Ok(data) => {
-    //                         let new =
-    //                             listener_data.with(
-    //                                 |current: &Option<Vec<JSTextData>>| match current {
-    //                                     Some(pending) => {
-    //                                         let mut pending = pending.clone();
-    //                                         pending.push(data);
-    //                                         pending
-    //                                     }
-    //                                     None => vec![data],
-    //                                 },
-    //                             );
-    //                         *listener_data.write() = Some(new)
-    //                     }
-    //                     Err(e) => {
-    //                         log::error!("failed to deserialize message: {}: {}", val, e);
-    //                     }
-    //                 }
-    //             } else {
-    //                 println!("Failing eval here every time");
-    //                 let rich_editor: String = include_str!("./rich_editor_handler.js")
-    //                     .replace("$EDITOR_ID", &sig_id())
-    //                     .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
-    //                     .replace("$INIT", &value().replace('"', "\\\"").replace('\n', "\\n"));
-    //                 eval_result.set(eval(&rich_editor));
-    //                 HACK(Migration_0.5): Sleep Added
-    //                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-    //             }
-    //         }
-    //     });
-    // });
-
-    // if let Some(pending) = listener_data.read().as_ref() {
-    //     pending.iter().for_each(|val| match val.to_owned() {
-    //         JSTextData::Input(txt) => {
-    //             log::debug!("Calling onchange: {txt}");
-    //             *text_value.write_silent() = txt.clone();
-    //             onchange.call((txt, true))
-    //         }
-    //         JSTextData::Cursor(cursor) => {
-    //             log::debug!("Calling cursor");
-
-    //             if let Some(e) = oncursor_update {
-    //                 e.call((text_value.read().clone(), cursor));
-    //             }
-    //         }
-    //         JSTextData::Submit => {
-    //             log::debug!("Calling submit");
-
-    //             onreturn.call((text_value.read().clone(), true, Code::Enter));
-    //         }
-    //         JSTextData::KeyPress(code) => {
-    //             log::debug!("Calling keypress");
-
-    //             if matches!(code, Code::ArrowDown | Code::ArrowUp) {
-    //                 if let Some(e) = onup_down_arrow {
-    //                     e.call(code);
-    //                 };
-    //             }
-    //         }
-    //         JSTextData::Init => {
-    //             log::debug!("Calling init");
-
-    //             let focus_script = include_str!("./focus.js").replace("$UUID", &sig_id.peek());
-    //             let _ = eval(&focus_script);
-    //         }
-    //     });
-    // }
 
     rsx! (
         div {
