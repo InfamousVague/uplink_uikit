@@ -103,6 +103,15 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
     // used by the intersection observer to terminate itself.
     let chat_key = chat_data.read().active_chat.key().to_string();
     let chat_behavior = chat_data.read().get_chat_behavior(active_chat_id);
+
+    let _ = use_resource(move || async move {
+        loop {
+            let chat_behavior = chat_data.read().get_chat_behavior(active_chat_id);
+            println!("chat_behavior: {:?}", chat_behavior.on_scroll_top);
+            tokio::time::sleep(std::time::Duration::from_millis(2500)).await;
+        }
+    });
+
     let msg_container_end =
         if matches!(chat_behavior.on_scroll_top, data::ScrollBehavior::FetchMore) {
             rsx!(div {
