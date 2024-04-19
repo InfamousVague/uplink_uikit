@@ -41,7 +41,7 @@ function forwardEventDown(e) {
     text.dispatchEvent(newEvent)
     return newEvent.defaultPrevented
 }
-
+console.log("try get input ", document, document.getElementById('$EDITOR_ID'), " id: $EDITOR_ID")
 var editor = new MarkdownEditor(
     document.getElementById('$EDITOR_ID'), {
     keys: keys,

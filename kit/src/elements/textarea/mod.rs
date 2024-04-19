@@ -373,9 +373,12 @@ pub fn InputRich(props: Props) -> Element {
             .replace("$EDITOR_ID", &sig_id())
             .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
             .replace("$INIT", &value.replace('"', "\\\"").replace('\n', "\\n"));
+        // doesnt work
+        let mut eval_res = eval(&rich_editor);
         spawn(async move {
-            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-            let mut eval_res = eval(&rich_editor);
+            // works
+            //tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            //let mut eval_res = eval(&rich_editor);
             loop {
                 if let Ok(val) = eval_res.recv().await {
                     let input = INPUT_REGEX.captures(val.as_str().unwrap_or_default());
