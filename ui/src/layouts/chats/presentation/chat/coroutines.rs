@@ -19,7 +19,7 @@ pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });
-    let _ = use_future(move || {
+    let _ = use_resource(move || {
         to_owned![chat_data];
         async move {
             let mut ch = WARP_EVENT_CH.tx.subscribe();
@@ -28,8 +28,8 @@ pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
                     WarpEvent::Message(evt) => evt,
                     _ => continue,
                 };
-                let chat_id = match active_chat_id_signal.read().as_ref() {
-                    Some(x) => *x,
+                let chat_id = match active_chat_id_signal() {
+                    Some(x) => x,
                     None => continue,
                 };
 
@@ -95,13 +95,14 @@ pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
 }
 
 // any use_future should be in the coroutines file to prevent a naming conflict with the futures crate.
-pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Signal<bool> {
+pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Resource<()> {
     let active_chat_id_signal = use_signal(move || {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });
     let mut chat_active = use_signal(|| false);
-    let _ = use_future(move || {
+    println!("Stated Init Chata Data");
+    use_resource(move || {
         to_owned![state, chat_data];
         async move {
             while !state.read().initialized {
@@ -140,8 +141,7 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Sign
                 Err(e) => log::error!("{e}"),
             }
         }
-    });
-    chat_active
+    })
 }
 
 pub async fn fetch_window<'a>(

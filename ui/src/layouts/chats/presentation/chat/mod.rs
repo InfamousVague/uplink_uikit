@@ -110,7 +110,7 @@ pub fn Compose() -> Element {
     let user_did: DID = state.read().did_key();
     let is_owner = creator.map(|id| id == user_did).unwrap_or_default();
 
-    if init() {
+    if init.value().read().is_some() {
         if let Some(chat) = state.read().get_active_chat() {
             let metadata = data::Metadata::new(&state.read(), &chat);
             if chat_data.read().active_chat.metadata_changed(&metadata) {
@@ -207,7 +207,7 @@ pub fn Compose() -> Element {
         CallControl {
             in_chat: true
         },
-        if !init() {
+        if init.value().read().is_none() {
            {rsx!(
                 div {
                     id: "messages",
