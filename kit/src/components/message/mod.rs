@@ -200,7 +200,7 @@ pub fn Message(props: Props) -> Element {
 
     // todo: pick an icon based on the file extension
     // there's some weirdness here to avoid more nesting. this should make the code easier to read overall
-    let _attachment_list = attachments2.as_ref().cloned().map(|vec| {
+    let attachment_list = attachments2.as_ref().cloned().map(|vec| {
         vec.iter()
             .cloned()
             .map(|file| {
@@ -334,41 +334,41 @@ pub fn Message(props: Props) -> Element {
                     {props.with_content.as_ref()},
                 },
             ))},
-            // {is_editing.then(||
-            //     rsx! (
-            //         p {
-            //             class: "text",
-            //             aria_label: "message-text",
-            //             {rsx! (
-            //                 EditMsg {
-            //                     id: props.id.clone(),
-            //                     text: props.with_text.clone().unwrap_or_default(),
-            //                     on_enter: move |update| {
-            //                         props.on_edit.call(update);
-            //                     }
-            //                 }
-            //             )}
-            //         }
-            //     )
-            // )},
-            // {(props.with_text.is_some() && !props.editing).then(|| rsx!(
-            //     ChatText {
-            //         text: props.with_text.as_ref().cloned().unwrap_or_default(),
-            //         remote: is_remote,
-            //         pending: props.pending,
-            //         markdown: props.parse_markdown,
-            //         state: props.state,
-            //         chat: props.chat,
-            //         ascii_emoji: props.transform_ascii_emojis,
-            //     }
-            // ))},
+            {is_editing.then(||
+                rsx! (
+                    p {
+                        class: "text",
+                        aria_label: "message-text",
+                        {rsx! (
+                            EditMsg {
+                                id: props.id.clone(),
+                                text: with_text_signal().unwrap_or_default(),
+                                on_enter: move |update| {
+                                    props.on_edit.call(update);
+                                }
+                            }
+                        )}
+                    }
+                )
+            )},
+            {(with_text_signal().is_some() && !props.editing).then(|| rsx!(
+                ChatText {
+                    text: with_text_signal().as_ref().cloned().unwrap_or_default(),
+                    remote: is_remote,
+                    pending: props.pending,
+                    markdown: props.parse_markdown,
+                    state: props.state,
+                    chat: props.chat,
+                    ascii_emoji: props.transform_ascii_emojis,
+                }
+            ))},
             {has_attachments.then(|| {
                 rsx!(
                     div {
                         class: "attachment-list",
-                        // {attachment_list.map(|list| {
-                        //     rsx!( {list} )
-                        // })}
+                        {attachment_list.map(|list| {
+                            rsx!( {list.into_iter()} )
+                        })}
                     }
                 )
             })}

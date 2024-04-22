@@ -37,7 +37,7 @@ pub fn open_file_preview_modal(
         open: true,
         transparent: false,
         dont_pad: true,
-        close_on_click_inside_modal: true,
+        close_on_click_inside_modal: false,
         children: rsx!(FilePreview {
             file: file,
             on_download: move |temp_path| {
