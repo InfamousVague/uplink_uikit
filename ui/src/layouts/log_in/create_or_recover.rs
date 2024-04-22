@@ -39,7 +39,7 @@ pub fn Layout(cx: Scope, page: UseState<AuthPages>) -> Element {
                     aria_label: "create-button".into(),
                     text: get_local_text("create-or-recover.create"),
                     onpress: move |_| {
-                        page.set(AuthPages::CopySeedWords);
+                        page.set(AuthPages::EnterUserName);
                     }
                 },
                 Button {
