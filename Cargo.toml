@@ -28,18 +28,18 @@ version = "1.0.2"
 rust-version = "1.75"
 
 [workspace.dependencies]
-dioxus = { git = "https://github.com/DioxusLabs/dioxus", rev = "c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c", features = [
+dioxus = { git = "https://github.com/DioxusLabs/dioxus", rev = "15b7a58d05cf6e6046839ea4406bdf0674f72a2c", features = [
     "desktop",
 ] }
-dioxus-hooks = { git = "https://github.com/DioxusLabs/dioxus", rev = "c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c" }
-dioxus-html = { git = "https://github.com/DioxusLabs/dioxus", rev = "c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c" }
-dioxus-router = { git = "https://github.com/DioxusLabs/dioxus", rev = "c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c" }
-dioxus-desktop = { git = "https://github.com/DioxusLabs/dioxus", rev = "c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c", features = [
+dioxus-hooks = { git = "https://github.com/DioxusLabs/dioxus", rev = "15b7a58d05cf6e6046839ea4406bdf0674f72a2c" }
+dioxus-html = { git = "https://github.com/DioxusLabs/dioxus", rev = "15b7a58d05cf6e6046839ea4406bdf0674f72a2c" }
+dioxus-router = { git = "https://github.com/DioxusLabs/dioxus", rev = "15b7a58d05cf6e6046839ea4406bdf0674f72a2c" }
+dioxus-desktop = { git = "https://github.com/DioxusLabs/dioxus", rev = "15b7a58d05cf6e6046839ea4406bdf0674f72a2c", features = [
     "transparent",
 ] }
 muda = "0.11.5"
 raw-window-handle = "0.6"
-fermi = { git = "https://github.com/satellite-im/dioxus", rev = "c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c" }
+fermi = { git = "https://github.com/satellite-im/dioxus", rev = "15b7a58d05cf6e6046839ea4406bdf0674f72a2c" }
 arboard = "3.3"
 humansize = "2.1.3"
 uuid = { version = "1", features = ["serde", "v4"] }

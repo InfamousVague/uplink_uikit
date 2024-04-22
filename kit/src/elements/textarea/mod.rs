@@ -299,7 +299,7 @@ pub fn Input(props: Props) -> Element {
 #[allow(non_snake_case)]
 pub fn InputRich(props: Props) -> Element {
     log::trace!("render input");
-    let listener_data = use_signal(|| None);
+    let listener_data: Signal<Option<Vec<JSTextData>>> = use_signal(|| None);
 
     let Props {
         id: _,

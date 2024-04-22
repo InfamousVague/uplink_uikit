@@ -2306,7 +2306,7 @@ dependencies = [
 [[package]]
 name = "dioxus"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-config-macro",
  "dioxus-core",
@@ -2322,7 +2322,7 @@ dependencies = [
 [[package]]
 name = "dioxus-cli-config"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "once_cell",
  "serde",
@@ -2333,7 +2333,7 @@ dependencies = [
 [[package]]
 name = "dioxus-config-macro"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2342,7 +2342,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -2358,7 +2358,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core-macro"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "constcat",
  "convert_case 0.6.0",
@@ -2378,7 +2378,7 @@ checksum = "2ea539174bb236e0e7dc9c12b19b88eae3cb574dedbd0252a2d43ea7e6de13e2"
 [[package]]
 name = "dioxus-desktop"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "async-trait",
  "cocoa",
@@ -2416,7 +2416,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "async-trait",
  "base64 0.21.7",
@@ -2437,7 +2437,7 @@ dependencies = [
 [[package]]
 name = "dioxus-hooks"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-core",
  "dioxus-debug-cell",
@@ -2453,7 +2453,7 @@ dependencies = [
 [[package]]
 name = "dioxus-hot-reload"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-core",
  "dioxus-html",
@@ -2466,7 +2466,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "async-trait",
  "dioxus-core",
@@ -2488,7 +2488,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html-internal-macro"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "convert_case 0.6.0",
  "proc-macro2",
@@ -2499,7 +2499,7 @@ dependencies = [
 [[package]]
 name = "dioxus-interpreter-js"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-core",
  "dioxus-html",
@@ -2511,7 +2511,7 @@ dependencies = [
 [[package]]
 name = "dioxus-lib"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-core",
  "dioxus-core-macro",
@@ -2524,7 +2524,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-lib",
@@ -2537,7 +2537,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router-macro"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2548,7 +2548,7 @@ dependencies = [
 [[package]]
 name = "dioxus-rsx"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-core",
  "internment",
@@ -2562,7 +2562,7 @@ dependencies = [
 [[package]]
 name = "dioxus-signals"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "dioxus-core",
  "futures-channel",
@@ -2577,7 +2577,7 @@ dependencies = [
 [[package]]
 name = "dioxus_server_macro"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "convert_case 0.6.0",
  "proc-macro2",
@@ -3611,7 +3611,7 @@ dependencies = [
 [[package]]
 name = "generational-box"
 version = "0.5.2"
-source = "git+https://github.com/DioxusLabs/dioxus?rev=c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c#c71400d4a9ae1b7110ae7dd3aa6415a935fddd4c"
+source = "git+https://github.com/DioxusLabs/dioxus?rev=15b7a58d05cf6e6046839ea4406bdf0674f72a2c#15b7a58d05cf6e6046839ea4406bdf0674f72a2c"
 dependencies = [
  "parking_lot 0.12.1",
 ]

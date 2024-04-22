@@ -330,7 +330,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     };
 
     let typing_users: Vec<String> = users_typing.iter().map(|id| (*id).username()).collect();
-
     let chatbar = rsx!(
         Chatbar {
             key: "{active_chat_id}",

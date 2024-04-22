@@ -11,8 +11,8 @@ use crate::{
     },
     elements::{button::Button, label::Label, textarea, Appearance},
 };
-
 use common::{icons, language::get_local_text, warp_runner::thumbnail_to_base64};
+use tracing::log;
 pub type To = &'static str;
 
 #[derive(Clone, PartialEq)]
