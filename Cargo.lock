@@ -4284,7 +4284,7 @@ dependencies = [
  "httpdate",
  "itoa 1.0.11",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.6",
  "tokio",
  "tower-service",
  "tracing",
@@ -8096,9 +8096,9 @@ dependencies = [
 
 [[package]]
 name = "rust-ipfs"
-version = "0.11.6"
+version = "0.11.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee84d89c1d9cf864a95d7d5682f2258cac1290125a84674bf47db3f6b8e21fc2"
+checksum = "2e324797cf9e5b96e1ceab14101d391c016cbe1032808e93ae6675dff6ecfcd8"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -8129,6 +8129,7 @@ dependencies = [
  "rlimit",
  "rust-ipns",
  "rust-unixfs",
+ "send_wrapper 0.6.0",
  "serde",
  "serde-wasm-bindgen 0.6.5",
  "serde_json",
