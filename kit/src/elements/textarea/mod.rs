@@ -299,7 +299,6 @@ pub fn Input(props: Props) -> Element {
 #[allow(non_snake_case)]
 pub fn InputRich(props: Props) -> Element {
     log::trace!("render input");
-    //let listener_data = use_signal(|| None);
 
     let Props {
         id,
@@ -337,48 +336,24 @@ pub fn InputRich(props: Props) -> Element {
     let script = include_str!("./script.js")
         .replace("$UUID", &sig_id.peek())
         .replace("$MULTI_LINE", &format!("{}", true));
-    let sync_script = include_str!("./sync_data.js").replace("$UUID", &sig_id.peek());
-    let disabled = is_disabled;
+    let disabled = loading || is_disabled;
 
     let mut text_value = use_hook(|| CopyValue::new(value.clone()));
 
     // Sync changed to the editor
     let value2 = value.clone();
     let placeholder2 = placeholder.clone();
-    let _ = use_resource(use_reactive!(|(value2, placeholder2, disabled)| {
-        to_owned![sync_script];
-        async move {
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            let update = !text_value.read().eq(&value2);
-            let _ = eval(
-                &sync_script
-                    .clone()
-                    .replace("$UPDATE", &update.to_string())
-                    .replace(
-                        "$TEXT",
-                        &value2
-                            .replace('\\', "\\\\")
-                            .replace('"', "\\\"")
-                            .replace('\n', "\\n"),
-                    )
-                    .replace("$PLACEHOLDER", &placeholder2)
-                    .replace("$DISABLED", &disabled.to_string()),
-            );
-        }
-    }));
-
     use_effect(move || {
-        log::debug!("init");
         let rich_editor: String = include_str!("./rich_editor_handler.js")
             .replace("$EDITOR_ID", &sig_id())
             .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
             .replace("$INIT", &value.replace('"', "\\\"").replace('\n', "\\n"));
-        // doesnt work
-        let mut eval_res = eval(&rich_editor);
+        // Doesnt work without a delay
+        // let mut eval_res = eval(&rich_editor);
         spawn(async move {
-            // works
-            //tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-            //let mut eval_res = eval(&rich_editor);
+            // Needs delay to work
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            let mut eval_res = eval(&rich_editor);
             loop {
                 if let Ok(val) = eval_res.recv().await {
                     let input = INPUT_REGEX.captures(val.as_str().unwrap_or_default());
@@ -435,6 +410,28 @@ pub fn InputRich(props: Props) -> Element {
             }
         });
     });
+
+    use_effect(use_reactive!(|(value2, placeholder2, disabled)| {
+        let sync_script = include_str!("./sync_data.js").replace("$UUID", &sig_id());
+        spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(150)).await;
+            let update = !text_value.read().eq(&value2);
+            let _ = eval(
+                &sync_script
+                    .clone()
+                    .replace("$UPDATE", &update.to_string())
+                    .replace(
+                        "$TEXT",
+                        &value2
+                            .replace('\\', "\\\\")
+                            .replace('"', "\\\"")
+                            .replace('\n', "\\n"),
+                    )
+                    .replace("$PLACEHOLDER", &placeholder2)
+                    .replace("$DISABLED", &disabled.to_string()),
+            );
+        });
+    }));
 
     rsx! (
         div {

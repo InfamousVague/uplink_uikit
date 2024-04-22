@@ -41,9 +41,18 @@ function forwardEventDown(e) {
     text.dispatchEvent(newEvent)
     return newEvent.defaultPrevented
 }
-console.log("try get input ", document, document.getElementById('$EDITOR_ID'), " id: $EDITOR_ID")
+
+if (!text) {
+    console.log("No input element found for id ", '$EDITOR_ID');
+    return
+}
+// Input already has editor
+if (text.markdownEditor) {
+    return;
+}
+
 var editor = new MarkdownEditor(
-    document.getElementById('$EDITOR_ID'), {
+    text, {
     keys: keys,
     listeners: {
         //Forward key events to underlying text area
