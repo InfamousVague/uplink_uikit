@@ -4,6 +4,11 @@
 
 let text = document.getElementById('$EDITOR_ID')
 
+if (text.markdownEditor) {
+    // Remove old instance
+    text.markdownEditor.codemirror.destroy()
+}
+
 var keys = [{
     key: "ArrowUp", run: () => {
         if (text.classList.contains("up-down-disabled")) {
@@ -42,10 +47,8 @@ function forwardEventDown(e) {
     return newEvent.defaultPrevented
 }
 
-console.log("search $EDITOR_ID in doc ", document, document.getElementById('$EDITOR_ID'));
-
 var editor = new MarkdownEditor(
-    document.getElementById('$EDITOR_ID'), {
+    text, {
     keys: keys,
     listeners: {
         //Forward key events to underlying text area

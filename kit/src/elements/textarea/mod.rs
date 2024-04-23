@@ -299,10 +299,8 @@ pub fn Input(props: Props) -> Element {
 #[allow(non_snake_case)]
 pub fn InputRich(props: Props) -> Element {
     log::trace!("render input");
-    let listener_data: Signal<Option<Vec<JSTextData>>> = use_signal(|| None);
-
     let Props {
-        id: _,
+        id,
         ignore_focus: _,
         loading,
         placeholder,
@@ -321,59 +319,58 @@ pub fn InputRich(props: Props) -> Element {
         onup_down_arrow,
     } = props.clone();
 
-    let id = if props.id.is_empty() {
-        Uuid::new_v4().to_string()
-    } else {
-        props.id.clone()
-    };
-    let id2 = id.clone();
-    let id_char_counter = id.clone();
+    let mut sig_id = use_signal(|| {
+        if id.is_empty() {
+            Uuid::new_v4().to_string()
+        } else {
+            id.clone()
+        }
+    });
+    let mut text_value = use_signal(|| value.clone());
+
+    // If the id changed update the signal
+    if !id.is_empty() && sig_id() != id {
+        sig_id.set(id);
+        text_value.set(value.clone());
+    }
 
     let script = include_str!("./script.js")
-        .replace("$UUID", &id)
+        .replace("$UUID", &sig_id())
         .replace("$MULTI_LINE", &format!("{}", true));
     let disabled = loading || is_disabled;
 
-    let text_value = use_signal(|| value.clone());
-    let sync_script = use_signal(|| include_str!("./sync_data.js").replace("$UUID", &id));
-
-    let value = use_signal(|| value.clone());
-    let placeholder = use_signal(|| placeholder.clone());
-
-    // Sync changed to the editor
-    let _ = use_resource(move || {
-        to_owned![sync_script, value, text_value, disabled];
-        async move {
-            let update = !text_value.read().eq(&value());
+    // Sync changes to the editor
+    use_effect(use_reactive(
+        (&placeholder, &disabled),
+        move |(placeholder, disabled)| {
+            let sync_script = include_str!("./sync_data.js").replace("$UUID", &sig_id());
             let _ = eval(
                 &sync_script
-                    .read()
                     .clone()
-                    .replace("$UPDATE", &update.to_string())
                     .replace(
                         "$TEXT",
-                        &value()
+                        &text_value
+                            .read()
                             .replace('\\', "\\\\")
                             .replace('"', "\\\"")
                             .replace('\n', "\\n"),
                     )
-                    .replace("$PLACEHOLDER", &placeholder())
+                    .replace("$PLACEHOLDER", &placeholder)
                     .replace("$DISABLED", &disabled.to_string()),
             );
-        }
-    });
-
-    let mut id_signal = use_signal(|| id.clone());
-    if id_signal() != id {
-        id_signal.set(id.clone());
-    }
+        },
+    ));
 
     use_effect(move || {
-        to_owned![listener_data];
+        log::trace!("initializing markdown editor");
+        let rich_editor: String = include_str!("./rich_editor_handler.js")
+            .replace("$EDITOR_ID", &sig_id.peek())
+            .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
+            .replace("$INIT", &value.replace('"', "\\\"").replace('\n', "\\n"));
         spawn(async move {
-            let mut eval_result = use_signal(|| eval(""));
+            let mut eval_result = eval(&rich_editor);
             loop {
-                if let Ok(val) = eval_result().recv().await {
+                if let Ok(val) = eval_result.recv().await {
                     let input = INPUT_REGEX.captures(val.as_str().unwrap_or_default());
                     // Instead of escaping all needed chars just try extract the input string
                     let data = if let Some(capt) = input {
@@ -383,94 +380,59 @@ pub fn InputRich(props: Props) -> Element {
                         serde_json::from_str::<JSTextData>(val.as_str().unwrap_or_default())
                     };
                     match data {
-                        Ok(data) => {
-                            let new =
-                                listener_data.with(
-                                    |current: &Option<Vec<JSTextData>>| match current {
-                                        Some(pending) => {
-                                            let mut pending = pending.clone();
-                                            pending.push(data);
-                                            pending
-                                        }
-                                        None => vec![data],
-                                    },
-                                );
-                            *listener_data.write() = Some(new)
-                        }
+                        Ok(data) => match data {
+                            JSTextData::Input(txt) => {
+                                text_value.set(txt.clone());
+                                log::debug!("value {}", text_value.peek());
+                                onchange.call((txt, true))
+                            }
+                            JSTextData::Cursor(cursor) => {
+                                if let Some(e) = oncursor_update {
+                                    e.call((text_value.peek().clone(), cursor));
+                                }
+                            }
+                            JSTextData::Submit => {
+                                onreturn.call((text_value.peek().clone(), true, Code::Enter));
+                            }
+                            JSTextData::KeyPress(code) => {
+                                if matches!(code, Code::ArrowDown | Code::ArrowUp) {
+                                    if let Some(e) = onup_down_arrow {
+                                        e.call(code);
+                                    };
+                                }
+                            }
+                            JSTextData::Init => {
+                                let focus_script =
+                                    include_str!("./focus.js").replace("$UUID", &sig_id.peek());
+                                let _ = eval(&focus_script);
+                            }
+                        },
                         Err(e) => {
                             log::error!("failed to deserialize message: {}: {}", val, e);
                         }
                     }
-                } else {
-                    println!("Failing eval here every time");
-                    let rich_editor: String = include_str!("./rich_editor_handler.js")
-                        .replace("$EDITOR_ID", &id_signal())
-                        .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
-                        .replace("$INIT", &value().replace('"', "\\\"").replace('\n', "\\n"));
-                    eval_result.set(eval(&rich_editor));
-                    // HACK(Migration_0.5): Sleep Added
-                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                 }
             }
         });
     });
-
-    if let Some(pending) = listener_data.read().as_ref() {
-        pending.iter().for_each(|val| match val.to_owned() {
-            JSTextData::Input(txt) => {
-                log::debug!("Calling onchange: {txt}");
-                *text_value.write_silent() = txt.clone();
-                onchange.call((txt, true))
-            }
-            JSTextData::Cursor(cursor) => {
-                log::debug!("Calling cursor");
-
-                if let Some(e) = oncursor_update {
-                    e.call((text_value.read().clone(), cursor));
-                }
-            }
-            JSTextData::Submit => {
-                log::debug!("Calling submit");
-
-                onreturn.call((text_value.read().clone(), true, Code::Enter));
-            }
-            JSTextData::KeyPress(code) => {
-                log::debug!("Calling keypress");
-
-                if matches!(code, Code::ArrowDown | Code::ArrowUp) {
-                    if let Some(e) = onup_down_arrow {
-                        e.call(code);
-                    };
-                }
-            }
-            JSTextData::Init => {
-                log::debug!("Calling init");
-
-                let focus_script = include_str!("./focus.js").replace("$UUID", &id);
-                let _ = eval(&focus_script);
-            }
-        });
-    }
-    // bandaid fix
-    listener_data.write_silent().take();
     rsx! (
         div {
-            id: "input-group-{id}",
+            id: "input-group-{sig_id}",
             class: "input-group",
             aria_label: "input-group",
             div {
                 class: format_args!("input {}", if disabled { "disabled" } else { "" }),
                 height: "{size.get_height()}",
                 textarea {
-                    key: "textarea-key-{id}",
+                    key: "textarea-key-{sig_id}",
                     class: format_args!("{} {}", "input_textarea", if prevent_up_down_arrows {"up-down-disabled"} else {""}),
-                    id: "{id}",
+                    id: "{sig_id}",
                     aria_label: "{aria_label}",
                     disabled: "{disabled}",
                     maxlength: "{max_length}",
-                    placeholder: format_args!("{}", if is_disabled {"".to_string()} else {placeholder()}),
+                    placeholder: format_args!("{}", if is_disabled {"".to_string()} else { placeholder }),
                     onblur: move |_| {
-                        onreturn.call((text_value.read().to_string(), false, Code::Enter));
+                        onreturn.call((text_value.peek().to_string(), false, Code::Enter));
                     },
                     onkeyup: move |evt| {
                         if let Some(e) = onkeyup {
@@ -491,15 +453,15 @@ pub fn InputRich(props: Props) -> Element {
                         div {
                             class: "input-char-counter",
                             p {
-                                key: "{id_char_counter}-char-counter",
-                                id: "{id_char_counter}-char-counter",
+                                key: "{sig_id}-char-counter",
+                                id: "{sig_id}-char-counter",
                                 aria_label: "input-char-counter",
                                 class: "char-counter-p-element",
-                                {format!("{}", text_value.read().chars().count())},
+                                {format!("{}", text_value.peek().chars().count())},
                             },
                             p {
-                                key: "{id_char_counter}-char-max-length",
-                                id: "{id_char_counter}-char-max-length",
+                                key: "{sig_id}-char-max-length",
+                                id: "{sig_id}-char-max-length",
                                 class: "char-counter-p-element",
                                 {format!("/{}", max_length - 1)},
                             }
