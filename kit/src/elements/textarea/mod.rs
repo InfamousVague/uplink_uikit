@@ -331,7 +331,6 @@ pub fn InputRich(props: Props) -> Element {
     // If the id changed update the signal
     if !id.is_empty() && sig_id() != id {
         sig_id.set(id);
-        text_value.set(value.clone());
     }
 
     let script = include_str!("./script.js")
@@ -341,16 +340,17 @@ pub fn InputRich(props: Props) -> Element {
 
     // Sync changes to the editor
     use_effect(use_reactive(
-        (&placeholder, &disabled),
-        move |(placeholder, disabled)| {
+        (&value, &placeholder, &disabled),
+        move |(value, placeholder, disabled)| {
             let sync_script = include_str!("./sync_data.js").replace("$UUID", &sig_id());
+            let update_text = !text_value.peek().eq(&value);
             let _ = eval(
                 &sync_script
                     .clone()
+                    .replace("$UPDATE", &update_text.to_string())
                     .replace(
                         "$TEXT",
-                        &text_value
-                            .read()
+                        &value
                             .replace('\\', "\\\\")
                             .replace('"', "\\\"")
                             .replace('\n', "\\n"),
