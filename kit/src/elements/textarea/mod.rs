@@ -358,6 +358,9 @@ pub fn InputRich(props: Props) -> Element {
                     .replace("$PLACEHOLDER", &placeholder)
                     .replace("$DISABLED", &disabled.to_string()),
             );
+            if update_text {
+                text_value.set(value);
+            }
         },
     ));
 
