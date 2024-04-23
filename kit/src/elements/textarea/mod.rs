@@ -383,7 +383,6 @@ pub fn InputRich(props: Props) -> Element {
                         Ok(data) => match data {
                             JSTextData::Input(txt) => {
                                 text_value.set(txt.clone());
-                                log::debug!("value {}", text_value.peek());
                                 onchange.call((txt, true))
                             }
                             JSTextData::Cursor(cursor) => {
