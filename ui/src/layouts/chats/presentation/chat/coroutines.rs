@@ -100,8 +100,6 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Reso
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });
-    let mut chat_active = use_signal(|| false);
-    println!("Stated Init Chata Data");
     use_resource(move || {
         to_owned![state, chat_data];
         async move {
@@ -133,10 +131,12 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Reso
                 Ok((messages, behavior)) => {
                     log::debug!("init_chat_data");
                     println!("init_chat_data: {:?}", conv_id);
-                    chat_data
-                        .write()
-                        .set_active_chat(&state.read(), &conv_id, behavior, messages);
-                    chat_active.set(true);
+                    chat_data.write_silent().set_active_chat(
+                        &state.read(),
+                        &conv_id,
+                        behavior,
+                        messages,
+                    );
                 }
                 Err(e) => log::error!("{e}"),
             }
@@ -144,7 +144,7 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Reso
     })
 }
 
-pub async fn fetch_window<'a>(
+pub async fn fetch_window(
     conv_id: Uuid,
     chat_behavior: ChatBehavior,
     date: DateTime<Utc>,
@@ -234,6 +234,7 @@ pub async fn fetch_window<'a>(
             data::ScrollBehavior::DoNothing
         },
         on_scroll_top: if has_more_before {
+            println!("6 - Write Fetch More to on_scroll_top");
             data::ScrollBehavior::FetchMore
         } else {
             data::ScrollBehavior::DoNothing
@@ -276,6 +277,7 @@ pub async fn fetch_most_recent<'a>(
         }) => {
             let chat_behavior = ChatBehavior {
                 on_scroll_top: if has_more {
+                    println!("5 - Write Fetch More to on_scroll_top");
                     data::ScrollBehavior::FetchMore
                 } else {
                     data::ScrollBehavior::DoNothing
