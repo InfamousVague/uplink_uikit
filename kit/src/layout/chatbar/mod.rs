@@ -214,7 +214,7 @@ pub fn Chatbar(props: Props) -> Element {
             {props.with_file_upload.as_ref()},
             div{
                 class: "chatbar-group",
-                textarea::InputRich {
+                textarea::Input {
                     key: "{controlled_input_id}",
                     id: controlled_input_id.clone(),
                     loading: props.loading.unwrap_or_default(),

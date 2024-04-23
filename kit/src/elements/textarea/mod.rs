@@ -73,14 +73,14 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn Input(props: Props) -> Element {
     log::trace!("render input");
-    let left_shift_pressed = use_signal(|| false);
-    let right_shift_pressed = use_signal(|| false);
-    let enter_pressed = use_signal(|| false);
-    let numpad_enter_pressed = use_signal(|| false);
-    let cursor_position = use_signal(|| None);
+    let mut left_shift_pressed = use_hook(|| CopyValue::new(false));
+    let mut right_shift_pressed = use_hook(|| CopyValue::new(false));
+    let mut enter_pressed = use_hook(|| CopyValue::new(false));
+    let mut numpad_enter_pressed = use_hook(|| CopyValue::new(false));
+    let mut cursor_position = use_signal(|| None);
 
     let Props {
-        id: _,
+        id,
         ignore_focus: _,
         loading,
         placeholder,
@@ -99,84 +99,112 @@ pub fn Input(props: Props) -> Element {
         onup_down_arrow,
     } = props.clone();
 
-    let id = if props.id.is_empty() {
-        Uuid::new_v4().to_string()
-    } else {
-        props.id.clone()
-    };
-    let id2 = id.clone();
-    let id_char_counter = id.clone();
+    let mut sig_id = use_signal(|| {
+        if id.is_empty() {
+            Uuid::new_v4().to_string()
+        } else {
+            id.clone()
+        }
+    });
+    let mut text_value = use_signal(|| value.clone());
+    let disabled = loading || is_disabled;
+
+    return rsx!(textarea {
+        key: "textarea-key-{sig_id}",
+        class: format_args!(
+            "{} {}",
+            "input_textarea",
+            if prevent_up_down_arrows {
+                "up-down-disabled"
+            } else {
+                ""
+            }
+        ),
+        id: "{sig_id}",
+        aria_label: "{aria_label}",
+        disabled: "{disabled}",
+        value: "{text_value}",
+        maxlength: "{max_length}",
+        placeholder: format_args!(
+            "{}",
+            if is_disabled {
+                "".to_string()
+            } else {
+                placeholder
+            }
+        ),
+        oninput: move |evt| {
+            text_value.set(evt.value());
+        }
+    });
+    // If the id changed update the signal
+    if !id.is_empty() && sig_id() != id {
+        sig_id.set(id);
+    }
+
     let focus_script = if props.ignore_focus {
         String::new()
     } else {
-        include_str!("./focus.js").replace("$UUID", &id)
+        include_str!("./focus.js").replace("$UUID", &sig_id())
     };
 
     let _ = eval(&focus_script);
 
     let script = include_str!("./script.js")
-        .replace("$UUID", &id)
+        .replace("$UUID", &sig_id())
         .replace("$MULTI_LINE", &format!("{}", true));
     let disabled = loading || is_disabled;
 
-    let sync = use_signal(|| include_str!("./sync_data.js").replace("$UUID", &id));
-    let clear_counter_script =
-        r#"document.getElementById('$UUID-char-counter').innerText = "0";"#.replace("$UUID", &id);
+    let sync = include_str!("./sync_data.js").replace("$UUID", &sig_id());
 
-    let cursor_script = include_str!("./cursor_script.js").replace("$ID", &id2);
+    let cursor_script = include_str!("./cursor_script.js").replace("$ID", &sig_id());
 
-    let text_value = use_signal(|| value.clone());
-    let value_signal = use_signal(|| value.clone());
-
-    let _ = use_resource(move || {
-        to_owned![cursor_position, show_char_counter];
-        async move {
-            *cursor_position.write_silent() = Some(value_signal.read().chars().count() as i64);
-            *text_value.write_silent() = text_value.read().clone();
-            if show_char_counter {
-                let _ = eval(&sync().replace("$TEXT", &text_value.read()));
-            }
+    use_effect(use_reactive(&value, move |value| {
+        if show_char_counter {
+            let _ = eval(&sync.replace("$TEXT", &value));
         }
-    });
+        if !text_value.peek().eq(&value) {
+            text_value.set(value);
+        }
+    }));
 
     let do_cursor_update = oncursor_update.is_some();
 
-    if let Some(val) = cursor_position.write_silent().take() {
+    let cursor = cursor_position.peek().clone();
+    if let Some(val) = cursor {
         if let Some(e) = oncursor_update {
-            e.call((text_value.read().clone(), val));
+            // e.call((text_value.peek().clone(), val));
         }
+        *cursor_position.write() = None;
     }
-
-    let placeholder = use_signal(|| placeholder.clone());
-    let placeholder_clone = placeholder;
 
     rsx! (
         div {
-            id: "input-group-{id}",
+            id: "input-group-{sig_id}",
             class: "input-group",
             aria_label: "input-group",
             div {
                 class: format_args!("input {}", if disabled { "disabled" } else { "" }),
                 height: "{size.get_height()}",
                 textarea {
-                    key: "textarea-key-{id}",
+                    key: "textarea-key-{sig_id}",
                     class: format_args!("{} {}", "input_textarea", if prevent_up_down_arrows {"up-down-disabled"} else {""}),
-                    id: "{id}",
+                    id: "{sig_id}",
                     aria_label: "{aria_label}",
                     disabled: "{disabled}",
-                    value: "{text_value.read()}",
+                    value: "{text_value}",
                     maxlength: "{max_length}",
-                    placeholder: format_args!("{}", if is_disabled {"".to_string()} else {placeholder_clone()}),
+                    placeholder: format_args!("{}", if is_disabled {"".to_string()} else { placeholder }),
                     onblur: move |_| {
-                        onreturn.call((text_value.read().to_string(), false, Code::Enter));
+                        onreturn.call((text_value.peek().to_string(), false, Code::Enter));
                     },
                     oninput: {
                         to_owned![cursor_script];
                         move |evt| {
                             let current_val = evt.value().clone();
-                            *text_value.write_silent() = current_val.clone();
-                            onchange.call((current_val, true));
-                            to_owned![cursor_script, cursor_position];
+                            text_value.set(current_val.clone());
+                            /*onchange.call((current_val, true));
+                            to_owned![cursor_script];
                             async move {
                                 if do_cursor_update {
                                     let eval_result = eval(&cursor_script);
@@ -184,15 +212,15 @@ pub fn Input(props: Props) -> Element {
                                             *cursor_position.write() = Some(val.as_i64().unwrap_or_default());
                                         }
                                 }
-                            }
+                            }*/
                         }
                     },
                     onkeyup: move |evt| {
                         match evt.code() {
-                            Code::ShiftLeft => *left_shift_pressed.write_silent() = false,
-                            Code::ShiftRight => *right_shift_pressed.write_silent() = false,
-                            Code::Enter => *enter_pressed.write_silent() = false,
-                            Code::NumpadEnter => *numpad_enter_pressed.write_silent() = false,
+                            Code::ShiftLeft => *left_shift_pressed.write() = false,
+                            Code::ShiftRight => *right_shift_pressed.write() = false,
+                            Code::Enter => *enter_pressed.write() = false,
+                            Code::NumpadEnter => *numpad_enter_pressed.write() = false,
                             _ => {}
                         };
                         if let Some(e) = onkeyup {
@@ -202,7 +230,7 @@ pub fn Input(props: Props) -> Element {
                     onmousedown: {
                         to_owned![cursor_script];
                         move |_| {
-                            to_owned![cursor_script, cursor_position];
+                            to_owned![cursor_script];
                             async move {
                                 if do_cursor_update {
                                     let eval_result = eval(&cursor_script);
@@ -226,10 +254,10 @@ pub fn Input(props: Props) -> Element {
                             let old_enter_pressed = *enter_pressed.read();
                             let old_numpad_enter_pressed = *numpad_enter_pressed.read();
                             match evt.code() {
-                                Code::ShiftLeft => if !*left_shift_pressed.read() { *left_shift_pressed.write_silent() = true; },
-                                Code::ShiftRight => if !*right_shift_pressed.read() { *right_shift_pressed.write_silent() = true; },
-                                Code::Enter => if !*enter_pressed.read() { *enter_pressed.write_silent() = true; } ,
-                                Code::NumpadEnter => if !*numpad_enter_pressed.read() { *numpad_enter_pressed.write_silent() = true; },
+                                Code::ShiftLeft => if !*left_shift_pressed.read() { *left_shift_pressed.write() = true; },
+                                Code::ShiftRight => if !*right_shift_pressed.read() { *right_shift_pressed.write() = true; },
+                                Code::Enter => if !*enter_pressed.read() { *enter_pressed.write() = true; } ,
+                                Code::NumpadEnter => if !*numpad_enter_pressed.read() { *numpad_enter_pressed.write() = true; },
                                 _ => {}
                             };
                             // write_silent() doesn't update immediately. if the enter key is pressed, have to check the evt code
@@ -237,10 +265,7 @@ pub fn Input(props: Props) -> Element {
                             let numpad_enter_toggled = !old_numpad_enter_pressed && matches!(evt.code(), Code::NumpadEnter);
                             if (enter_toggled || numpad_enter_toggled) && !(*right_shift_pressed.read() || *left_shift_pressed.read())
                             {
-                                 if show_char_counter {
-                                        let _ = eval(&clear_counter_script);
-                                    }
-                                    onreturn.call((text_value.read().clone(), true, evt.code()));
+                                onreturn.call((text_value.peek().clone(), true, evt.code()));
                             }
 
                             // special codepath to handle the arrow keys
@@ -258,7 +283,7 @@ pub fn Input(props: Props) -> Element {
                                     false
                                 }
                             };
-                            to_owned![eval, cursor_script, cursor_position];
+                            to_owned![eval, cursor_script];
                             async move {
                                 if do_cursor_update && arrow {
                                     let eval_result = eval(&cursor_script);
@@ -274,15 +299,15 @@ pub fn Input(props: Props) -> Element {
                         div {
                             class: "input-char-counter",
                             p {
-                                key: "{id_char_counter}-char-counter",
-                                id: "{id_char_counter}-char-counter",
+                                key: "{sig_id}-char-counter",
+                                id: "{sig_id}-char-counter",
                                 aria_label: "input-char-counter",
                                 class: "char-counter-p-element",
-                                {format!("{}", text_value.read().len())},
+                                {format!("{}", text_value.peek().len())},
                             },
                             p {
-                                key: "{id_char_counter}-char-max-length",
-                                id: "{id_char_counter}-char-max-length",
+                                key: "{sig_id}-char-max-length",
+                                id: "{sig_id}-char-max-length",
                                 class: "char-counter-p-element",
                                { format!("/{}", max_length - 1)},
                             }
