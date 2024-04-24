@@ -52,7 +52,7 @@ use crate::{
     components::emoji_group::EmojiGroup,
     layouts::{
         chats::{
-            data::{self, MessagesToEdit, MessagesToSend, ScrollBtn},
+            data::{self, ChatData, MessagesToEdit, MessagesToSend, ScrollBtn},
             scripts,
         },
         storage::files_layout::file_preview::open_file_preview_modal,
