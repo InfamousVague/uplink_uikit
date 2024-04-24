@@ -96,17 +96,30 @@ pub fn handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
 
 // any use_future should be in the coroutines file to prevent a naming conflict with the futures crate.
 pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Resource<()> {
-    let active_chat_id_signal = use_signal(move || {
+    let mut active_chat_id_signal = use_signal(move || {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });
-    let mut chat_active = use_signal(|| false);
-    println!("Stated Init Chata Data");
+
     use_resource(move || {
         to_owned![state, chat_data];
         async move {
             while !state.read().initialized {
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            }
+
+            // HACK(Migration_0.5): Add this loop to wait return a valid ID for active chat
+            loop {
+                let active_chat_id = state.read().get_active_chat().map(|x| x.id);
+                if active_chat_id.is_some() {
+                    *active_chat_id_signal.write_silent() = active_chat_id;
+                    break;
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            }
+
+            if chat_data.read().active_chat.is_initialized {
+                return;
             }
 
             let conv_id = match active_chat_id_signal() {
@@ -116,7 +129,6 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Reso
 
             let behavior = chat_data.read().get_chat_behavior(conv_id);
             let config = behavior.messages_config();
-
             let r = match config {
                 FetchMessagesConfig::MostRecent { limit } => {
                     log::trace!("fetching most recent messages for chat");
@@ -136,7 +148,6 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Reso
                     chat_data
                         .write()
                         .set_active_chat(&state.read(), &conv_id, behavior, messages);
-                    chat_active.set(true);
                 }
                 Err(e) => log::error!("{e}"),
             }
@@ -144,7 +155,7 @@ pub fn init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Reso
     })
 }
 
-pub async fn fetch_window<'a>(
+pub async fn fetch_window(
     conv_id: Uuid,
     chat_behavior: ChatBehavior,
     date: DateTime<Utc>,
@@ -234,8 +245,10 @@ pub async fn fetch_window<'a>(
             data::ScrollBehavior::DoNothing
         },
         on_scroll_top: if has_more_before {
+            println!("6 - Write Fetch More to on_scroll_top");
             data::ScrollBehavior::FetchMore
         } else {
+            println!("6 - 1 - Write Fetch More to on_scroll_top");
             data::ScrollBehavior::DoNothing
         },
         most_recent_msg_id,
@@ -245,7 +258,7 @@ pub async fn fetch_window<'a>(
     Ok((messages, new_behavior))
 }
 
-pub async fn fetch_most_recent<'a>(
+pub async fn fetch_most_recent(
     conv_id: Uuid,
     limit: usize,
 ) -> anyhow::Result<(Vec<ui_adapter::Message>, ChatBehavior)> {

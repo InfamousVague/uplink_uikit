@@ -206,7 +206,6 @@ pub fn ContextMenu(props: Props) -> Element {
                 tokio::time::sleep(std::time::Duration::from_millis(200)).await;
                 match eval_result().await {
                     Ok(_) => {
-                        log::debug!("Context menu script evaluated successfully.");
                         break;
                     }
                     Err(_) => {

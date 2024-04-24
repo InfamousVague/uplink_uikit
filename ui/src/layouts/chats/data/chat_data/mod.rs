@@ -264,6 +264,7 @@ impl ChatData {
     }
 
     pub fn set_chat_behavior(&mut self, id: Uuid, behavior: ChatBehavior) {
+        println!("Set Chat Behavior");
         self.chat_behaviors.insert(id, behavior);
     }
 
