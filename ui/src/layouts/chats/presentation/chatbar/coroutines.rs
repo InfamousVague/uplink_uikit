@@ -88,6 +88,7 @@ pub fn get_scroll_ch(chat_data: &Signal<data::ChatData>, state: &Signal<State>) 
                 {
                     Ok((messages, behavior)) => {
                         log::trace!("re-init messages with most recent");
+                        println!("Setting Active Chat: {:?}", conv_id);
                         chat_data.write().set_active_chat(
                             &state.read(),
                             &conv_id,

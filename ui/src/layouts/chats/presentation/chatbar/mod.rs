@@ -354,7 +354,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                 }
             },
             onchange: move |v: String| {
-                println!("OnChange: ui/src/layouts/chats/presentation/chatbar/mod.rs: {}", v);
                 if !active_chat_id.is_nil() {
                     state.write_silent().mutate(Action::SetChatDraft(active_chat_id, v));
                     validate_max();

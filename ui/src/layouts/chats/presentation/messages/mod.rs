@@ -52,7 +52,7 @@ use crate::{
     components::emoji_group::EmojiGroup,
     layouts::{
         chats::{
-            data::{self, ChatData, MessagesToEdit, MessagesToSend, ScrollBtn},
+            data::{self, MessagesToEdit, MessagesToSend, ScrollBtn},
             scripts,
         },
         storage::files_layout::file_preview::open_file_preview_modal,
@@ -102,42 +102,36 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
     let active_chat_id = chat_data.read().active_chat.id();
     // used by the intersection observer to terminate itself.
     let chat_key = chat_data.read().active_chat.key().to_string();
-    let chat_behavior = chat_data.read().get_chat_behavior(active_chat_id);
+    let mut chat_behavior = use_signal(|| chat_data.read().get_chat_behavior(active_chat_id));
 
-    let _ = use_resource(move || async move {
-        loop {
-            let chat_behavior = chat_data.read().get_chat_behavior(active_chat_id);
-            println!("chat_behavior: {:?}", chat_behavior.on_scroll_top);
-            tokio::time::sleep(std::time::Duration::from_millis(2500)).await;
-        }
-    });
-
-    let msg_container_end =
-        if matches!(chat_behavior.on_scroll_top, data::ScrollBehavior::FetchMore) {
-            rsx!(div {
-                class: "fetching",
+    let msg_container_end = if matches!(
+        chat_behavior().on_scroll_top,
+        data::ScrollBehavior::FetchMore
+    ) {
+        rsx!(div {
+            class: "fetching",
+            p {
+                Loader {
+                    spinning: true
+                },
+                {get_local_text("messages.fetching")}
+            }
+        })
+    } else {
+        rsx!(
+            div {
+                // key: "encrypted-notification-0001",
+                class: "msg-container-end",
+                aria_label: "messages-secured-alert",
                 p {
-                    Loader {
-                        spinning: true
+                    IconElement {
+                        icon:  Icon::LockClosed,
                     },
-                    {get_local_text("messages.fetching")}
+                    {get_local_text("messages.msg-banner")}
                 }
-            })
-        } else {
-            rsx!(
-                div {
-                    // key: "encrypted-notification-0001",
-                    class: "msg-container-end",
-                    aria_label: "messages-secured-alert",
-                    p {
-                        IconElement {
-                            icon:  Icon::LockClosed,
-                        },
-                        {get_local_text("messages.msg-banner")}
-                    }
-                }
-            )
-        };
+            }
+        )
+    };
 
     rsx!(
         div {

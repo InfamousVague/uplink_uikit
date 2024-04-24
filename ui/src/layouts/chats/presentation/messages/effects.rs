@@ -15,16 +15,29 @@ pub fn init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
 
     let _ = use_resource(move || {
         async move {
-            if chat_data.read().active_chat.is_initialized {
-                let eval_result_scroll_script = eval(&scroll_script_signal());
-                if let Err(e) = eval_result_scroll_script.join().await {
-                    log::error!("failed to join eval: {:?}", e);
-                    return;
-                }
-                println!("Sending command to CoRoutine");
-                ch.send(());
-                return;
-            }
+            // if chat_data.read().active_chat.is_initialized {
+            //     println!("2 - Started init_msg_scroll: {:?}", scroll_script_signal());
+            //     let eval_result_scroll_script = eval(&scroll_script_signal());
+            //     loop {
+            //         tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+            //         match eval_result_scroll_script.join().await {
+            //             Ok(_) => {
+            //                 println!("SCROLLL SCRIPPTTT OOOOKKKKK");
+            //                 break;
+            //             }
+            //             Err(_) => {
+            //                 log::error!("failed to join eval");
+            //             }
+            //         }
+            //     }
+            //     // if let Err(e) = eval_result_scroll_script.join().await {
+            //     //     log::error!("failed to join eval: {:?}", e);
+            //     //     return;
+            //     // }
+            //     println!("Sending command to CoRoutine");
+            //     ch.send(());
+            //     return;
+            // }
 
             // replicate behavior from before refactor
             let _ = eval(SETUP_CONTEXT_PARENT);
@@ -72,7 +85,16 @@ pub fn init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
                     scripts::SCROLL_TO_BOTTOM.replace("$MESSAGE_ID", &format!("{view_bottom}"))
                 }
             };
-            *scroll_script_signal.write_silent() = scroll_script;
+            // *scroll_script_signal.write_silent() = scroll_script;
+
+            let eval_result_scroll_script = eval(&scroll_script);
+            println!("Before Eval");
+            if let Err(e) = eval_result_scroll_script.join().await {
+                log::error!("failed to join eval: {:?}", e);
+                return;
+            }
+            println!("Sending command to CoRoutine");
+            ch.send(());
         }
     });
 
