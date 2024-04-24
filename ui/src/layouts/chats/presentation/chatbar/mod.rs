@@ -85,7 +85,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     let mut show_storage_modal = use_signal(|| false);
 
     let mut suggestions = use_signal(|| SuggestionType::None);
-    let mut mentions = use_signal(Vec::new);
 
     let with_scroll_btn = scroll_btn.read().get(active_chat_id) && !is_loading;
 
@@ -233,7 +232,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
         })
         .unwrap_or_default();
     let chat_participants_2 = chat_participants.clone();
-    let chat_participants_3 = chat_participants.clone();
 
     let mut submit_fn = move || {
         local_typing_ch.send(TypingIndicator::NotTyping);
@@ -246,7 +244,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
             .and_then(|d| d.draft.clone())
             .map(|msg| {
                 let (txt, _) =
-                    parse_mentions(&msg, &chat_participants_3, &my_id, true, mention_to_did_key);
+                    parse_mentions(&msg, &chat_participants_2, &my_id, true, mention_to_did_key);
                 txt
             })
             .unwrap_or_default()
@@ -261,7 +259,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
         }
 
         suggestions.set(SuggestionType::None);
-        mentions.set(vec![]);
 
         if !msg_valid(&msg) || active_chat_id.is_nil() {
             return;
@@ -404,7 +401,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                                     let username = format!("{}#{}", id.username(), id.short_id());
                                     v = v.replace(&sub, &sub.replace(&tag, &format!("{username} ")));
                                     state.write().mutate(Action::SetChatDraft(active_chat_id, v));
-                                    mentions.write_silent().push((id.did_key(), username));
                                 }
                                 suggestions.set(SuggestionType::None);
                                 return;
@@ -433,13 +429,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                     state
                         .write()
                         .mutate(Action::SetChatDraft(active_chat_id, draft));
-                    if let SuggestionType::Tag(_, _) = suggestions() {
-                        let amount = replacement.chars().count() - 9;
-                        let name: String = replacement.chars().take(amount).collect(); // remove short did
-                        if let Some(participant) = chat_participants_2.iter().find(|id|id.username().eq(&name)) {
-                            mentions.write_silent().push((participant.did_key(), replacement));
-                        }
-                    }
                     suggestions.set(SuggestionType::None);
                 }
             },
