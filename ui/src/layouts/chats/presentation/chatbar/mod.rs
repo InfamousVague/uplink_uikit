@@ -364,7 +364,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
             value: state.read().get_active_chat().as_ref().and_then(|d| d.draft.clone()).unwrap_or_default(),
             onreturn: move |_| submit_fn(),
             extensions: rsx!(for node in ext_renders { {rsx!({node})} }),
-            suggestions: suggestions(),
+            suggestions: suggestions,
             oncursor_update: move |(mut v, p): (String, i64)| {
                 if !active_chat_id.is_nil() {
                     let sub: String = v.chars().take(p as usize).collect();
