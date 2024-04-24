@@ -325,6 +325,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     } else {
         "...".to_string()
     };
+    let mut cursor_position: Signal<Option<usize>> = use_signal(|| None);
 
     let typing_users: Vec<String> = users_typing.iter().map(|id| (*id).username()).collect();
     let chatbar = rsx!(
@@ -362,6 +363,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
             onreturn: move |_| submit_fn(),
             extensions: rsx!(for node in ext_renders { {rsx!({node})} }),
             suggestions: suggestions,
+            cursor_position: cursor_position,
             oncursor_update: move |(mut v, p): (String, i64)| {
                 if !active_chat_id.is_nil() {
                     let sub: String = v.chars().take(p as usize).collect();
@@ -425,10 +427,12 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                         .and_then(|d| d.draft.clone())
                         .unwrap_or_default();
                     let sub: String = draft.chars().take(p as usize).collect();
-                    draft = draft.replace(&sub, &sub.replace(&pattern, &replacement));
+                    let replaced = sub.replace(&pattern, &replacement);
+                    draft = draft.replace(&sub, &replaced);
                     state
                         .write()
                         .mutate(Action::SetChatDraft(active_chat_id, draft));
+                    *cursor_position.write() = Some(replaced.chars().count());
                     suggestions.set(SuggestionType::None);
                 }
             },

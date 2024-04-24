@@ -53,6 +53,7 @@ pub struct Props {
     max_length: i32,
     #[props(default = Size::Normal)]
     size: Size,
+    cursor_position: Option<Signal<Option<usize>>>,
     #[props(default = "".to_owned())]
     aria_label: String,
     onchange: EventHandler<(String, bool)>,
@@ -85,6 +86,7 @@ pub fn Input(props: Props) -> Element {
         placeholder,
         max_length,
         size,
+        cursor_position: _,
         aria_label,
         onchange,
         onreturn,
@@ -287,6 +289,7 @@ pub fn InputRich(props: Props) -> Element {
         placeholder,
         max_length,
         size,
+        cursor_position,
         aria_label,
         onchange,
         onreturn,
@@ -339,6 +342,17 @@ pub fn InputRich(props: Props) -> Element {
                     .replace("$PLACEHOLDER", &placeholder)
                     .replace("$DISABLED", &disabled.to_string()),
             );
+            if let Some(mut pos) = cursor_position {
+                let val = pos.read().clone();
+                if let Some(p) = val {
+                    let _ = eval(
+                        &include_str!("./set_caret_position.js")
+                            .replace("$ELEMENT", &sig_id.peek())
+                            .replace("$POS", &p.to_string()),
+                    );
+                    *pos.write() = None;
+                }
+            }
             if update_text {
                 text_value.set(value);
             }

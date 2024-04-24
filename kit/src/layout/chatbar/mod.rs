@@ -74,6 +74,7 @@ pub struct Props {
     is_disabled: bool,
     ignore_focus: bool,
     suggestions: Signal<SuggestionType>,
+    cursor_position: Signal<Option<usize>>,
     oncursor_update: Option<EventHandler<(String, i64)>>,
     on_suggestion_click: Option<EventHandler<(String, String, i64)>>,
     onup_down_arrow: Option<EventHandler<Code>>,
@@ -97,6 +98,7 @@ impl Clone for Props {
             is_disabled: self.is_disabled,
             ignore_focus: self.ignore_focus,
             suggestions: self.suggestions.clone(),
+            cursor_position: self.cursor_position,
             oncursor_update: self.oncursor_update,
             on_suggestion_click: self.on_suggestion_click,
             onup_down_arrow: self.onup_down_arrow,
@@ -260,6 +262,7 @@ pub fn Chatbar(props: Props) -> Element {
                             props.onreturn.call(v);
                         }
                     },
+                    cursor_position: props.cursor_position,
                     oncursor_update: move |(v,p)| {
                         if let Some(e) = props.oncursor_update.as_ref() {
                             e.call((v,p))
