@@ -127,7 +127,6 @@ pub fn handle_msg_scroll(
                     let eval_stream = async_stream::stream! {
                         let mut should_break = false;
                         while !should_break {
-                            println!("5 - infinite loop, should_break: {:?}", should_break);
                             match eval_result.recv().await {
                                 Ok(s) => match serde_json::from_str::<JsMsg>(s.as_str().unwrap_or_default()) {
                                     Ok(msg) => {
@@ -143,6 +142,7 @@ pub fn handle_msg_scroll(
                                             log::warn!("received js event from wrong conversation");
                                             continue;
                                         }
+
                                         should_break = matches!(msg, JsMsg::Top{ .. } | JsMsg::Bottom { .. });
                                         yield msg;
                                     },
