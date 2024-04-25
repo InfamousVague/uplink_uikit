@@ -178,9 +178,6 @@ fn wrap_links_with_a_tags(text: &str) -> (String, Vec<String>) {
 #[allow(non_snake_case)]
 pub fn Message(props: Props) -> Element {
     //  log::trace!("render Message");
-    let props_signal = use_signal(|| props.clone());
-    let props_signal2 = use_signal(|| props.clone());
-
     let loading = props.loading.unwrap_or_default();
     let is_remote = props.remote.unwrap_or_default();
     let order = props.order.unwrap_or(Order::Last);
@@ -196,11 +193,9 @@ pub fn Message(props: Props) -> Element {
         .map(|v| !v.is_empty())
         .unwrap_or(false);
 
-    let attachments2 = props_signal.read().clone().attachments;
-
     // todo: pick an icon based on the file extension
     // there's some weirdness here to avoid more nesting. this should make the code easier to read overall
-    let attachment_list = attachments2.as_ref().cloned().map(|vec| {
+    let attachment_list = props.attachments.as_ref().map(|vec| {
         vec.iter()
             .cloned()
             .map(|file| {
@@ -226,23 +221,16 @@ pub fn Message(props: Props) -> Element {
             .collect::<Vec<_>>() // Add this line to collect the cloned values into a new vector
     });
 
-    let single = props_signal()
+    let single = props
         .attachments_pending_uploads
+        .as_ref()
         .map(|v| v.len() < 2)
         .unwrap_or_default();
 
-    let with_text_signal = use_signal(|| props.with_text.clone());
-    let attachments_pending = props_signal2
-        .clone()
-        .read()
-        .attachments_pending_uploads
-        .clone();
-
-    let binding = attachments_pending.clone();
-    let pending_attachment_list = binding.as_ref().map(|vec| {
+    let pending_attachment_list = props.attachments_pending_uploads.as_ref().map(|vec| {
         vec.iter().cloned().map(|(location, prog)| {
+            let txt = props.with_text.clone();
             let location_signal = use_signal(|| location.clone());
-
             let file = progress_file(&prog.clone());
             rsx!(FileEmbed {
                 key: "{file}",
@@ -255,7 +243,7 @@ pub fn Message(props: Props) -> Element {
                 on_resend_msg: move |_| {
                     if single {
                         if let Some(e) = &props.on_resend {
-                            e.call((with_text_signal(), location_signal()))
+                            e.call((txt.clone(), location_signal()))
                         }
                     } else {
                         if let Some(e) = &props.on_delete {
@@ -284,6 +272,7 @@ pub fn Message(props: Props) -> Element {
         .then_some("message-pending")
         .unwrap_or_default();
     let is_editing = props.with_text.is_some() && props.editing;
+    let edit_1 = props.with_text.clone();
 
     rsx! (
         {props.pinned.then(|| {
@@ -307,7 +296,7 @@ pub fn Message(props: Props) -> Element {
                 div {
                     class: "edit-message-wrap",
                     onclick: move |_| {
-                        props.on_edit.call(props.with_text.clone().unwrap_or_default());
+                        props.on_edit.call(edit_1.clone().unwrap_or_default());
                     }
                 },
             )
@@ -342,7 +331,7 @@ pub fn Message(props: Props) -> Element {
                         {rsx! (
                             EditMsg {
                                 id: props.id.clone(),
-                                text: with_text_signal().unwrap_or_default(),
+                                text: props.with_text.clone().unwrap_or_default(),
                                 on_enter: move |update| {
                                     props.on_edit.call(update);
                                 }
@@ -351,9 +340,9 @@ pub fn Message(props: Props) -> Element {
                     }
                 )
             )},
-            {(with_text_signal().is_some() && !props.editing).then(|| rsx!(
+            {(props.with_text.is_some() && !props.editing).then(|| rsx!(
                 ChatText {
-                    text: with_text_signal().as_ref().cloned().unwrap_or_default(),
+                    text: props.with_text.clone().unwrap_or_default(),
                     remote: is_remote,
                     pending: props.pending,
                     markdown: props.parse_markdown,
@@ -379,7 +368,7 @@ pub fn Message(props: Props) -> Element {
         div {
             class: "{reactions_class}",
             aria_label: "message-reaction-container",
-            {props_signal().reactions.iter().cloned().map(move |reaction| {
+            {props.reactions.iter().cloned().map(move |reaction| {
                 let reaction_count = reaction.reaction_count;
                 let emoji = reaction.emoji.clone();
                 let alt = &reaction.alt;
@@ -786,14 +775,12 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
         }
     });
 
-    let did = use_signal(|| props.id.clone());
-
-    use_effect(move || {
+    use_effect(use_reactive(&props.id, move |id| {
         to_owned![ch];
         {
-            ch.send(IdentityCmd::GetIdentity(did.read().clone()));
+            ch.send(IdentityCmd::GetIdentity(id));
         }
-    });
+    }));
 
     match identity() {
         Some(identity) => {

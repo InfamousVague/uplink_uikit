@@ -1,7 +1,4 @@
-use dioxus::{
-    events::{MouseData, MouseEvent},
-    prelude::*,
-};
+use dioxus::{events::MouseEvent, prelude::*};
 
 use crate::{
     components::indicator::{Indicator, Platform, Status},
@@ -30,24 +27,8 @@ pub fn get_image(props: Props) -> String {
     props.image.clone().unwrap_or_default()
 }
 
-/// Tells the parent the user_image was interacted with.
-pub fn emit(props: Props, e: Event<MouseData>) {
-    match &props.on_press {
-        Some(f) => f.call(e),
-        None => {}
-    }
-}
-
-pub fn emit_context(props: Props, e: Event<MouseData>) {
-    match &props.oncontextmenu {
-        Some(f) => f.call(e),
-        None => {}
-    }
-}
-
 #[allow(non_snake_case)]
 pub fn UserImage(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
     let image_data: String = get_image(props.clone());
     let status = props.status;
     let platform = props.platform;
@@ -70,8 +51,14 @@ pub fn UserImage(props: Props) -> Element {
                         if props.oncontextmenu.is_some() {"has-context-handler"} else {""})
                     },
                     aria_label: "user-image-wrap",
-                    onclick: move |e| emit(props_signal(), e),
-                    oncontextmenu: move |e| emit_context(props_signal(), e),
+                    onclick: move |e| match &props.on_press {
+                        Some(f) => f.call(e),
+                        None => {}
+                    },
+                    oncontextmenu: move |e| match &props.oncontextmenu {
+                        Some(f) => f.call(e),
+                        None => {}
+                    },
                     div {
                         class: "user-image",
                         aria_label: "User Image",

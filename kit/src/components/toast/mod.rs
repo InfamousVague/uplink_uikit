@@ -27,7 +27,7 @@ pub struct Props {
 
 /// Generates the optional icon providing a fallback.
 /// If there is no icon provided, the toast should not call this.
-pub fn get_icon(props: Props) -> Icon {
+pub fn get_icon(props: &Props) -> Icon {
     match &props.icon {
         Some(icon) => icon.to_owned(),
         None => Icon::QuestionMarkCircle,
@@ -36,7 +36,6 @@ pub fn get_icon(props: Props) -> Icon {
 
 #[allow(non_snake_case)]
 pub fn Toast(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
     let content = props.with_content.clone().unwrap_or_default();
     let title = props.with_title.clone().unwrap_or_default();
 
@@ -44,12 +43,12 @@ pub fn Toast(props: Props) -> Element {
         div {
             class: "toast",
             aria_label: "Toast Notification",
-            onmouseover: move |_| props_signal().on_hover.call(props.id),
+            onmouseover: move |_| props.on_hover.call(props.id),
             {(props.icon.is_some()).then(|| rsx!(
                 span {
                     class: "toast-icon",
                     IconElement {
-                        icon: get_icon(props_signal())
+                        icon: get_icon(&props)
                     }
                 }
             ))},

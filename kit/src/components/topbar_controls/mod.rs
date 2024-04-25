@@ -8,7 +8,7 @@ pub fn TopbarControls() -> Element {
     let state = use_signal(State::load);
     let desktop = use_window();
     let desktop_signal = use_signal(|| desktop.clone());
-    let first_resize = use_signal(|| true);
+    let mut first_resize = use_hook(|| CopyValue::new(true));
     if cfg!(not(target_os = "macos")) {
         rsx!(
             div {
@@ -32,7 +32,7 @@ pub fn TopbarControls() -> Element {
                             && cfg!(target_os = "windows")
                         {
                             desktop_signal().set_inner_size(LogicalSize::new(950.0, 600.0));
-                            *first_resize.write_silent() = false;
+                            *first_resize.write() = false;
                         }
                     }
                 },

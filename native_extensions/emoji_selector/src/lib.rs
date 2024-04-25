@@ -146,9 +146,9 @@ enum Command {
 }
 
 #[component(no_case_check)]
-fn render_selector(mouse_over_emoji_button: Signal<bool>, nav: Element) -> Element {
+fn render_selector(mouse_over_emoji_button: CopyValue<bool>, nav: Element) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let mouse_over_emoji_selector = use_signal(|| false);
+    let mut mouse_over_emoji_selector = use_hook(|| CopyValue::new(false));
     let mut emoji_suggestions = use_signal(Vec::new);
 
     let focus_script = r#"
@@ -200,10 +200,10 @@ fn render_selector(mouse_over_emoji_button: Signal<bool>, nav: Element) -> Eleme
         }
         div {
             onmouseenter: move |_| {
-                *mouse_over_emoji_selector.write_silent() = true;
+                *mouse_over_emoji_selector.write() = true;
             },
             onmouseleave: move |_| {
-                *mouse_over_emoji_selector.write_silent() = false;
+                *mouse_over_emoji_selector.write() = false;
                 let _ = eval(focus_script);
             },
             id: "emoji_selector",
@@ -301,7 +301,7 @@ fn render_selector(mouse_over_emoji_button: Signal<bool>, nav: Element) -> Eleme
 #[component(no_case_check)]
 fn render_1(_unused: bool) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let mouse_over_emoji_button = use_signal(|| false);
+    let mut mouse_over_emoji_button = use_hook(|| CopyValue::new(false));
     let visible = state.read().ui.emoji_picker_visible;
     log::debug!("vis {}", visible);
 
@@ -339,10 +339,10 @@ fn render_1(_unused: bool) -> Element {
                     },
                     div {
                         onmouseenter: move |_| {
-                            *mouse_over_emoji_button.write_silent() = true;
+                            *mouse_over_emoji_button.write() = true;
                         },
                         onmouseleave: move |_| {
-                            *mouse_over_emoji_button.write_silent() = false;
+                            *mouse_over_emoji_button.write() = false;
                         },
                         // Render standard (required) button to toggle.
                         Button {

@@ -58,14 +58,6 @@ impl PartialEq for Props {
     }
 }
 
-/// Tells the parent the nav was interacted with.
-pub fn emit(props: Props, to: &To) {
-    match &props.onnavigate {
-        Some(f) => f.call(to.to_owned()),
-        None => {}
-    }
-}
-
 /// Gets the appearance for a nav button based on the active route
 pub fn get_appearance(active_route: To, route: To) -> Appearance {
     if active_route == route {
@@ -116,7 +108,6 @@ pub fn Nav(props: Props) -> Element {
     let routes_in_app = props.routes.clone();
     // For some reason if you dont do this the first render will not have a context menu
     let uuid = use_signal(|| Uuid::new_v4().to_string());
-    let props_signal = use_signal(|| props.clone());
 
     rsx!(
         div {
@@ -150,7 +141,10 @@ pub fn Nav(props: Props) -> Element {
                             icon: route.icon,
                             onpress: move |_| {
                                 active.set(route.to);
-                                emit(props_signal.read().clone(), &route.to)
+                                match &props.onnavigate {
+                                    Some(f) => f.call(&route.to),
+                                    None => {}
+                                }
                             },
                             text: {
                                 if bubble { name } else { "".into() }

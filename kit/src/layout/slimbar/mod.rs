@@ -29,7 +29,6 @@ pub fn emit(props: Props) {
 #[allow(non_snake_case)]
 pub fn Slimbar(props: Props) -> Element {
     let navbar_visible = props.navbar_visible;
-    let props2 = props.clone();
 
     rsx!(div {
         class: "slimbar",
@@ -40,7 +39,10 @@ pub fn Slimbar(props: Props) -> Element {
                 Button {
                     aria_label: "back-button".to_string(),
                     icon: icons::outline::Shape::Sidebar,
-                    onpress: move |_| emit(props2.clone()),
+                    onpress: move |_| match &props.onback {
+                        Some(f) => f.call(()),
+                        None => {}
+                    },
                     appearance: Appearance::Secondary
                 }
             }

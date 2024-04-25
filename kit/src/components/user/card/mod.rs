@@ -13,7 +13,6 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn UserCard(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
     rsx!(
         div {
             class: "user-card",
@@ -42,7 +41,7 @@ pub fn UserCard(props: Props) -> Element {
                     appearance: if props.friends { Appearance::Secondary } else { Appearance::Primary },
                     icon: if props.friends { Icon::Check } else { Icon::Plus },
                     onpress: move |_| {
-                        props_signal().onjoin.call(());
+                        props.onjoin.call(());
                     }
                 }
             }

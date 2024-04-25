@@ -31,7 +31,6 @@ where
     T: Clone + std::fmt::Display,
 {
     let mut index = use_signal(|| props.initial_index);
-    let props_clone = use_signal(|| props.clone());
     if *index.read() != props.initial_index {
         index.set(props.initial_index);
     }
@@ -47,6 +46,7 @@ where
             "?".to_string()
         }
     };
+    let values = props.values.clone();
 
     rsx!(
             div { class: "slide-selector", aria_label: "slide-selector",
@@ -64,7 +64,7 @@ where
                         }
                         let new_val = *index.read() - 1;
                         index.set(new_val);
-                        if let Some(x) = props_clone().values.get(new_val) {
+                        if let Some(x) = props.values.get(new_val) {
                             props.onset.call(x.clone());
                         }
                     }
@@ -79,12 +79,12 @@ where
                             },
                     disabled: false,
                     onpress: move |_| {
-                        if *index.read() >= (props_clone().values.len() - 1) {
+                        if *index.read() >= (values.len() - 1) {
                             return;
                         }
                         let new_val = *index.read() + 1;
                         index.set(new_val);
-                        if let Some(x) = props_clone().values.get(new_val) {
+                        if let Some(x) = values.get(new_val) {
                             props.onset.call(x.clone());
                         }
                     }

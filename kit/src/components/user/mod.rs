@@ -1,9 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use dioxus::{
-    events::{MouseData, MouseEvent},
-    prelude::*,
-};
+use dioxus::{events::MouseEvent, prelude::*};
 
 use crate::components::{
     indicator::{Platform, Status},
@@ -49,16 +46,8 @@ pub fn get_badge(props: Props) -> String {
     props.with_badge.clone().unwrap_or_default()
 }
 
-/// Tells the parent the user was interacted with.
-pub fn emit(props: Props, e: Event<MouseData>) {
-    if let Some(f) = props.onpress.as_ref() {
-        f.call(e)
-    }
-}
-
 #[allow(non_snake_case)]
 pub fn User(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
     let time_ago = get_time_ago(props.clone());
     let badge = get_badge(props.clone());
     let aria_label = props.aria_label.clone().unwrap_or_default();
@@ -72,7 +61,11 @@ pub fn User(props: Props) -> Element {
                 class: {
                     format_args!("user {} noselect defaultcursor", if active { "active" } else { "" })
                 },
-                onclick: move |e| emit(props_signal(), e),
+                onclick: move |e| {
+                    if let Some(f) = props.onpress.as_ref() {
+                        f.call(e)
+                    }
+                },
                 aria_label: "{aria_label}",
                 {(!badge.is_empty()).then(|| rsx!(
                     span {

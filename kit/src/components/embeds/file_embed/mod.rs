@@ -70,7 +70,6 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn FileEmbed(props: Props) -> Element {
     //log::trace!("rendering file embed: {}", cx.props.filename);
-    let props_signal = use_signal(|| props.clone());
     let file_extension = std::path::Path::new(&props.filename)
         .extension()
         .and_then(OsStr::to_str)
@@ -83,7 +82,7 @@ pub fn FileEmbed(props: Props) -> Element {
         })
         .unwrap_or_default();
     let file_extension_is_empty = file_extension.is_empty();
-    let filename = props_signal().filename;
+    let filename = &props.filename;
     let download_pending = props.download_pending.unwrap_or(false);
     let is_from_attachments = props.is_from_attachments.unwrap_or(false);
     let btn_icon = if !download_pending {
@@ -105,14 +104,15 @@ pub fn FileEmbed(props: Props) -> Element {
     let mut file_size_pending = String::new();
     let mut failed = false;
 
-    let perc = if let Some(p) = props_signal().progress {
+    let perc = if let Some(p) = props.progress.as_ref() {
         match p {
             FileProgression::CurrentProgress {
                 name: _,
                 current,
                 total,
-            } => match total {
+            } => match total.clone() {
                 Some(size) => {
+                    let current = *current;
                     file_size_pending
                         .push_str(&format_args!("{}", format_size(size, DECIMAL)).to_string());
                     if current > 0 && size > 0 {
@@ -126,7 +126,7 @@ pub fn FileEmbed(props: Props) -> Element {
             FileProgression::ProgressComplete { name: _, total } => {
                 if let Some(size) = total {
                     file_size_pending
-                        .push_str(&format_args!("{}", format_size(size, DECIMAL)).to_string());
+                        .push_str(&format_args!("{}", format_size(*size, DECIMAL)).to_string());
                 };
                 100
             }
@@ -164,10 +164,10 @@ pub fn FileEmbed(props: Props) -> Element {
             }
         }
     };
-    let remote = props_signal().remote.unwrap_or_default();
-    let thumbnail = props_signal().thumbnail.clone().unwrap_or_default();
+    let remote = props.remote.unwrap_or_default();
+    let thumbnail = props.thumbnail.clone().unwrap_or_default();
     let has_thumbnail = !thumbnail.is_empty();
-    let file_name_with_extension = props_signal().filename.to_string();
+    let file_name_with_extension = props.filename.to_string();
     let temp_dir = STATIC_ARGS
         .temp_files
         .join(file_name_with_extension.clone());
@@ -182,7 +182,7 @@ pub fn FileEmbed(props: Props) -> Element {
                     if remote {
                         "remote"
                     } else { "" },
-                    if props_signal().big.unwrap_or_default() {
+                    if props.big.unwrap_or_default() {
                         "big"
                     } else { "" }
                 )
@@ -195,7 +195,7 @@ pub fn FileEmbed(props: Props) -> Element {
                     } else { "" }
                 )
             },
-            {(failed && props_signal().progress.is_some()).then(|| rsx!(div {
+            {(failed && props.progress.is_some()).then(|| rsx!(div {
                 class: "control-btn",
                 Button {
                     icon: Icon::Trash,
@@ -203,7 +203,7 @@ pub fn FileEmbed(props: Props) -> Element {
                     appearance: Appearance::Primary,
                     aria_label: "delete-button".to_string(),
                     onpress: move |_| {
-                        if let Some(e) = &props_signal().on_delete_msg {
+                        if let Some(e) = &props.on_delete_msg {
                             e.call(())
                         }
                     },
@@ -214,7 +214,7 @@ pub fn FileEmbed(props: Props) -> Element {
                     appearance: Appearance::Primary,
                     aria_label: "retry-button".to_string(),
                     onpress: move |_| {
-                        if let Some(e) = &props_signal().on_resend_msg {
+                        if let Some(e) = &props.on_resend_msg {
                             e.call(())
                         }
                     },
@@ -232,20 +232,20 @@ pub fn FileEmbed(props: Props) -> Element {
                                 aria_label: "message-image",
                                 onclick: move |mouse_event_data: Event<MouseData>|
                                 if mouse_event_data.modifiers() != Modifiers::CONTROL && !is_from_attachments {
-                                    props_signal().on_press.call(Some(temp_dir.clone()));
+                                    props.on_press.call(Some(temp_dir.clone()));
                                 },
                                 class: format_args!(
                                     "image {} expandable-image",
-                                    if props_signal().big.unwrap_or_default() {
+                                    if props.big.unwrap_or_default() {
                                         "big"
                                     } else { "" }
                                 ),
                                 src: "{thumbnail}",
                             },
-                            {show_download_or_minus_button_if_enabled(props_signal(), with_download_button, btn_icon)},
+                            {show_download_or_minus_button_if_enabled(props.on_press, with_download_button, btn_icon)},
                             }
                             )}
-                } else if let Some(filepath) = props_signal().filepath.clone() {
+                } else if let Some(filepath) = props.filepath.clone() {
                     {let is_image_or_video = is_image(filename.clone()) || is_video;
                     if is_image_or_video && filepath.exists() {
                         let fixed_path = get_fixed_path_to_load_local_file(filepath.clone());
@@ -262,7 +262,7 @@ pub fn FileEmbed(props: Props) -> Element {
                                 width: "60px",
                                 margin: "30px 0",
                                 IconElement {
-                                    icon: props_signal().attachment_icon.unwrap_or(return_correct_icon(&file_name_with_extension.clone()))
+                                    icon: props.attachment_icon.unwrap_or(return_correct_icon(&file_name_with_extension.clone()))
                                 }
                                 if !file_extension_is_empty {
                                     {rsx!( label {
@@ -280,7 +280,7 @@ pub fn FileEmbed(props: Props) -> Element {
                             height: "60px",
                             onclick: move |mouse_event_data: Event<MouseData>| {
                                 if mouse_event_data.modifiers() != Modifiers::CONTROL && is_file_available_to_preview && !is_from_attachments {
-                                    props_signal().on_press.call(Some(temp_dir.clone()));
+                                    props.on_press.call(Some(temp_dir.clone()));
                                 }
                             },
                             IconElement {
@@ -295,7 +295,7 @@ pub fn FileEmbed(props: Props) -> Element {
                             if !is_from_attachments {
                                 {rsx!( div {
                                     class: "button-position",
-                                    {show_download_or_minus_button_if_enabled(props_signal(), with_download_button, btn_icon)},
+                                    {show_download_or_minus_button_if_enabled(props.on_press, with_download_button, btn_icon)},
                                 })}
                             }
                         }
@@ -318,7 +318,7 @@ pub fn FileEmbed(props: Props) -> Element {
                     }
                 },
                 if !has_thumbnail && is_from_attachments {
-                    {rsx!({show_download_or_minus_button_if_enabled(props_signal(), with_download_button, btn_icon)})}
+                    {rsx!({show_download_or_minus_button_if_enabled(props.on_press, with_download_button, btn_icon)})}
                 }
             if is_pending {
                 {rsx!(div {
@@ -354,7 +354,7 @@ fn is_image(filename: String) -> bool {
 }
 
 fn show_download_or_minus_button_if_enabled(
-    props: Props,
+    press: EventHandler<Option<PathBuf>>,
     with_download_button: bool,
     btn_icon: common::icons::outline::Shape,
 ) -> Element {
@@ -366,7 +366,7 @@ fn show_download_or_minus_button_if_enabled(
                     icon: btn_icon,
                     appearance: Appearance::Primary,
                     aria_label: "attachment-button".to_string(),
-                    onpress: move |_| props.on_press.call(None),
+                    onpress: move |_| press.call(None),
                 }
             }
         )

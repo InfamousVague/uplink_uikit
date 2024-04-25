@@ -1,13 +1,11 @@
+use crate::components::indicator::Indicator;
 use common::{icons, language::get_local_text, state::State};
 use dioxus::{
     events::{MouseData, MouseEvent},
     prelude::*,
 };
 use dioxus_desktop::use_window;
-use tracing::log;
 use warp::crypto::DID;
-
-use crate::components::indicator::Indicator;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ItemProps {
@@ -53,29 +51,24 @@ pub fn ContextItem(props: ItemProps) -> Element {
     let aria_label = props.aria_label.clone().unwrap_or_default();
 
     let mut tooltip_visible = use_signal(|| false);
-
-    let tooltip_clone = props.tooltip.clone();
-    let tooltip_clone2 = props.tooltip.clone();
-    let tooltip_clone3 = props.tooltip.clone();
-    let tooltip_clone4 = props.tooltip.clone();
-    let tooltip_clone5 = props.tooltip.clone();
+    let has_tooltip = props.tooltip.is_some();
 
     if let Some(children) = &props.children {
         rsx!(
             div {
                 onmouseenter: move |_| {
-                    if tooltip_clone.is_some() {
+                    if has_tooltip {
                          tooltip_visible.set(true);
                     }
                 },
                 onmouseleave: move |_| {
-                    if tooltip_clone2.is_some() {
+                    if has_tooltip {
                          tooltip_visible.set(false);
                     }
                 },
                 class: "context-item simple-context-item",
                 if *tooltip_visible.read() {
-                    {tooltip_clone3.as_ref().map(|tooltip| {
+                    {props.tooltip.as_ref().map(|tooltip| {
                         rsx!(
                            {tooltip}
                         )
@@ -88,12 +81,12 @@ pub fn ContextItem(props: ItemProps) -> Element {
         rsx!(
             div {
                 onmouseenter: move |_| {
-                    if tooltip_clone4.is_some() {
+                    if has_tooltip {
                          tooltip_visible.set(true);
                     }
                 },
                 onmouseleave: move |_| {
-                    if tooltip_clone5.is_some() {
+                    if has_tooltip {
                          tooltip_visible.set(false);
                     }
                 },
@@ -181,40 +174,17 @@ pub fn ContextMenu(props: Props) -> Element {
     let window = use_window();
 
     let devmode = props.devmode.unwrap_or(false);
-    let with_click = use_signal(|| props.left_click_trigger.unwrap_or_default());
-    let id_signal = use_signal(|| id.clone());
-    let script = include_str!("./context.js")
-        .replace("UUID", &id_signal.read())
-        .replace("ON_CLICK", &format!("{}", with_click.read()));
-    let mut eval_result = use_signal(|| eval(&script));
-    let mut is_eval_error = use_signal(|| false);
-
-    // New dioxus take a time to load a component and it returns an error on JS
-    // So it evaluate script again with correct component
-    if is_eval_error() {
-        let script2 = include_str!("./context.js")
-            .replace("UUID", &id_signal.read())
-            .replace("ON_CLICK", &format!("{}", with_click.read()));
-        let eval_result2 = eval(&script2);
-        eval_result.set(eval_result2);
-    }
+    let with_click = props.left_click_trigger.unwrap_or_default();
 
     // Handles the hiding and showing of the context menu
-    use_effect(move || {
+    use_effect(use_reactive(id, move |id| {
         spawn(async move {
-            loop {
-                tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-                match eval_result().await {
-                    Ok(_) => {
-                        break;
-                    }
-                    Err(_) => {
-                        is_eval_error.set(true);
-                    }
-                }
-            }
+            let script = include_str!("./context.js")
+                .replace("UUID", &id)
+                .replace("ON_CLICK", &format!("{}", with_click));
+            let _ = eval(&script);
         });
-    });
+    }));
 
     rsx! {
         div {
