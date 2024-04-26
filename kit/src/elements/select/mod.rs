@@ -16,7 +16,7 @@ pub struct Props {
 }
 
 /// Tells the parent the button was interacted with.
-pub fn emit(props: Props, s: String) {
+pub fn emit(props: &Props, s: String) {
     match &props.onselect {
         Some(f) => f.call(s),
         None => {}
@@ -48,7 +48,6 @@ pub fn Select(props: Props) -> Element {
     options.retain(|value| value != &initial_value);
     options.insert(0, initial_value.clone());
     let iter = IntoIterator::into_iter(options.clone());
-    let props_clone = props.clone();
 
     // TODO: We should iterate through the options and figure out the maximum length of an option
     // use this to calculate the min-width of the selectbox. Our max width should always be 100%.
@@ -58,7 +57,7 @@ pub fn Select(props: Props) -> Element {
             aria_label: "Selector",
             select {
                 value: "{initial_value}",
-                onchange: move |e| emit(props_clone.clone(), e.value().clone()),
+                onchange: move |e| emit(&props, e.value().clone()),
                 {iter.map(|val|
                     rsx!(option {key: "{val}", label: "{val}", value: "{val}", aria_label: "Selector Option"})
                 )}

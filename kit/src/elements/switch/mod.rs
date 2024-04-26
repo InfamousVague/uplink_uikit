@@ -14,7 +14,7 @@ pub struct Props {
 }
 
 /// Tells the parent the switch was interacted with.
-pub fn emit(props: Props, state: bool) {
+pub fn emit(props: &Props, state: bool) {
     match &props.onflipped {
         Some(f) => f.call(state),
         None => {}
@@ -22,7 +22,7 @@ pub fn emit(props: Props, state: bool) {
 }
 
 /// Determines the default state
-pub fn default_state(props: Props) -> bool {
+pub fn default_state(props: &Props) -> bool {
     match &props.active {
         Some(active) => *active,
         None => false,
@@ -31,7 +31,7 @@ pub fn default_state(props: Props) -> bool {
 
 #[allow(non_snake_case)]
 pub fn Switch(props: Props) -> Element {
-    let checked_state = default_state(props.clone());
+    let checked_state = default_state(&props);
     let disabled = props.disabled.unwrap_or_default();
 
     rsx! {
@@ -45,7 +45,7 @@ pub fn Switch(props: Props) -> Element {
                 disabled: "{disabled}",
                 "type": "checkbox",
                 checked: "{checked_state}",
-                oninput: move |e| emit(props.clone(), e.data.value() == "true")
+                oninput: move |e| emit(&props, e.data.value() == "true")
             },
             span { class: "slider" }
         }

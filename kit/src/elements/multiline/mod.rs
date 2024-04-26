@@ -43,7 +43,6 @@ pub fn Multiline(props: Props) -> Element {
                 default_text: default_text,
                 icon: props.icon.unwrap_or(Icon::QuestionMarkCircle),
                 options: props.options.clone().unwrap_or_default(),
-
             }
         }
     )

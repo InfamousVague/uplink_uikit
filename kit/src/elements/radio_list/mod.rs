@@ -13,14 +13,11 @@ pub struct Props {
 #[allow(non_snake_case)]
 pub fn RadioList(props: Props) -> Element {
     let mut internal_state = use_signal(|| props.initial_value.clone());
-
     let onchange_clone = props.onchange;
-    let values_clone = props.values.clone();
-
     rsx!(
         div {
             class: "radio-list",
-            for option in values_clone.clone() {
+            for option in props.values {
                 Button {
                     icon: if *internal_state.read() == *option { Icon::RadioSelected } else { Icon::Radio },
                     appearance: if *internal_state.read() == *option { Appearance::Primary } else { Appearance::Secondary },

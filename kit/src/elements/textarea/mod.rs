@@ -143,12 +143,13 @@ pub fn Input(props: Props) -> Element {
     let do_cursor_update = oncursor_update.is_some();
     use_effect(move || {
         if *update_cursor.read() {
+            // For some reason calling the cursor update handler and spamming keys makes the input update incorrectly.
+            // Atm this is unused anyway since only emoji extension use this input
             // let cursor_script = include_str!("./cursor_script.js").replace("$ID", &sig_id.peek());
             // spawn(async move {
             //     if let Some(e) = oncursor_update {
             //         let eval_result = eval(&cursor_script);
             //         if let Ok(val) = eval_result.join().await {
-            //             // For some reason calling this and spamming keys makes the input update incorrectly
             //             e.call((text_value.peek().clone(), val.as_i64().unwrap_or_default()));
             //         }
             //     }

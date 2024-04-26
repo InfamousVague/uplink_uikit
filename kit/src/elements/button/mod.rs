@@ -80,7 +80,8 @@ pub fn Button(props: Props) -> Element {
     );
 
     let show_icon = props.loading.unwrap_or_default() || props.icon.is_some();
-    let props_signal = use_signal(|| props.clone());
+    let tooltip = props.tooltip;
+    let has_tooltip = tooltip.is_some();
 
     rsx!(
         div {
@@ -88,17 +89,17 @@ pub fn Button(props: Props) -> Element {
                 format_args!("btn-wrap {}", if small { "small" } else { "" })
             },
             onmouseenter: move |_| {
-                if props_signal().tooltip.is_some() {
+                if has_tooltip {
                      tooltip_visible.set(true);
                 }
             },
             onmouseleave: move |_| {
-                if props_signal().tooltip.is_some() {
+                if has_tooltip {
                      tooltip_visible.set(false);
                 }
             },
             if *tooltip_visible.read() {
-                {props_signal().tooltip.as_ref().map(|tooltip| {
+                {tooltip.as_ref().map(|tooltip| {
                     rsx!(
                        {tooltip}
                     )

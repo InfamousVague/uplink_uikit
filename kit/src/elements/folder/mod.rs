@@ -26,36 +26,21 @@ pub struct Props {
     loading: Option<bool>,
 }
 
-pub fn get_aria_label(props: Props) -> String {
+pub fn get_aria_label(props: &Props) -> String {
     props.aria_label.clone().unwrap_or_default()
-}
-
-pub fn emit(props: Props, s: String, key_code: Code) {
-    if let Some(f) = props.onrename.as_ref() {
-        f.call((s, key_code))
-    }
-}
-
-pub fn emit_press(props: Props, mouse_event: MouseEvent) {
-    if let Some(f) = props.onpress.as_ref() {
-        f.call(mouse_event)
-    }
 }
 
 #[allow(non_snake_case)]
 pub fn Folder(props: Props) -> Element {
     let open = props.open.unwrap_or_default();
     let folder_name = props.text.clone().unwrap_or_default();
-    let aria_label = get_aria_label(props.clone());
+    let aria_label = get_aria_label(&props);
     let placeholder = folder_name.clone();
     let with_rename = props.with_rename.unwrap_or_default();
     let icon = if open { Icon::FolderOpen } else { Icon::Folder };
     let disabled = props.disabled.unwrap_or_default();
 
     let loading = props.loading.unwrap_or_default();
-
-    let props_signal = use_signal(|| props.clone());
-
     if loading {
         rsx!(FolderSkeletal {})
     } else {
@@ -70,7 +55,9 @@ pub fn Folder(props: Props) -> Element {
                 },
                 div {
                     class: "icon alignment",
-                    onclick: move |mouse_event: MouseEvent| emit_press(props_signal.read().clone(), mouse_event),
+                    onclick: move |mouse_event: MouseEvent| if let Some(f) = props.onpress.as_ref() {
+                        f.call(mouse_event)
+                    },
                     IconElement {
                         icon: icon,
                     },
@@ -99,7 +86,9 @@ pub fn Folder(props: Props) -> Element {
                                 },
                                 onreturn: move |(s, is_valid, key_code)| {
                                     if is_valid || key_code == Code::Escape {
-                                        emit(props_signal.read().clone(), s, key_code);
+                                        if let Some(f) = props.onrename.as_ref() {
+                                            f.call((s, key_code))
+                                        }
                                     }
                                 }
                             }

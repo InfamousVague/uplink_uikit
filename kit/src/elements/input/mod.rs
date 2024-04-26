@@ -182,14 +182,19 @@ impl PartialEq for Props {
     }
 }
 
-fn emit(props: Props, s: String, is_valid: bool) {
-    if let Some(f) = &props.onchange {
+fn emit(onchange: Option<EventHandler<(String, bool)>>, s: String, is_valid: bool) {
+    if let Some(f) = onchange {
         f.call((s, is_valid));
     }
 }
 
-fn emit_return(props: Props, s: String, is_valid: bool, key_code: Code) {
-    if let Some(f) = &props.onreturn {
+fn emit_return(
+    onreturn: Option<EventHandler<(String, bool, Code)>>,
+    s: String,
+    is_valid: bool,
+    key_code: Code,
+) {
+    if let Some(f) = onreturn {
         f.call((s, is_valid, key_code));
     }
 }
@@ -280,25 +285,23 @@ pub fn validate_min_max(val: &str, min: Option<i32>, max: Option<i32>) -> Option
     None
 }
 
-pub fn get_icon(props: Props) -> Icon {
+pub fn get_icon(props: &Props) -> Icon {
     props.icon.unwrap_or(Icon::QuestionMarkCircle)
 }
 
-pub fn get_aria_label(props: Props) -> String {
+pub fn get_aria_label(props: &Props) -> String {
     props.aria_label.clone().unwrap_or_default()
 }
 
-pub fn get_label(props: Props) -> String {
+pub fn get_label(props: &Props) -> String {
     let options = props.options.clone().unwrap_or_default();
     options.with_label.unwrap_or_default()
 }
 
-pub fn validate(props: Props, val: &str) -> Option<ValidationError> {
+pub fn validate(options: &Options, val: &str) -> Option<ValidationError> {
     let mut error: Option<ValidationError> = None;
 
-    let options = props.options.clone().unwrap_or_default();
-
-    let validation = options.with_validation.unwrap_or_default();
+    let validation = options.with_validation.clone().unwrap_or_default();
 
     if validation.alpha_numeric_only
         && validate_alphanumeric(
@@ -326,7 +329,6 @@ pub fn validate(props: Props, val: &str) -> Option<ValidationError> {
 
 #[allow(non_snake_case)]
 pub fn Input(props: Props) -> Element {
-    let props_signal = use_signal(|| props.clone());
     // Input element needs an id. Create a new one if an id wasn't specified
     let input_id = if props.id.is_empty() {
         Uuid::new_v4().to_string()
@@ -335,11 +337,13 @@ pub fn Input(props: Props) -> Element {
     };
     let focus_script = include_str!("./script.js").replace("$UUID", &input_id);
     let focus_script2 = focus_script.clone();
+    let focus_script3 = focus_script.clone();
     let mut error = use_signal(|| String::from(""));
     let mut val = use_signal(|| props.default_text.clone().unwrap_or_default());
     let max_length = props.max_length.unwrap_or(std::i32::MAX);
     let min_length = props.max_length.unwrap_or(0);
     let options = props.options.clone().unwrap_or_default();
+    let options2 = CopyValue::new(options.clone());
     let should_validate = options.with_validation.is_some();
     let mut valid = use_signal(|| false);
     let onblur_active = !props.disable_onblur;
@@ -368,8 +372,8 @@ pub fn Input(props: Props) -> Element {
     }
 
     let apply_validation_class = should_validate;
-    let aria_label = get_aria_label(props_signal.read().clone());
-    let label = get_label(props_signal.read().clone());
+    let aria_label = get_aria_label(&props);
+    let label = get_label(&props);
 
     let disabled = props.disabled.unwrap_or_default() || props.loading.unwrap_or(false);
 
@@ -379,15 +383,15 @@ pub fn Input(props: Props) -> Element {
         .unwrap_or("text");
 
     let focus_signal = use_signal(|| props.focus);
-    let focus_script_signal = use_signal(|| focus_script.clone());
 
     use_effect(move || {
+        to_owned![focus_script3];
         spawn(async move {
             loop {
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
                 if *focus_signal.read() {
-                    let eval_result = eval(&focus_script_signal.read());
+                    let eval_result = eval(&focus_script3);
                     match eval_result.await {
                         Ok(_) => {
                             break;
@@ -425,13 +429,13 @@ pub fn Input(props: Props) -> Element {
                 class: {
                     format_args!("input {}", if *valid.read() && apply_validation_class { "input-success" } else if !error.read().is_empty() && apply_validation_class { "input-warning" } else { "" })
                 },
-                height: props_signal.read().clone().size.get_height(),
+                height: props.size.get_height(),
                 // If an icon was provided, render it before the input.
-                {(props_signal.read().clone().icon.is_some()).then(|| rsx!(
+                {(props.icon.is_some()).then(|| rsx!(
                     span {
                         class: "icon",
                         IconElement {
-                            icon: get_icon(props_signal.read().clone())
+                            icon: get_icon(&props)
                         }
                     }
                 ))},
@@ -447,13 +451,13 @@ pub fn Input(props: Props) -> Element {
                     placeholder: "{props.placeholder}",
                     placeholder: "{props.placeholder}",
                     onfocus: move |_| {
-                        if let Some(e) = &props_signal.read().clone().onfocus {
+                        if let Some(e) = props.onfocus {
                             e.call(())
                         }
                     },
                     onblur: move |_| {
                         if onblur_active {
-                            emit_return(props_signal(), val.peek().to_string(), *valid.read(), Code::Enter);
+                            emit_return(props.onreturn, val.peek().to_string(), *valid.read(), Code::Enter);
                             if options.clear_on_submit {
                                 reset_fn();
                             } else if options.clear_validation_on_submit {
@@ -467,7 +471,7 @@ pub fn Input(props: Props) -> Element {
                         *val.write_silent() = current_val.clone();
 
                         let is_valid = if should_validate {
-                            let validation_result = validate(props_signal(), &current_val).unwrap_or_default();
+                            let validation_result = validate(&options2.read(), &current_val).unwrap_or_default();
                             valid.set(validation_result.is_empty());
                             error.set(validation_result);
                             evt.stop_propagation();
@@ -475,7 +479,7 @@ pub fn Input(props: Props) -> Element {
                         } else {
                             true
                         };
-                        emit(props_signal(), current_val, is_valid);
+                        emit(props.onchange, current_val, is_valid);
                     },
                     // after a valid submission, don't keep the input box green.
                     onkeyup: move |evt| {
@@ -486,16 +490,16 @@ pub fn Input(props: Props) -> Element {
                         if evt.code() == Code::Enter || evt.code() == Code::NumpadEnter {
                             if props.validate_on_return_with_val_empty && val.read().to_string().is_empty() {
                                 let is_valid = if should_validate {
-                                    let validation_result = validate(props_signal(), "").unwrap_or_default();
+                                    let validation_result = validate(&options2.read(), "").unwrap_or_default();
                                     valid.set(validation_result.is_empty());
                                     error.set(validation_result);
                                     *valid.read()
                                 } else {
                                     true
                                 };
-                                emit(props_signal(), "".to_owned(), is_valid);
+                                emit(props.onchange, "".to_owned(), is_valid);
                             } else {
-                            emit_return(props_signal(), val.read().to_string(), *valid.read(), evt.code());
+                            emit_return(props.onreturn, val.read().to_string(), *valid.read(), evt.code());
                             if options.clear_on_submit {
                                 reset_fn();
                             } else if options.clear_validation_on_submit {
@@ -503,7 +507,7 @@ pub fn Input(props: Props) -> Element {
                             }
                         }
                         } else if options.react_to_esc_key && evt.code() == Code::Escape {
-                            emit_return(props_signal(), "".to_owned(), min_length == 0, evt.code());
+                            emit_return(props.onreturn, "".to_owned(), min_length == 0, evt.code());
                             if options.clear_on_submit {
                                 reset_fn();
                            }
@@ -516,7 +520,7 @@ pub fn Input(props: Props) -> Element {
                         onclick: move |_| {
                             *val.write_silent() = String::new();
                             if should_validate {
-                                let validation_result = validate(props_signal(), "").unwrap_or_default();
+                                let validation_result = validate(&options2.read(), "").unwrap_or_default();
                                 valid.set(validation_result.is_empty());
                                 error.set(validation_result);
                             }
@@ -526,14 +530,14 @@ pub fn Input(props: Props) -> Element {
                             }
                             // re-focus the input after clearing it
                             let _ = eval(&focus_script);
-                            emit(props_signal(), String::new(), *valid.read());
+                            emit(props.onchange, String::new(), *valid.read());
                         },
                         IconElement {
                             icon: options.clear_btn_icon
                         }
                     }
                 ))},
-                {props_signal().loading.unwrap_or(false).then(move || rsx!(
+                {props.loading.unwrap_or(false).then(move || rsx!(
                     Loader { spinning: true },
                 ))},
             },
