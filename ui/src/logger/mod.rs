@@ -67,10 +67,7 @@ impl LogGlue {
             dotenv::dotenv().ok();
 
             if env::var("RUST_LOG").is_err() {
-                env::set_var(
-                    "RUST_LOG",
-                    "uplink=debug,common=debug,kit=debug,warp_blink_wrtc=debug",
-                );
+                env::set_var("RUST_LOG", "dioxus");
             }
         }
 
