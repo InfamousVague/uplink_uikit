@@ -2,11 +2,13 @@ use crate::layouts::storage::functions::{self, download_file, ChanCmd};
 use crate::layouts::storage::send_files_layout::send_files_components::{
     toggle_selected_file, FileCheckbox,
 };
+use std::str::FromStr;
 
 use super::files_layout::controller::StorageController;
 use common::icons::outline::Shape as Icon;
 use common::icons::Icon as IconElement;
 use common::is_file_available_to_preview;
+use common::language::get_local_text_with_args;
 use common::state::{State, ToastNotification};
 use common::warp_runner::thumbnail_to_base64;
 use common::{language::get_local_text, ROOT_DIR_NAME};
@@ -16,8 +18,10 @@ use dioxus::prelude::*;
 use kit::components::context_menu::{ContextItem, ContextMenu};
 use kit::elements::file::File;
 use kit::elements::folder::Folder;
+use uuid::Uuid;
+use warp::constellation::directory::Directory;
 use warp::constellation::item::Item;
-use warp::raygun::Location;
+use warp::raygun::{ConversationSettings, Location};
 
 #[derive(Props, Clone, PartialEq)]
 pub struct FilesBreadcumbsProps {
@@ -27,6 +31,7 @@ pub struct FilesBreadcumbsProps {
 
 #[allow(non_snake_case)]
 pub fn FilesBreadcumbs(props: FilesBreadcumbsProps) -> Element {
+    let state = use_context::<Signal<State>>();
     let send_files_mode = props.send_files_mode;
     let storage_controller = props.storage_controller;
     let ch = use_coroutine_handle();
@@ -57,7 +62,8 @@ pub fn FilesBreadcumbs(props: FilesBreadcumbsProps) -> Element {
                     }
                 })
             } else {
-                let folder_name_formatted = functions::format_item_name(dir_name);
+                let folder_name_resolved = resolve_directory_name(dir, &state.read());
+                let folder_name_formatted = functions::format_item_name(folder_name_resolved);
                 rsx!(div {
                     class: "crumb",
                     onclick: move |_| {
@@ -127,6 +133,7 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                 let folder_name = dir.name();
                 let folder_name2 = dir.name();
                 let folder_name3 = dir.name();
+                let folder_name_resolved = resolve_directory_name(dir, &state.read());
                 let key = dir.id();
                 let dir2 = dir.clone();
                 let deleting = storage_controller.read().deleting.iter().any(|i|{
@@ -164,8 +171,8 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
                         ),
                         Folder {
                             key: "{key}-folder",
-                            text: dir.name(),
-                            aria_label: dir.name(),
+                            text: folder_name_resolved.clone(),
+                            aria_label: folder_name_resolved,
                             with_rename:storage_controller.with(|i| i.is_renaming_map == Some(key)),
                             onrename: move |(val, key_code)| {
                                 if val == folder_name3 {
@@ -360,4 +367,36 @@ pub fn FilesAndFolders(props: FilesAndFoldersProps) -> Element {
             })},
         },
     })
+}
+
+fn resolve_directory_name(dir: &Directory, state: &State) -> String {
+    let folder_name = dir.name();
+    // Try to check and resolve the foldername for chats
+    match Uuid::from_str(&folder_name) {
+        Ok(id) => {
+            log::debug!("with id {id}");
+            state
+                .get_chat_by_id(id)
+                .and_then(|c| {
+                    log::debug!("chat type {:?}", c.settings);
+                    c.conversation_name.or(match c.settings {
+                        ConversationSettings::Direct(_) => {
+                            // If DM try use the other users name
+                            let own = state.did_key();
+                            let other = c.participants.iter().find(|id| !own.eq(id));
+                            log::debug!("other {:?}", other.and_then(|o| state.get_identity(o)));
+                            other.and_then(|o| state.get_identity(o)).map(|id| {
+                                get_local_text_with_args(
+                                    "files.direct-message-name",
+                                    vec![("with", id.username())],
+                                )
+                            })
+                        }
+                        ConversationSettings::Group(_) => None,
+                    })
+                })
+                .unwrap_or(folder_name)
+        }
+        Err(_) => folder_name,
+    }
 }

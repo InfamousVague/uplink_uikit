@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine};
 use common::{
     icons::outline::Shape, language::get_local_text, utils::lifecycle::use_component_lifecycle,
     STATIC_ARGS,
@@ -41,7 +42,7 @@ pub fn CropCircleImageModal(props: Props) -> Element {
     let mut clicked_button_to_crop = use_signal(|| false);
     let mut verify_image_dimensions = use_signal(|| false);
 
-    let image_dimensions = use_signal(|| ImageDimensions {
+    let mut image_dimensions = use_signal(|| ImageDimensions {
         height: 0,
         width: 0,
     });
@@ -67,7 +68,7 @@ pub fn CropCircleImageModal(props: Props) -> Element {
         let eval_result = eval(GET_IMAGE_DIMENSIONS_SCRIPT);
         spawn(async move {
             if let Ok(val) = eval_result.join().await {
-                *image_dimensions.write_silent() = ImageDimensions {
+                *image_dimensions.write() = ImageDimensions {
                     height: val["height"].as_i64().unwrap_or_default(),
                     width: val["width"].as_i64().unwrap_or_default(),
                 };
@@ -141,7 +142,7 @@ pub fn CropCircleImageModal(props: Props) -> Element {
                                                 if let Ok(val) = eval_result.join().await {
                                                     let thumbnail = val.as_str().unwrap_or_default();
                                                     let base64_string = thumbnail.trim_matches('\"');
-                                                    let decoded_bytes = match base64::decode(base64_string) {
+                                                    let decoded_bytes = match general_purpose::STANDARD.decode(base64_string) {
                                                         Ok(bytes) => bytes,
                                                         Err(e) => {
                                                             log::error!("Error decoding base64 string for cropped image: {}", e);

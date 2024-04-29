@@ -17,7 +17,7 @@ pub struct SiteMeta {
 }
 
 pub async fn get_meta(url: String) -> Result<SiteMeta, reqwest::Error> {
-    let content = reqwest::get(url.clone()).await?.text().await?;
+    let content = reqwest::get(&url).await?.text().await?;
     let document = Html::parse_document(&content);
     let meta_selector = match Selector::parse("meta") {
         Ok(data) => data,

@@ -6,7 +6,7 @@ use std::{
 
 use dioxus::{dioxus_core::Element, prelude::*};
 use dioxus_desktop::{tao::keyboard::ModifiersState, use_global_shortcut};
-use dioxus_hooks::{to_owned, use_resource, use_signal};
+use dioxus_hooks::{to_owned, use_signal};
 use once_cell::sync::Lazy;
 
 use crate::utils::clipboard::clipboard_data::get_files_path_from_clipboard;
