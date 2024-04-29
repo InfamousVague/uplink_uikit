@@ -784,7 +784,6 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
 
     match identity() {
         Some(identity) => {
-            let identity_signal = use_signal(|| identity.clone());
             let disabled = state
                 .read()
                 .outgoing_fr_identities()
@@ -803,6 +802,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
 
             let short_id = identity.short_id();
             let did_key = identity.did_key();
+            let did_key2 = identity.did_key();
             let username = identity.username();
             let short_name = format!("{}#{}", username, short_id);
             let random_uuid = Uuid::new_v4().to_string();
@@ -899,7 +899,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
                         disabled: disabled,
                         with_title: false,
                         onpress: move |_| {
-                            ch.send(IdentityCmd::SentFriendRequest(identity_signal().did_key().to_string(), state.read().outgoing_fr_identities()));
+                            ch.send(IdentityCmd::SentFriendRequest(did_key2.to_string(), state.read().outgoing_fr_identities()));
                         },
                         icon: if disabled {
                             Icon::Check
@@ -909,7 +909,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
                         text: if disabled {
                             get_local_text("friends.already-friends")
                         } else {
-                            get_local_text_with_args("friends.add-name", vec![("name", identity_signal().username())])
+                            get_local_text_with_args("friends.add-name", vec![("name", identity.username())])
                         },
                         appearance: crate::elements::Appearance::Primary
                     }
