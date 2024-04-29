@@ -35,8 +35,6 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 pub fn CropCircleImageModal(props: Props) -> Element {
-    let large_thumbnail = use_signal(|| props.large_thumbnail.clone());
-
     let mut image_scale: Signal<f32> = use_signal(|| 1.0);
     let mut crop_image = use_signal(|| true);
     let cropped_image_pathbuf = use_signal(PathBuf::new);
@@ -206,7 +204,7 @@ pub fn CropCircleImageModal(props: Props) -> Element {
                                     id: "image-preview-modal-file-embed",
                                     alt: "draggable image",
                                     aria_label: "image-preview-modal-file-embed",
-                                    src: format_args!("{}", b64_encode(large_thumbnail.read().clone())),
+                                    src: format_args!("{}", b64_encode(props.large_thumbnail.clone())),
                                     transform: format_args!("scale({})", image_scale.read()),
                                     overflow: "hidden",
                                     transition: "transform 0.2s ease",
