@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Satellite-im/Warp
-          ref: b574da4ab10cfd7bf38ec0e2b499232a2e8f8eff
+          ref: 01beb3ceda05b97aeba7e4ba6059c8ec1a2bd16b
 
       - name: Set up cargo cache 🛠️
         uses: Swatinem/rust-cache@v2
@@ -205,7 +205,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Satellite-im/Warp
-          ref: b574da4ab10cfd7bf38ec0e2b499232a2e8f8eff
+          ref: 01beb3ceda05b97aeba7e4ba6059c8ec1a2bd16b
           path: "./warp"
 
       - name: Install Dependencies for WebdriverIO
@@ -338,7 +338,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Satellite-im/Warp
-          ref: b574da4ab10cfd7bf38ec0e2b499232a2e8f8eff
+          ref: 01beb3ceda05b97aeba7e4ba6059c8ec1a2bd16b
           path: "./warp"
 
       - name: Install Dependencies for WebdriverIO
@@ -479,7 +479,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Satellite-im/Warp
-          ref: b574da4ab10cfd7bf38ec0e2b499232a2e8f8eff
+          ref: 01beb3ceda05b97aeba7e4ba6059c8ec1a2bd16b
           path: "./warp"
 
       - name: Download Key file 🗳️
