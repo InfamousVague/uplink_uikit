@@ -5,7 +5,7 @@ use dioxus_desktop::use_window;
 /// In fullscreen mode, activating the shortcut for the first time will minimize the application.
 ///
 /// Upon a second activation, the shortcut will then execute the intended action of hiding the application.
-pub fn set_app_visible() {
+pub fn use_set_app_visible() {
     let window = use_window();
 
     window.set_fullscreen(false);

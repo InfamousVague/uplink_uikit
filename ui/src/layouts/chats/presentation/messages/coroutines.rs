@@ -34,7 +34,7 @@ use crate::{
 
 use super::{DownloadTracker, MessagesCommand};
 
-pub fn handle_msg_scroll(
+pub fn use_handle_msg_scroll(
     chat_data: &Signal<ChatData>,
     scroll_btn: &Signal<ScrollBtn>,
 ) -> Coroutine<()> {
@@ -346,7 +346,7 @@ pub fn handle_msg_scroll(
     })
 }
 
-pub fn fetch_later_ch(
+pub fn use_fetch_later_ch(
     chat_data: Signal<data::ChatData>,
     scroll_btn: Signal<ScrollBtn>,
 ) -> Coroutine<Uuid> {
@@ -432,7 +432,7 @@ pub fn fetch_later_ch(
     })
 }
 
-pub fn handle_warp_commands(
+pub fn use_handle_warp_commands(
     state: &Signal<State>,
     pending_downloads: &Signal<DownloadTracker>,
 ) -> Coroutine<MessagesCommand> {

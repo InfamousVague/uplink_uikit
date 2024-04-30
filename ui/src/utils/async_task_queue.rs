@@ -85,7 +85,7 @@ impl<T> AsyncRef<T> {
 
 /// Create a handler for an async queue
 /// Everytime a value gets added to the queue the future will be spawned when it rerenders
-pub fn async_queue<T: 'static + Send, Fut>(fut: impl Fn(T) -> Fut) -> Signal<AsyncRef<T>>
+pub fn use_async_queue<T: 'static + Send, Fut>(fut: impl Fn(T) -> Fut) -> Signal<AsyncRef<T>>
 where
     Fut: Future<Output = ()> + Send + 'static,
 {

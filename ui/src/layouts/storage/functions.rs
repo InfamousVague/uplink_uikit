@@ -67,7 +67,7 @@ pub fn run_verifications_and_update_storage(
     }
 }
 
-pub fn get_items_from_current_directory(ch: Coroutine<ChanCmd>) {
+pub fn use_get_items_from_current_directory(ch: Coroutine<ChanCmd>) {
     let _ = use_future(move || {
         to_owned![ch];
         async move {
@@ -78,7 +78,7 @@ pub fn get_items_from_current_directory(ch: Coroutine<ChanCmd>) {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn allow_drag_event_for_non_macos_systems(mut are_files_hovering_app: Signal<bool>) {
+pub fn use_allow_drag_event_for_non_macos_systems(mut are_files_hovering_app: Signal<bool>) {
     use dioxus_desktop::wry::FileDropEvent;
 
     use_future(move || {
@@ -231,7 +231,7 @@ pub enum ChanCmd {
     DeleteItems(Item),
 }
 
-pub fn init_coroutine(
+pub fn use_init_coroutine(
     controller: Signal<StorageController>,
     state: Signal<State>,
     file_tracker: Signal<TransferTracker>,
@@ -496,7 +496,7 @@ pub fn init_coroutine(
 /// to fix a specific behavior (when the user leaves the page, returns,
 /// and tries to upload a second file, then leaves and returns again,
 /// it was not possible to cancel that upload in the coroutine).
-pub fn start_upload_file_listener(
+pub fn use_start_upload_file_listener(
     state: Signal<State>,
     controller: Signal<StorageController>,
     upload_file_controller: UploadFileController,

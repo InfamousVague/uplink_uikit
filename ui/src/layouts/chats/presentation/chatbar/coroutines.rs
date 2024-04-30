@@ -17,7 +17,7 @@ use crate::{
 
 use super::TypingIndicator;
 
-pub fn get_msg_ch(state: &Signal<State>) -> Coroutine<MsgChInput> {
+pub fn use_get_msg_ch(state: &Signal<State>) -> Coroutine<MsgChInput> {
     let upload_streams = chat_upload_stream_handler();
     use_coroutine(|mut rx: UnboundedReceiver<MsgChInput>| {
         to_owned![state, upload_streams];
@@ -75,7 +75,10 @@ pub fn get_msg_ch(state: &Signal<State>) -> Coroutine<MsgChInput> {
     })
 }
 
-pub fn get_scroll_ch(chat_data: &Signal<data::ChatData>, state: &Signal<State>) -> Coroutine<Uuid> {
+pub fn use_get_scroll_ch(
+    chat_data: &Signal<data::ChatData>,
+    state: &Signal<State>,
+) -> Coroutine<Uuid> {
     use_coroutine(|mut rx: UnboundedReceiver<Uuid>| {
         to_owned![chat_data, state];
         async move {
@@ -112,7 +115,7 @@ pub fn get_scroll_ch(chat_data: &Signal<data::ChatData>, state: &Signal<State>) 
 
 // tracks if the local participant is typing
 // re-sends typing indicator in response to the Refresh command
-pub fn get_typing_ch() -> Coroutine<TypingIndicator> {
+pub fn use_get_typing_ch() -> Coroutine<TypingIndicator> {
     use_coroutine(|mut rx: UnboundedReceiver<TypingIndicator>| {
         // to_owned![];
         async move {

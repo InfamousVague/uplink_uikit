@@ -353,7 +353,6 @@ fn SuggestionsMenu(mut props: SuggestionProps) -> Element {
     let (label, suggestions): (_, Vec<_>) = match props.suggestions {
         SuggestionType::None => return None,
         SuggestionType::Emoji(pattern, emojis) => {
-            let pattern_signal = use_signal(|| pattern.clone());
             let component = emojis.iter().cloned().enumerate().map(|(num, (emoji,alias))| {
                 rsx!(div {
                     class: format_args!("{} {}", "chatbar-suggestion", match props.selected.read().as_ref() {
@@ -366,7 +365,7 @@ fn SuggestionsMenu(mut props: SuggestionProps) -> Element {
                         )
                     },
                     onclick: move |_| {
-                        props.on_click.call((emoji.clone(), pattern_signal.read().clone()))
+                        props.on_click.call((emoji.clone(), pattern.clone()))
                     },
                     onmouseover: move |_| {
                         props.arrow_selected.with_mut(|arrow|{
@@ -382,7 +381,6 @@ fn SuggestionsMenu(mut props: SuggestionProps) -> Element {
             (get_local_text("messages.emoji-suggestion"), component)
         }
         SuggestionType::Tag(pattern, identities) => {
-            let pattern_signal = use_signal(|| pattern.clone());
             let component = identities.iter().enumerate().map(|(num, id)| {
                 let username = format!("{}#{}", id.username(), id.short_id());
                 rsx!(div {
@@ -396,7 +394,7 @@ fn SuggestionsMenu(mut props: SuggestionProps) -> Element {
                         )
                     },
                     onclick: move |_| {
-                        props.on_click.call((username.clone(), pattern_signal.read().clone()))
+                        props.on_click.call((username.clone(), pattern.clone()))
                     },
                     onmouseover: move |_| {
                         props.arrow_selected.with_mut(|arrow|{

@@ -10,7 +10,7 @@ use dioxus::{
 };
 use dioxus_hooks::Coroutine;
 
-pub fn init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
+pub fn use_init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
     let _ = use_resource(move || {
         async move {
             if chat_data.read().active_chat.is_initialized {

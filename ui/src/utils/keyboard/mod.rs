@@ -27,9 +27,9 @@ pub fn KeyboardShortcuts(props: Props) -> Element {
     if cfg!(target_os = "linux") {
         return None;
     }
+    let state = use_signal(State::load);
 
     if props.is_on_auth_pages.unwrap_or(false) {
-        let state = use_signal(State::load);
         let keybinds = state.read().settings.read().keybinds.clone();
         return rsx! {
             for (global_shortcut, shortcut) in keybinds {

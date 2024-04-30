@@ -14,7 +14,7 @@ pub enum ToggleType {
     Mute,
 }
 
-pub fn toggle(state: Signal<State>, toggle_type: ToggleType) {
+pub fn use_toggle(state: Signal<State>, toggle_type: ToggleType) {
     let call_state = match state.read().ui.call_info.active_call() {
         Some(c) => c.call,
         None => {
