@@ -71,7 +71,7 @@ pub struct State {
     #[serde(skip)]
     id: DID,
     pub route: route::Route,
-    chats: chats::Chats,
+    chats: Signal<chats::Chats>,
     friends: Signal<friends::Friends>,
     #[serde(skip)]
     pub storage: storage::Storage,
@@ -262,11 +262,16 @@ impl State {
             Action::CancelReply(chat_id) => self.cancel_reply(chat_id),
             Action::ClearUnreads(id) => self.clear_unreads(id),
             Action::ClearActiveUnreads => {
-                if let Some(id) = self.chats.active {
+                if let Some(id) = self.chats().active {
                     self.clear_unreads(id);
                 }
             }
-            Action::ClearAllUnreads => self.chats.all.values_mut().for_each(|c| c.clear_unreads()),
+            Action::ClearAllUnreads => self
+                .chats
+                .write()
+                .all
+                .values_mut()
+                .for_each(|c| c.clear_unreads()),
             Action::SetChatDraft(chat_id, value) => self.set_chat_draft(&chat_id, value),
             Action::ClearChatDraft(chat_id) => self.clear_chat_draft(&chat_id),
             Action::SetChatAttachments(chat_id, value) => {
@@ -333,7 +338,7 @@ impl State {
                 self.set_active_media(call.conversation_id);
             }
             Action::EndCall => {
-                self.chats.active_media = None;
+                self.chats.write().active_media = None;
                 self.ui.popout_media_player = false;
                 self.ui.call_info.end_call();
             }
@@ -345,7 +350,7 @@ impl State {
     }
 
     pub fn clear(&mut self) {
-        self.chats = chats::Chats::default();
+        self.chats = Signal::new(chats::Chats::default());
         *self.friends.write() = friends::Friends::default();
         *self.settings.write() = settings::Settings::default();
     }
@@ -442,21 +447,21 @@ impl State {
     fn process_raygun_event(&mut self, event: RayGunEvent) {
         match event {
             RayGunEvent::ConversationCreated(chat) => {
-                if !self.chats.in_sidebar.contains(&chat.inner.id) {
-                    self.chats.in_sidebar.insert(0, chat.inner.id);
+                if !self.chats.write().in_sidebar.contains(&chat.inner.id) {
+                    self.chats.write().in_sidebar.insert(0, chat.inner.id);
                     self.identities.extend(
                         chat.identities
                             .iter()
                             .map(|ident| (ident.did_key(), ident.clone())),
                     );
                 }
-                self.chats.all.insert(chat.inner.id, chat.inner);
+                self.chats.write().all.insert(chat.inner.id, chat.inner);
             }
             RayGunEvent::ConversationDeleted(id) => {
-                self.chats.in_sidebar.retain(|x| *x != id);
-                self.chats.all.remove(&id);
-                if self.chats.active == Some(id) {
-                    self.chats.active = None;
+                self.chats.write().in_sidebar.retain(|x| *x != id);
+                self.chats.write().all.remove(&id);
+                if self.chats.write().active == Some(id) {
+                    self.chats.write().active = None;
                 }
             }
         }
@@ -523,7 +528,7 @@ impl State {
             } => {
                 // todo: don't load all the messages by default. if the user scrolled up, for example, this incoming message may not need to be fetched yet.
                 let message_clone = message.clone();
-                if let Some(chat) = self.chats.all.get_mut(&conversation_id) {
+                if let Some(chat) = self.chats.write().all.get_mut(&conversation_id) {
                     chat.messages.push_back(message);
                 }
                 self.send_chat_to_top_of_sidebar(conversation_id);
@@ -535,7 +540,7 @@ impl State {
             } => {
                 self.update_identity_status_hack(&message.inner.sender());
                 let own = self.get_own_identity().did_key();
-                if let Some(chat) = self.chats.all.get_mut(&conversation_id) {
+                if let Some(chat) = self.chats.write().all.get_mut(&conversation_id) {
                     let id = message.inner.id();
                     if let Some(msg) = chat.messages.iter_mut().find(|msg| msg.inner.id() == id) {
                         *msg = message.clone();
@@ -567,7 +572,7 @@ impl State {
             } => {
                 // can't have 2 mutable borrows
                 let mut should_decrement_notifications = false;
-                if let Some(chat) = self.chats.all.get_mut(&conversation_id) {
+                if let Some(chat) = self.chats.write().all.get_mut(&conversation_id) {
                     if chat.remove_unread(&message_id) {
                         should_decrement_notifications = true;
                     }
@@ -615,10 +620,10 @@ impl State {
                 participant,
             } => {
                 self.update_identity_status_hack(&participant);
-                if !self.chats.in_sidebar.contains(&conversation_id) {
+                if !self.chats().in_sidebar.contains(&conversation_id) {
                     return;
                 }
-                match self.chats.all.get_mut(&conversation_id) {
+                match self.chats().all.get_mut(&conversation_id) {
                     Some(chat) => {
                         chat.typing_indicator.insert(participant, Instant::now());
                     }
@@ -635,12 +640,12 @@ impl State {
                 identity,
             } => {
                 self.identities.insert(identity.did_key(), identity);
-                if let Some(chat) = self.chats.all.get_mut(&conversation.id()) {
+                if let Some(chat) = self.chats.write().all.get_mut(&conversation.id()) {
                     chat.participants = HashSet::from_iter(conversation.recipients());
                 }
             }
             MessageEvent::RecipientRemoved { conversation } => {
-                if let Some(chat) = self.chats.all.get_mut(&conversation.id()) {
+                if let Some(chat) = self.chats.write().all.get_mut(&conversation.id()) {
                     // Also remove the recipient from the calls if present
                     // Waiting for blink implementation to also kick the user from call?
                     /*for did in &chat.participants {
@@ -652,7 +657,7 @@ impl State {
                 }
             }
             MessageEvent::ConversationNameUpdated { conversation } => {
-                if let Some(chat) = self.chats.all.get_mut(&conversation.id()) {
+                if let Some(chat) = self.chats.write().all.get_mut(&conversation.id()) {
                     chat.conversation_name = conversation.name();
                 }
             }
@@ -660,7 +665,7 @@ impl State {
                 conversation,
                 settings,
             } => {
-                if let Some(chat) = self.chats.all.get_mut(&conversation.id()) {
+                if let Some(chat) = self.chats.write().all.get_mut(&conversation.id()) {
                     chat.settings = settings;
                 }
             }
@@ -756,6 +761,7 @@ impl State {
     ) -> Self {
         let id = my_id.did_key();
         identities.insert(my_id.did_key(), my_id);
+        let chats = Signal::new(chats.clone());
         Self {
             id,
             route: Route { active: "/".into() },
@@ -815,7 +821,7 @@ impl State {
         state.initialized = false;
 
         if !success {
-            state.chats.readd_sidebars = true;
+            state.chats.write().readd_sidebars = true;
         }
 
         if state.settings.peek().font_scale() == 0.0 {
@@ -878,7 +884,7 @@ impl State {
     ) {
         *self.friends.write() = friends;
         for (id, chat) in chats {
-            if let Some(conv) = self.chats.all.get_mut(&id) {
+            if let Some(conv) = self.chats.read().all.get_mut(&id) {
                 conv.messages = chat.messages;
                 conv.conversation_type = chat.conversation_type;
                 conv.has_more_messages = chat.has_more_messages;
@@ -886,16 +892,17 @@ impl State {
                 conv.creator = chat.creator;
                 conv.pinned_messages = chat.pinned_messages;
             } else {
-                self.chats.all.insert(id, chat);
+                self.chats.write().all.insert(id, chat);
             }
         }
         self.identities.extend(identities.drain());
 
-        if self.chats.readd_sidebars {
-            self.chats.readd_sidebars = false;
+        if self.chats.read().readd_sidebars {
+            self.chats.write().readd_sidebars = false;
             self.chats
+                .read()
                 .in_sidebar
-                .append(&mut self.chats.all.keys().cloned().collect())
+                .append(&mut self.chats.read().all.keys().cloned().collect())
         }
 
         self.initialized = true;
@@ -924,21 +931,21 @@ impl State {
 // for chats
 impl State {
     pub fn chats(&self) -> &chats::Chats {
-        &self.chats
+        &self.chats()
     }
     pub fn chats_favorites(&self) -> Vec<Chat> {
-        self.chats
+        self.chats()
             .favorites
             .iter()
-            .filter_map(|did| self.chats.all.get(did))
+            .filter_map(|did| self.chats.write().all.get(did))
             .cloned()
             .collect()
     }
     pub fn chats_sidebar(&self) -> Vec<Chat> {
-        self.chats
+        self.chats()
             .in_sidebar
             .iter()
-            .filter_map(|did| self.chats.all.get(did))
+            .filter_map(|did| self.chats.write().all.get(did))
             .cloned()
             .collect()
     }
@@ -961,8 +968,8 @@ impl State {
     }
     fn add_msg_to_chat(&mut self, conversation_id: Uuid, message: ui_adapter::Message) {
         let msg_id = message.inner.id();
-        let is_active_scrolled = self.chats.active_chat_is_scrolled();
-        if let Some(chat) = self.chats.all.get_mut(&conversation_id) {
+        let is_active_scrolled = self.chats.read().active_chat_is_scrolled();
+        if let Some(chat) = self.chats.write().all.get_mut(&conversation_id) {
             chat.typing_indicator.remove(&message.inner.sender());
             chat.messages.push_back(message.clone());
             chat.mentions.push_back(message);
@@ -972,7 +979,7 @@ impl State {
             }
 
             if self.ui.current_layout != ui::Layout::Compose
-                || self.chats.active != Some(conversation_id)
+                || self.chats.read().active != Some(conversation_id)
                 || is_active_scrolled
             {
                 chat.add_unread(msg_id);
@@ -999,7 +1006,7 @@ impl State {
     ///
     /// * `chat` - The chat to stop replying to.
     fn cancel_reply(&mut self, chat_id: Uuid) {
-        if let Some(c) = self.chats.all.get_mut(&chat_id) {
+        if let Some(c) = self.chats.write().all.get_mut(&chat_id) {
             c.replying_to = None;
         }
     }
@@ -1020,12 +1027,12 @@ impl State {
     }
     /// Clears the active chat in the `State` struct.
     fn clear_active_chat(&mut self) {
-        self.chats.active = None;
+        self.chats.write().active = None;
     }
     pub fn clear_typing_indicator(&mut self, instant: Instant) -> bool {
         let mut needs_update = false;
-        for conv_id in self.chats.in_sidebar.iter() {
-            let chat = match self.chats.all.get_mut(conv_id) {
+        for conv_id in self.chats.read().in_sidebar.iter() {
+            let chat = match self.chats.write().all.get_mut(conv_id) {
                 Some(c) => c,
                 None => {
                     log::warn!("conv {} found in sidebar but not in HashMap", conv_id);
@@ -1047,13 +1054,13 @@ impl State {
 
     /// Clears the given chats draft message
     fn clear_chat_draft(&mut self, chat_id: &Uuid) {
-        if let Some(c) = self.chats.all.get_mut(chat_id) {
+        if let Some(c) = self.chats.write().all.get_mut(chat_id) {
             c.draft = None;
         }
     }
 
     fn clear_chat_attachments(&mut self, chat_id: &Uuid) {
-        if let Some(c) = self.chats.all.get_mut(chat_id) {
+        if let Some(c) = self.chats.write().all.get_mut(chat_id) {
             c.files_attached_to_send.clear();
         }
     }
@@ -1065,37 +1072,37 @@ impl State {
     /// * `chat_id` - The chat to clear unreads on.
     ///
     fn clear_unreads(&mut self, chat_id: Uuid) {
-        if let Some(chat) = self.chats.all.get_mut(&chat_id) {
+        if let Some(chat) = self.chats.write().all.get_mut(&chat_id) {
             chat.clear_unreads();
         }
     }
     /// Adds the given chat to the user's favorites.
     fn favorite(&mut self, chat: &Uuid) {
-        if !self.chats.favorites.contains(chat) {
-            self.chats.favorites.push(*chat);
+        if !self.chats.read().favorites.contains(chat) {
+            self.chats.write().favorites.push(*chat);
         }
     }
     pub fn finished_loading_chat(&mut self, chat_id: Uuid) {
-        if let Some(chat) = self.chats.all.get_mut(&chat_id) {
+        if let Some(chat) = self.chats.write().all.get_mut(&chat_id) {
             chat.has_more_messages = false;
         }
     }
     /// Get the active chat on `State` struct.
     pub fn get_active_chat(&self) -> Option<Chat> {
-        self.chats
+        self.chats()
             .active
-            .and_then(|uuid| self.chats.all.get(&uuid).cloned())
+            .and_then(|uuid| self.chats.read().all.get(&uuid).cloned())
     }
     pub fn get_active_media_chat(&self) -> Option<&Chat> {
-        self.chats
+        self.chats()
             .active_media
-            .and_then(|uuid| self.chats.all.get(&uuid))
+            .and_then(|uuid| self.chats.write().all.get(&uuid))
     }
     pub fn get_chat_by_id(&self, id: Uuid) -> Option<Chat> {
-        self.chats.all.get(&id).cloned()
+        self.chats.read().all.get(&id).cloned()
     }
     pub fn get_chat_with_friend(&self, friend: DID) -> Option<Chat> {
-        self.chats
+        self.chats()
             .all
             .values()
             .find(|chat| {
@@ -1110,7 +1117,7 @@ impl State {
         conversation_id: Uuid,
         messages: Vec<ui_adapter::Message>,
     ) {
-        if let Some(chat) = self.chats.all.get_mut(&conversation_id) {
+        if let Some(chat) = self.chats.write().all.get_mut(&conversation_id) {
             chat.messages = messages.into();
         }
     }
@@ -1121,11 +1128,11 @@ impl State {
     ///
     /// * `chat` - The chat to check.
     pub fn is_favorite(&self, chat: &Chat) -> bool {
-        self.chats.favorites.contains(&chat.id)
+        self.chats.read().favorites.contains(&chat.id)
     }
 
     pub fn reached_max_pinned(&self, chat: &Uuid) -> bool {
-        let conv = match self.chats.all.get(chat) {
+        let conv = match self.chats.write().all.get(chat) {
             Some(c) => c,
             None => {
                 log::warn!("attempted to get nonexistent conversation");
@@ -1137,7 +1144,7 @@ impl State {
 
     fn pin_message(&mut self, message: warp::raygun::Message) {
         let message_id = message.id();
-        let conv = match self.chats.all.get_mut(&message.conversation_id()) {
+        let conv = match self.chats.write().all.get_mut(&message.conversation_id()) {
             Some(c) => c,
             None => {
                 log::warn!("attempted to update message in nonexistent conversation");
@@ -1160,7 +1167,7 @@ impl State {
 
     fn unpin_message(&mut self, message: warp::raygun::Message) {
         let message_id = message.id();
-        let conv = match self.chats.all.get_mut(&message.conversation_id()) {
+        let conv = match self.chats.write().all.get_mut(&message.conversation_id()) {
             Some(c) => c,
             None => {
                 log::warn!("attempted to update message in nonexistent conversation");
@@ -1182,7 +1189,7 @@ impl State {
     // this is used for adding/removing reactions.
     // if pinned messages ever need to display a reaction, additional code may be needed here.
     pub fn update_reactions(&mut self, message: warp::raygun::Message) {
-        let conv = match self.chats.all.get_mut(&message.conversation_id()) {
+        let conv = match self.chats.write().all.get_mut(&message.conversation_id()) {
             Some(c) => c,
             None => {
                 log::warn!("attempted to update message in nonexistent conversation");
@@ -1207,9 +1214,9 @@ impl State {
     ///
     /// * `chat_id` - The chat to remove.
     fn remove_sidebar_chat(&mut self, chat_id: Uuid) {
-        self.chats.in_sidebar.retain(|id| *id != chat_id);
+        self.chats.write().in_sidebar.retain(|id| *id != chat_id);
 
-        if let Some(id) = self.chats.active {
+        if let Some(id) = self.chats.write().active {
             if id == chat_id {
                 self.clear_active_chat();
             }
@@ -1221,22 +1228,22 @@ impl State {
     ///
     /// * `chat` - The chat to set as the active chat.
     fn set_active_chat(&mut self, chat: &Uuid, should_move_to_top: bool) {
-        self.chats.active = Some(*chat);
+        self.chats.write().active = Some(*chat);
         if should_move_to_top {
             self.send_chat_to_top_of_sidebar(*chat);
-        } else if !self.chats.in_sidebar.contains(chat) {
-            self.chats.in_sidebar.push_front(*chat);
+        } else if !self.chats.read().in_sidebar.contains(chat) {
+            self.chats.write().in_sidebar.push_front(*chat);
         }
         // don't clear unreads here. need additional information, which is present in the Chatbar.
     }
 
     fn send_chat_to_top_of_sidebar(&mut self, chat_id: Uuid) {
-        self.chats.in_sidebar.retain(|id| id != &chat_id);
-        self.chats.in_sidebar.push_front(chat_id);
+        self.chats.write().in_sidebar.retain(|id| id != &chat_id);
+        self.chats.write().in_sidebar.push_front(chat_id);
     }
 
     pub fn set_chat_scrolled(&mut self, chat_id: Uuid, val: bool) {
-        if let Some(chat) = self.chats.all.get_mut(&chat_id) {
+        if let Some(chat) = self.chats.write().all.get_mut(&chat_id) {
             chat.is_scrolled = val;
         }
     }
@@ -1244,7 +1251,7 @@ impl State {
     // indicates that a conversation has a pending outgoing message
     // sends it to the active chat
     pub fn increment_outgoing_messages(&mut self, message_id: Uuid, msg: Vec<String>) {
-        if let Some(id) = self.chats.active {
+        if let Some(id) = self.chats.write().active {
             self.increment_outgoing_messages_for(id, message_id, msg);
         }
     }
@@ -1256,7 +1263,7 @@ impl State {
         msg: Vec<String>,
     ) {
         let did = self.get_own_identity().did_key();
-        if let Some(chat) = self.chats.all.get_mut(&chat_id) {
+        if let Some(chat) = self.chats.read().all.get_mut(&chat_id) {
             if !chat.append_pending_msg(chat_id, message_id, did, msg) {
                 log::debug!("attempted to add an already existing pending message");
             }
@@ -1286,7 +1293,7 @@ impl State {
             )));
             update = true;
         }
-        if let Some(chat) = self.chats.all.get_mut(&conv_id) {
+        if let Some(chat) = self.chats.write().all.get_mut(&conv_id) {
             chat.update_pending_msg(message_id, location, progress);
         }
         update
@@ -1298,32 +1305,32 @@ impl State {
         message_id: Uuid,
         location: FileLocation,
     ) {
-        if let Some(chat) = self.chats.all.get_mut(&conv_id) {
+        if let Some(chat) = self.chats.write().all.get_mut(&conv_id) {
             chat.remove_pending_msg_attachment(message_id, location);
         }
     }
 
     pub fn decrement_outgoing_messages(&mut self, conv_id: Uuid, message_id: Uuid) {
-        if let Some(chat) = self.chats.all.get_mut(&conv_id) {
+        if let Some(chat) = self.chats.write().all.get_mut(&conv_id) {
             chat.remove_pending_msg(message_id);
         }
     }
 
     fn set_chat_attachments(&mut self, chat_id: &Uuid, value: Vec<Location>) {
-        if let Some(c) = self.chats.all.get_mut(chat_id) {
+        if let Some(c) = self.chats.write().all.get_mut(chat_id) {
             c.files_attached_to_send = value;
         }
     }
 
     /// Sets the draft on a given chat to some contents.
     fn set_chat_draft(&mut self, chat_id: &Uuid, value: String) {
-        if let Some(c) = self.chats.all.get_mut(chat_id) {
+        if let Some(c) = self.chats.write().all.get_mut(chat_id) {
             c.draft = Some(value);
         }
     }
     /// Begins replying to a message in the specified chat in the `State` struct.
     fn start_replying(&mut self, chat: &Uuid, message: &ui_adapter::Message) {
-        if let Some(c) = self.chats.all.get_mut(chat) {
+        if let Some(c) = self.chats.write().all.get_mut(chat) {
             c.replying_to = Some(message.inner.clone());
         }
     }
@@ -1331,7 +1338,7 @@ impl State {
     /// is already a favorite, it is removed from the favorites list. Otherwise, it
     /// is added to the list.
     fn toggle_favorite(&mut self, chat: &Uuid) {
-        let faves = &mut self.chats.favorites;
+        let faves = &mut self.chats.read().favorites;
         if let Some(index) = faves.iter().position(|uid| uid == chat) {
             faves.remove(index);
         } else {
@@ -1340,7 +1347,7 @@ impl State {
     }
     /// Removes the given chat from the user's favorites.
     fn unfavorite(&mut self, chat_id: Uuid) {
-        self.chats.favorites.retain(|uid| *uid != chat_id);
+        self.chats.write().favorites.retain(|uid| *uid != chat_id);
     }
 }
 
@@ -1437,7 +1444,7 @@ impl State {
         // Remove the friend from the all field of the friends struct
         self.friends.write().all.remove(did);
 
-        let all_chats = self.chats.all.clone();
+        let all_chats = self.chats.read().all.clone();
 
         // Check if there is a direct chat with the friend being removed
         let direct_chat = all_chats.values().find(|chat| {
@@ -1455,7 +1462,7 @@ impl State {
         };
 
         // If the friend's direct chat is currently the active chat, clear the active chat
-        if let Some(id) = self.chats.active {
+        if let Some(id) = self.chats.read().active {
             if id == direct_chat.id {
                 self.clear_active_chat();
             }
@@ -1542,7 +1549,7 @@ impl State {
     }
     /// Sets the active media to the specified conversation id
     fn set_active_media(&mut self, id: Uuid) {
-        self.chats.active_media = Some(id);
+        self.chats.write().active_media = Some(id);
     }
     pub fn set_theme(&mut self, theme: Option<Theme>) {
         self.ui.theme = theme;
@@ -1694,7 +1701,7 @@ impl State {
         };
 
         let chats_entries = self
-            .chats
+            .chats()
             .all
             .iter()
             .filter(|(_, v)| v.conversation_type == ConversationType::Group)
@@ -1725,7 +1732,7 @@ impl State {
             .collect();
 
         let chats: Vec<Chat> = self
-            .chats
+            .chats()
             .all
             .iter()
             .filter(|(_, v)| v.conversation_type == ConversationType::Group)
