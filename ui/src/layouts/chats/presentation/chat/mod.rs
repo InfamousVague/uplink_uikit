@@ -20,7 +20,7 @@ use crate::{
         presentation::{
             chat::{edit_group::EditGroup, group_settings::GroupSettings, group_users::GroupUsers},
             chatbar::get_chatbar,
-            messages::get_messages,
+            messages::GetMessages,
         },
         scripts::{DISABLE_RELOAD, SHOW_CONTEXT, USER_TAG_SCRIPT},
     },
@@ -36,13 +36,14 @@ use warp::crypto::DID;
 
 #[allow(non_snake_case)]
 pub fn Compose() -> Element {
-    log::trace!("rendering compose");
+    log::info!("rendering compose");
     use_context_provider(|| Signal::new(ChatData::default()));
     use_context_provider(|| Signal::new(ScrollBtn::new()));
     use_context_provider(|| Signal::new(MessagesToSend::default()));
     use_context_provider(|| Signal::new(MessagesToEdit::default()));
     let mut state = use_context::<Signal<State>>();
     let mut chat_data = use_context::<Signal<ChatData>>();
+    let mut signal_test = use_signal(|| false);
 
     let init = coroutines::use_init_chat_data(state, chat_data);
     coroutines::use_handle_warp_events(state, chat_data);
@@ -217,7 +218,10 @@ pub fn Compose() -> Element {
                 }
             )}
         } else {
-            {rsx!(get_messages{quickprofile_data: quickprofile_data})}
+            {
+    // log::info!("0 - effects::use_init_msg_scroll");
+
+                rsx!(GetMessages{quickprofile_data: quickprofile_data, chat_data: chat_data.clone(), signal_test: signal_test.clone()})}
         },
         get_chatbar {
             show_manage_members: show_manage_members,

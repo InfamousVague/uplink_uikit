@@ -24,7 +24,10 @@ pub struct Props {
 
 impl PartialEq for Props {
     fn eq(&self, _other: &Self) -> bool {
-        true
+        self._loading == _other._loading
+            && self.options.is_some() == _other.options.is_some()
+            && self._onchange == _other._onchange
+            && self._onreturn == _other._onreturn
     }
 }
 

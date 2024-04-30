@@ -5,7 +5,7 @@ use crate::components::{
     user_image::UserImage,
 };
 
-#[derive(Props, Clone, PartialEq)]
+#[derive(Props, Clone)]
 pub struct Props {
     children: Element,
     user_image: Element,
@@ -16,8 +16,15 @@ pub struct Props {
     timestamp: Option<String>,
 }
 
+impl PartialEq for Props {
+    fn eq(&self, other: &Self) -> bool {
+        false
+    }
+}
+
 #[allow(non_snake_case)]
 pub fn MessageGroup(props: Props) -> Element {
+    println!("Rendering Message GROUP");
     let remote = props.remote.unwrap_or_default();
     let time_ago = props.timestamp.clone().unwrap_or_default();
 

@@ -65,7 +65,7 @@ pub struct ReactionAdapter {
     pub reaction_count: usize,
 }
 
-#[derive(Props, Clone, PartialEq)]
+#[derive(Props, Clone)]
 pub struct Props {
     // Message ID
     id: String,
@@ -128,6 +128,12 @@ pub struct Props {
     chat: Uuid,
 }
 
+impl PartialEq for Props {
+    fn eq(&self, other: &Self) -> bool {
+        false
+    }
+}
+
 // Struct for replacing links with clickable divs.
 // Also saves the links
 struct LinkReplacer(Vec<String>);
@@ -177,7 +183,7 @@ fn wrap_links_with_a_tags(text: &str) -> (String, Vec<String>) {
 
 #[allow(non_snake_case)]
 pub fn Message(props: Props) -> Element {
-    //  log::trace!("render Message");
+    // log::error!("render Message   ASDASDASDASDASD");
     let loading = props.loading.unwrap_or_default();
     let is_remote = props.remote.unwrap_or_default();
     let order = props.order.unwrap_or(Order::Last);
@@ -426,7 +432,7 @@ fn EditMsg(props: EditProps) -> Element {
     })
 }
 
-#[derive(Props, Clone, PartialEq)]
+#[derive(Props, Clone)]
 pub struct ChatMessageProps {
     text: String,
     remote: bool,
@@ -435,6 +441,12 @@ pub struct ChatMessageProps {
     ascii_emoji: bool,
     state: Signal<State>,
     chat: Uuid,
+}
+
+impl PartialEq for ChatMessageProps {
+    fn eq(&self, other: &Self) -> bool {
+        false
+    }
 }
 
 #[allow(non_snake_case)]

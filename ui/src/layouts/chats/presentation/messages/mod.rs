@@ -83,17 +83,33 @@ pub enum MessagesCommand {
 
 pub type DownloadTracker = HashMap<Uuid, HashSet<warp::constellation::file::File>>;
 
+#[derive(Props, Clone)]
+pub struct Props {
+    quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>>,
+    chat_data: Signal<ChatData>,
+    signal_test: Signal<bool>,
+}
+
+impl PartialEq for Props {
+    fn eq(&self, other: &Self) -> bool {
+        self.chat_data.read().active_chat.messages().len()
+            == other.chat_data.read().active_chat.messages().len()
+    }
+}
+
 #[component(no_case_check)]
-pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>>) -> Element {
-    log::trace!("get_messages");
+pub fn GetMessages(props: Props) -> Element {
+    log::info!("get_messages");
     use_context_provider(|| Signal::new(DownloadTracker::default()));
+    let mut quick_profile_data_signal = props.quickprofile_data.clone();
     let state = use_context::<Signal<State>>();
-    let chat_data = use_context::<Signal<ChatData>>();
+    let chat_data = props.chat_data.clone();
     let scroll_btn = use_context::<Signal<ScrollBtn>>();
     let pending_downloads = use_context::<Signal<DownloadTracker>>();
 
     let ch = coroutines::use_handle_msg_scroll(&chat_data, &scroll_btn);
     let fetch_later_ch = coroutines::use_fetch_later_ch(chat_data, scroll_btn);
+    log::info!("effects::use_init_msg_scroll");
     effects::use_init_msg_scroll(chat_data, ch);
 
     // used by child Elements via use_coroutine_handle
@@ -102,7 +118,21 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
     let active_chat_id = chat_data.read().active_chat.id();
     // used by the intersection observer to terminate itself.
     let chat_key = chat_data.read().active_chat.key().to_string();
-    let mut chat_behavior = use_signal(|| chat_data.read().get_chat_behavior(active_chat_id));
+    let chat_behavior = use_signal(|| chat_data.read().get_chat_behavior(active_chat_id));
+
+    println!(
+        "Messages: {:?}",
+        chat_data.read().active_chat.messages().len()
+    );
+    let groups = data::create_message_groups(
+        chat_data.read().active_chat.my_id(),
+        chat_data.read().active_chat.other_participants(),
+        chat_data.read().active_chat.messages(),
+    );
+    println!(
+        "2 - Messages: {:?}",
+        chat_data.read().active_chat.messages().len()
+    );
 
     let msg_container_end = if matches!(
         chat_behavior().on_scroll_top,
@@ -169,17 +199,18 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
                 hidden: true,
             },
             span {
-                {rsx!(
+                {
+                    rsx!(
                     {msg_container_end},
                     loop_over_message_groups {
-                        groups: data::create_message_groups(chat_data.read().active_chat.my_id(), chat_data.read().active_chat.other_participants(), chat_data.read().active_chat.messages()),
+                        groups: groups,
                         active_chat_id: chat_data.read().active_chat.id(),
                         on_context_menu_action: move |(e, mut id): (Event<MouseData>, Identity)| {
                             let own = state.read().get_own_identity().did_key().eq(&id.did_key());
                             if own {
                                 id.set_identity_status(IdentityStatus::Online);
                             };
-                            quickprofile_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
+                            quick_profile_data_signal.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
                         }
                     },
                     render_pending_messages_listener {
@@ -188,7 +219,7 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
                             if own {
                                 id.set_identity_status(IdentityStatus::Online);
                             };
-                            quickprofile_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
+                            quick_profile_data_signal.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
                         }
                     }
                 )}
@@ -206,16 +237,19 @@ pub struct AllMessageGroupsProps {
 
 impl PartialEq for AllMessageGroupsProps {
     fn eq(&self, other: &Self) -> bool {
-        self.groups.len() == other.groups.len() && self.active_chat_id == other.active_chat_id
+        false
     }
 }
 
 // attempting to move the contents of this function into the above rsx! macro causes an error: cannot return vale referencing
 // temporary location
 pub fn loop_over_message_groups(props: AllMessageGroupsProps) -> Element {
-    log::trace!("render message groups");
     rsx!({
         props.groups.iter().map(|_group| {
+            println!(
+                "1 - CHAT DATA ON loop_over_message_groups: {:?}",
+                _group.messages.len()
+            );
             rsx!(render_message_group {
                 group: _group.clone(),
                 active_chat_id: props.active_chat_id,
@@ -235,7 +269,7 @@ struct MessageGroupProps {
 
 impl PartialEq for MessageGroupProps {
     fn eq(&self, other: &Self) -> bool {
-        self.active_chat_id == other.active_chat_id && self.pending == other.pending
+        false
     }
 }
 
@@ -315,7 +349,10 @@ fn render_message_group(props: MessageGroupProps) -> Element {
     if !group.remote && sender_status == Status::Offline {
         sender_status = Status::Online;
     }
-
+    println!(
+        "CHAT DATA ON loop_over_message_groups: {:?}",
+        group.messages.len()
+    );
     rsx!(
         { blocked_element },
         MessageGroup {
@@ -355,14 +392,15 @@ struct MessagesProps {
 
 impl PartialEq for MessagesProps {
     fn eq(&self, other: &Self) -> bool {
-        self.messages.len() == other.messages.len()
-            && self.active_chat_id == other.active_chat_id
-            && self.is_remote == other.is_remote
-            && self.pending == other.pending
+        false
     }
 }
 
 fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
+    println!(
+        "Messages - wrap_messages_in_context_menu: {:?}",
+        props.messages.len()
+    );
     let mut state = use_context::<Signal<State>>();
     let mut edit_msg = use_context::<Signal<MessagesToEdit>>();
     // see comment in ContextMenu about this variable.
@@ -376,13 +414,15 @@ fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
         .extensions
         .enabled_extension(emoji_selector_extension);
 
-    let messages = use_signal(|| props.messages.clone());
-    let messages_no_signal = messages();
-
+    let messages_no_signal = props.messages.clone();
+    println!(
+        "Message: messages_no_signal: {:?}",
+        messages_no_signal.len()
+    );
     let ch = use_coroutine_handle::<MessagesCommand>();
     rsx!({
         messages_no_signal.iter().cloned().map(|grouped_message| {
-let message = use_signal(|| grouped_message.message.clone());
+        let message = use_signal(|| grouped_message.message.clone());
         let sender_is_self = message().inner.sender() == state.read().did_key();
 
         // WARNING: these keys are required to prevent a bug with the context menu, which manifests when deleting messages.
@@ -554,15 +594,17 @@ struct MessageProps {
 
 impl PartialEq for MessageProps {
     fn eq(&self, other: &Self) -> bool {
-        self.is_remote == other.is_remote
-            && self.message_key == other.message_key
-            && self.edit_msg == other.edit_msg
-            && self.pending == other.pending
+        false
+        // self.is_remote == other.is_remote
+        //     && self.message_key == other.message_key
+        //     && self.message.message.inner.lines() == other.message.message.inner.lines()
+        //     && self.edit_msg == other.edit_msg
+        //     && self.pending == other.pending
     }
 }
 
 fn render_message(props: MessageProps) -> Element {
-    //log::trace!("render message {}", &props.message.message.key);
+    // log::error!("render message {}", &props.message.message.key);
     let mut state = use_context::<Signal<State>>();
     let chat_data = use_context::<Signal<ChatData>>();
 

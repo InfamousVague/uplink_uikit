@@ -42,6 +42,7 @@ use tracing::log;
 use crate::components::file_transfer::FileTransferModal;
 use crate::components::media::calling::CallControl;
 
+use crate::layouts::chats::data::ChatData;
 use crate::layouts::chats::presentation::sidebar::create_group::CreateGroup;
 use crate::utils::build_participants;
 use crate::UplinkRoute;
@@ -61,6 +62,7 @@ pub struct SidebarProps {
 pub fn Sidebar(_props: SidebarProps) -> Element {
     log::trace!("rendering chats sidebar layout");
     let mut state = use_context::<Signal<State>>();
+
     let mut search_results = use_signal(Vec::<identity_search_result::Entry>::new);
     let mut search_results_friends_identities = use_signal(Vec::<Identity>::new);
     let mut search_results_chats = use_signal(Vec::<Chat>::new);
