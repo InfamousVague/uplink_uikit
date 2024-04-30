@@ -229,6 +229,7 @@ pub fn Message(props: Props) -> Element {
 
     let pending_attachment_list = props.attachments_pending_uploads.as_ref().map(|vec| {
         vec.iter().cloned().map(|(location, prog)| {
+            let location_copy = CopyValue::new(location.clone());
             let txt = props.with_text.clone();
             let file = progress_file(&prog.clone());
             rsx!(FileEmbed {
@@ -242,20 +243,20 @@ pub fn Message(props: Props) -> Element {
                 on_resend_msg: move |_| {
                     if single {
                         if let Some(e) = &props.on_resend {
-                            e.call((txt.clone(), location.clone()))
+                            e.call((txt.clone(), location_copy.read().clone()))
                         }
                     } else {
                         if let Some(e) = &props.on_delete {
-                            e.call(location.clone())
+                            e.call(location_copy.read().clone())
                         }
                         if let Some(e) = &props.on_resend {
-                            e.call((None, location.clone()))
+                            e.call((None, location_copy.read().clone()))
                         }
                     }
                 },
                 on_delete_msg: move |_| {
                     if let Some(e) = &props.on_delete {
-                        e.call(location.clone())
+                        e.call(location_copy.read().clone())
                     }
                 },
             })

@@ -92,12 +92,12 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
     let scroll_btn = use_context::<Signal<ScrollBtn>>();
     let pending_downloads = use_context::<Signal<DownloadTracker>>();
 
-    let ch = coroutines::handle_msg_scroll(&chat_data, &scroll_btn);
-    let fetch_later_ch = coroutines::fetch_later_ch(chat_data, scroll_btn);
-    effects::init_msg_scroll(chat_data, ch);
+    let ch = coroutines::use_handle_msg_scroll(&chat_data, &scroll_btn);
+    let fetch_later_ch = coroutines::use_fetch_later_ch(chat_data, scroll_btn);
+    effects::use_init_msg_scroll(chat_data, ch);
 
     // used by child Elements via use_coroutine_handle
-    let _ch = coroutines::handle_warp_commands(&state, &pending_downloads);
+    let _ch = coroutines::use_handle_warp_commands(&state, &pending_downloads);
 
     let active_chat_id = chat_data.read().active_chat.id();
     // used by the intersection observer to terminate itself.

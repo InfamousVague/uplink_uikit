@@ -213,7 +213,7 @@ fn app() -> Element {
             is_on_auth_pages: true,
             on_global_shortcut: move |shortcut| {
                 match shortcut {
-                    GlobalShortcut::OpenCloseDevTools => utils::keyboard::shortcut_handlers::dev::open_close_dev_tools(),
+                    GlobalShortcut::OpenCloseDevTools => utils::keyboard::shortcut_handlers::dev::use_open_close_dev_tools(),
                     GlobalShortcut::Unknown => log::error!("Unknown `Shortcut` called!"),
                     _ => log::info!("Just Open Dev Tools shortcut works on Auth Pages!"),
                 }
@@ -301,13 +301,13 @@ fn app_layout() -> Element {
             KeyboardShortcuts {
                 on_global_shortcut: move |shortcut| {
                     match shortcut {
-                        GlobalShortcut::ToggleMute => utils::keyboard::shortcut_handlers::audio::toggle(state, ToggleType::Mute),
-                        GlobalShortcut::ToggleDeafen => utils::keyboard::shortcut_handlers::audio::toggle(state, ToggleType::Deafen),
+                        GlobalShortcut::ToggleMute => utils::keyboard::shortcut_handlers::audio::use_toggle(state, ToggleType::Mute),
+                        GlobalShortcut::ToggleDeafen => utils::keyboard::shortcut_handlers::audio::use_toggle(state, ToggleType::Deafen),
                         GlobalShortcut::IncreaseFontSize => utils::keyboard::shortcut_handlers::font::increase_size(state),
                         GlobalShortcut::DecreaseFontSize => utils::keyboard::shortcut_handlers::font::decrease_size(state),
-                        GlobalShortcut::OpenCloseDevTools => utils::keyboard::shortcut_handlers::dev::open_close_dev_tools(),
+                        GlobalShortcut::OpenCloseDevTools => utils::keyboard::shortcut_handlers::dev::use_open_close_dev_tools(),
                         GlobalShortcut::ToggleDevmode => utils::keyboard::shortcut_handlers::dev::toggle_devmode(state),
-                        GlobalShortcut::SetAppVisible => utils::keyboard::shortcut_handlers::navigation::set_app_visible(),
+                        GlobalShortcut::SetAppVisible => utils::keyboard::shortcut_handlers::navigation::use_set_app_visible(),
                         GlobalShortcut::Unknown => log::error!("Unknown `Shortcut` called!")
                     }
                     log::debug!("shortcut called {:?}", shortcut);

@@ -99,8 +99,8 @@ where
     queue_ref
 }
 
-pub fn chat_upload_stream_handler() -> Signal<AsyncRef<(Uuid, Uuid, AttachmentEventStream)>> {
-    async_queue(
+pub fn use_chat_upload_stream_handler() -> Signal<AsyncRef<(Uuid, Uuid, AttachmentEventStream)>> {
+    use_async_queue(
         |(conv_id, message_id, mut stream): (Uuid, Uuid, AttachmentEventStream)| async move {
             while let Some(kind) = stream.next().await {
                 match kind {
@@ -138,8 +138,8 @@ pub struct DownloadStreamData {
     pub file_state: TransferState,
 }
 
-pub fn download_stream_handler() -> Signal<AsyncRef<DownloadStreamData>> {
-    async_queue(
+pub fn use_download_stream_handler() -> Signal<AsyncRef<DownloadStreamData>> {
+    use_async_queue(
         |DownloadStreamData {
              stream,
              file,

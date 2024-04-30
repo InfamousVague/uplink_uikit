@@ -26,7 +26,7 @@ use uuid::Uuid;
 use warp::constellation::{directory::Directory, item::Item};
 
 use crate::utils::{
-    async_task_queue::{download_stream_handler, DownloadStreamData},
+    async_task_queue::{use_download_stream_handler, DownloadStreamData},
     download::get_download_path,
 };
 
@@ -236,7 +236,7 @@ pub fn use_init_coroutine(
     state: Signal<State>,
     file_tracker: Signal<TransferTracker>,
 ) -> Coroutine<ChanCmd> {
-    let download_queue = download_stream_handler();
+    let download_queue = use_download_stream_handler();
 
     use_coroutine(|mut rx: UnboundedReceiver<ChanCmd>| {
         to_owned![controller, download_queue, state, file_tracker];

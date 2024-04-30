@@ -44,8 +44,8 @@ pub fn Compose() -> Element {
     let mut state = use_context::<Signal<State>>();
     let mut chat_data = use_context::<Signal<ChatData>>();
 
-    let init = coroutines::init_chat_data(state, chat_data);
-    coroutines::handle_warp_events(state, chat_data);
+    let init = coroutines::use_init_chat_data(state, chat_data);
+    coroutines::use_handle_warp_events(state, chat_data);
 
     state.write_silent().ui.current_layout = ui::Layout::Compose;
 

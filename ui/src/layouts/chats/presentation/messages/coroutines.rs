@@ -27,7 +27,7 @@ use crate::{
         scripts,
     },
     utils::{
-        async_task_queue::{download_stream_handler, DownloadStreamData},
+        async_task_queue::{use_download_stream_handler, DownloadStreamData},
         download::get_download_path,
     },
 };
@@ -436,7 +436,7 @@ pub fn use_handle_warp_commands(
     state: &Signal<State>,
     pending_downloads: &Signal<DownloadTracker>,
 ) -> Coroutine<MessagesCommand> {
-    let download_streams = download_stream_handler();
+    let download_streams = use_download_stream_handler();
     let file_tracker = use_context::<Signal<TransferTracker>>();
 
     use_coroutine(|mut rx: UnboundedReceiver<MessagesCommand>| {

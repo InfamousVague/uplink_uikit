@@ -38,7 +38,7 @@ use crate::layouts::storage::files_layout::file_preview::open_file_preview_modal
 use crate::layouts::storage::send_files_layout::modal::SendFilesLayoutModal;
 use crate::layouts::storage::send_files_layout::SendFilesStartLocation;
 use crate::layouts::storage::shared_component::{FilesAndFolders, FilesBreadcumbs};
-use crate::utils::async_task_queue::chat_upload_stream_handler;
+use crate::utils::async_task_queue::use_chat_upload_stream_handler;
 use crate::utils::clipboard::clipboard_data::get_files_path_from_clipboard;
 use crate::utils::get_drag_event::get_drag_event;
 use dioxus_html::input_data::keyboard_types::Code;
@@ -67,7 +67,8 @@ pub fn FilesLayout() -> Element {
 
     functions::use_allow_block_folder_nav(files_in_queue_to_upload);
 
-    let ch: Coroutine<ChanCmd> = functions::init_coroutine(storage_controller, state, file_tracker);
+    let ch: Coroutine<ChanCmd> =
+        functions::use_init_coroutine(storage_controller, state, file_tracker);
 
     let _ = use_future(move || {
         to_owned![files_been_uploaded, files_in_queue_to_upload];
@@ -91,20 +92,20 @@ pub fn FilesLayout() -> Element {
             .clone(),
     );
 
-    functions::get_items_from_current_directory(ch);
+    functions::use_get_items_from_current_directory(ch);
 
     #[cfg(not(target_os = "macos"))]
-    functions::allow_drag_event_for_non_macos_systems(
+    functions::use_allow_drag_event_for_non_macos_systems(
         upload_file_controller.are_files_hovering_app,
     );
-    functions::start_upload_file_listener(
+    functions::use_start_upload_file_listener(
         state,
         storage_controller,
         upload_file_controller.clone(),
         file_tracker,
     );
 
-    let upload_streams = chat_upload_stream_handler();
+    let upload_streams = use_chat_upload_stream_handler();
     let send_ch = use_coroutine(|mut rx: UnboundedReceiver<(Vec<Location>, Vec<Uuid>)>| {
         to_owned![state, upload_streams, send_files_from_storage];
         async move {

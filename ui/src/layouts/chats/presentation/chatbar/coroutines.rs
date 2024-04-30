@@ -12,13 +12,13 @@ use warp::raygun;
 
 use crate::{
     layouts::chats::data::{self, MsgChInput, TypingInfo, DEFAULT_MESSAGES_TO_TAKE},
-    utils::async_task_queue::chat_upload_stream_handler,
+    utils::async_task_queue::use_chat_upload_stream_handler,
 };
 
 use super::TypingIndicator;
 
 pub fn use_get_msg_ch(state: &Signal<State>) -> Coroutine<MsgChInput> {
-    let upload_streams = chat_upload_stream_handler();
+    let upload_streams = use_chat_upload_stream_handler();
     use_coroutine(|mut rx: UnboundedReceiver<MsgChInput>| {
         to_owned![state, upload_streams];
         async move {

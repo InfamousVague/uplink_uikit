@@ -146,9 +146,9 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     let users_typing = state.read().get_identities(&users_typing);
 
     // this is used to scroll to the bottom of the chat.
-    let scroll_ch = coroutines::get_scroll_ch(&chat_data, &state);
-    let msg_ch: Coroutine<MsgChInput> = coroutines::get_msg_ch(&state);
-    let local_typing_ch = coroutines::get_typing_ch();
+    let scroll_ch = coroutines::use_get_scroll_ch(&chat_data, &state);
+    let msg_ch: Coroutine<MsgChInput> = coroutines::use_get_msg_ch(&state);
+    let local_typing_ch = coroutines::use_get_typing_ch();
     let local_typing_ch2 = local_typing_ch;
     let messages_to_send = &to_send.read().messages_to_send.clone();
     if !messages_to_send.is_empty() {
