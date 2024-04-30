@@ -77,7 +77,7 @@ pub struct State {
     pub storage: storage::Storage,
     #[serde(skip)]
     pub scope_ids: scope_ids::ScopeIds,
-    pub settings: settings::Settings,
+    pub settings: Signal<settings::Settings>,
     pub ui: ui::UI,
     pub configuration: configuration::Configuration,
     #[serde(skip)]
@@ -190,7 +190,8 @@ impl State {
                     .insert(Uuid::new_v4(), notification);
             }
             Action::DismissUpdate => {
-                self.settings.update_dismissed = self.settings.update_available.take();
+                let update = self.settings.write().update_available.take();
+                self.settings.write().update_dismissed = update;
                 self.ui
                     .notifications
                     .decrement(notifications::NotificationKind::Settings, 1);
@@ -238,15 +239,15 @@ impl State {
             Action::SetTransformMarkdownText(flag) => self.ui.transform_markdown_text(flag),
             Action::SetTransformAsciiEmojis(flag) => self.ui.transform_ascii_emojis(flag),
             // ===== Settings =====
-            Action::PauseGlobalKeybinds(b) => self.settings.pause_global_keybinds = b,
+            Action::PauseGlobalKeybinds(b) => self.settings.write().pause_global_keybinds = b,
             Action::ResetKeybinds => {
-                self.settings.keybinds = default_keybinds::get_default_keybinds()
+                self.settings.write().keybinds = default_keybinds::get_default_keybinds()
             }
             // Themes
             Action::SetTheme(theme) => self.set_theme(theme),
             // Fonts
             Action::SetFont(font) => self.set_font(font),
-            Action::SetFontScale(font_scale) => self.settings.set_font_scale(font_scale),
+            Action::SetFontScale(font_scale) => self.settings.write().set_font_scale(font_scale),
 
             // ===== Chats =====
             Action::ChatWith(chat, should_move_to_top) => {
@@ -346,7 +347,7 @@ impl State {
     pub fn clear(&mut self) {
         self.chats = chats::Chats::default();
         *self.friends.write() = friends::Friends::default();
-        self.settings = settings::Settings::default();
+        *self.settings.write() = settings::Settings::default();
     }
 
     pub fn process_warp_event(&mut self, event: WarpEvent) {
@@ -817,18 +818,19 @@ impl State {
             state.chats.readd_sidebars = true;
         }
 
-        if state.settings.font_scale() == 0.0 {
-            state.settings.set_font_scale(1.0);
+        if state.settings.peek().font_scale() == 0.0 {
+            state.settings.write().set_font_scale(1.0);
         }
 
         // Guarantee any new keybinds added, will be added to the user's settings
         let default_keybinds = default_keybinds::get_default_keybinds();
-        if state.settings.keybinds.len() < default_keybinds.len() {
+        if state.settings.write().keybinds.len() < default_keybinds.len() {
             let new_keybinds = default_keybinds
                 .iter()
                 .filter(|default_keybind| {
                     !state
                         .settings
+                        .peek()
                         .keybinds
                         .iter()
                         .any(|keybind| &keybind == default_keybind)
@@ -836,7 +838,7 @@ impl State {
                 .cloned()
                 .collect::<Vec<_>>();
 
-            state.settings.keybinds.extend(new_keybinds);
+            state.settings.write().keybinds.extend(new_keybinds);
         }
 
         // Reload themes from disc
@@ -852,7 +854,7 @@ impl State {
         if let Some(t) = theme {
             state.set_theme(Some(t.clone()));
         }
-        let user_lang_saved = state.settings.language.clone();
+        let user_lang_saved = state.settings.peek().language.clone();
         change_language(user_lang_saved);
         state
     }
@@ -1481,12 +1483,12 @@ impl State {
 
     /// Sets the user's language.
     fn set_language(&mut self, string: &str) {
-        self.settings.language = string.to_string();
+        self.settings.write().language = string.to_string();
     }
 
     pub fn update_available(&mut self, version: String) {
-        if self.settings.update_available != Some(version.clone()) {
-            self.settings.update_available = Some(version);
+        if self.settings.read().update_available != Some(version.clone()) {
+            self.settings.write().update_available = Some(version);
             self.ui.notifications.increment(
                 &self.configuration,
                 notifications::NotificationKind::Settings,

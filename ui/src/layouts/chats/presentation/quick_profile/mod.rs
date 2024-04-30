@@ -102,6 +102,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
     let volume = state
         .read()
         .settings
+        .read()
         .user_volumes
         .get(did)
         .cloned()
@@ -270,6 +271,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                                 state
                                     .write_silent()
                                     .settings
+                                    .write()
                                     .user_volumes
                                     .insert(user, volume);
                             }

@@ -104,13 +104,13 @@ pub fn AudioSettings() -> Element {
                             }
                         }
                         AudioCmd::FetchInputDevices => {
-                            state.write_silent().settings.input_device =
+                            state.write_silent().settings.write().input_device =
                                 audio_config.microphone_device_name();
                             *input_devices.write() =
                                 audio_config.get_available_microphones().unwrap_or_default();
                         }
                         AudioCmd::FetchOutputDevices => {
-                            state.write_silent().settings.output_device =
+                            state.write_silent().settings.write().output_device =
                                 audio_config.speaker_device_name();
                             *output_devices.write() =
                                 audio_config.get_available_speakers().unwrap_or_default();
@@ -130,7 +130,8 @@ pub fn AudioSettings() -> Element {
 
                             match rx.await {
                                 Ok(_) => {
-                                    state.write_silent().settings.input_device = Some(device);
+                                    state.write_silent().settings.write().input_device =
+                                        Some(device);
                                     continue 'GET_AUDIO_CONFIG;
                                 }
                                 Err(e) => {
@@ -153,7 +154,8 @@ pub fn AudioSettings() -> Element {
 
                             match rx.await {
                                 Ok(_) => {
-                                    state.write_silent().settings.output_device = Some(device);
+                                    state.write_silent().settings.write().output_device =
+                                        Some(device);
                                     continue 'GET_AUDIO_CONFIG;
                                 }
                                 Err(e) => {
@@ -252,7 +254,7 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.input-device"),
                 section_description: get_local_text("settings-audio.input-device-description"),
                 Select {
-                    initial_value: state.read().settings.input_device.as_ref().cloned().unwrap_or("default".into()),
+                    initial_value: state.read().settings.read().input_device.as_ref().cloned().unwrap_or("default".into()),
                     options: input_devices.read().clone(),
                     onselect: move |device| {
                         ch.send(AudioCmd::SetInputDevice(device))
@@ -289,7 +291,7 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.output-device"),
                 section_description: get_local_text("settings-audio.output-device-description"),
                 Select {
-                    initial_value: state.read().settings.output_device.as_ref().cloned().unwrap_or("default".into()),
+                    initial_value: state.read().settings.read().output_device.as_ref().cloned().unwrap_or("default".into()),
                     options: output_devices.read().clone(),
                     onselect: move |device| {
                         ch.send(AudioCmd::SetOutputDevice(device));

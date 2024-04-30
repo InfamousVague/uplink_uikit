@@ -119,6 +119,7 @@ impl Shortcut {
         state
             .read()
             .settings
+            .read()
             .keybinds
             .iter()
             .find(|(gs, _)| *gs == global_shortcut)

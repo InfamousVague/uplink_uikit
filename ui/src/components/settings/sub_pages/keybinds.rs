@@ -103,9 +103,10 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
         state
             .write()
             .settings
+            .write()
             .keybinds
             .retain(|(gs, _)| *gs != props.shortcut);
-        state.write().settings.keybinds.push((
+        state.write().settings.write().keybinds.push((
             props.shortcut.clone(),
             Shortcut {
                 keys,
@@ -149,8 +150,8 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
         keybind_class.push_str(" recording");
     }
 
-    if is_recording() && !state.read().settings.is_recording_new_keybind {
-        state.write().settings.is_recording_new_keybind = true;
+    if is_recording() && !state.read().settings.peek().is_recording_new_keybind {
+        state.write().settings.write().is_recording_new_keybind = true;
     }
 
     let has_conflicts = check_for_conflicts(sc, props.bindings.clone());
@@ -167,7 +168,7 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
                 class: "keybind-section-mask",
                 onclick: move |_| {
                     is_recording.set(false);
-                    state.write().settings.is_recording_new_keybind = false;
+                    state.write().settings.write().is_recording_new_keybind = false;
                 }
             }))},
             div {
@@ -215,7 +216,7 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
                     *new_keybind_has_one_key.write_silent() = false;
                     *new_keybind_has_at_least_one_modifier.write_silent() = false;
                     is_recording.set(false);
-                    state.write().settings.is_recording_new_keybind = false;
+                    state.write().settings.write().is_recording_new_keybind = false;
                 },
                 if has_conflicts {
                     {rsx!(TooltipWrap {
@@ -258,7 +259,7 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
 #[allow(non_snake_case)]
 pub fn KeybindSettings() -> Element {
     let mut state = use_context::<Signal<State>>();
-    let bindings = state.read().settings.keybinds.clone();
+    let bindings = state.read().settings.read().keybinds.clone();
 
     use_component_lifecycle(
         move || {

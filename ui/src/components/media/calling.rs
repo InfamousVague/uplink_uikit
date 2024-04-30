@@ -298,6 +298,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
                                 state
                                     .write_silent()
                                     .settings
+                                    .write()
                                     .user_volumes
                                     .insert(*user, volume);
                             }
@@ -337,7 +338,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
         to_owned![ch, state];
         {
             for id in other_participants_in_call() {
-                if let Some(vol) = state.read().settings.user_volumes.get(&id.did_key()) {
+                if let Some(vol) = state.read().settings.peek().user_volumes.get(&id.did_key()) {
                     ch.send(CallDialogCmd::AdjustVolume(Box::new(id.did_key()), *vol))
                 }
             }
@@ -408,7 +409,7 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
             p {
                 class: format_args!("call-time {}", if props.in_chat {"in-chat"} else {""}),
                 aria_label: "call-time",
-                {format_timestamp_timeago(active_call.answer_time.into(), &state.read().settings.language_id())},
+                {format_timestamp_timeago(active_call.answer_time.into(), &state.read().settings.read().language_id())},
             },
             {props.in_chat.then(||rsx!(div {
                 class: "self-identity",
