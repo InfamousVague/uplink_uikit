@@ -1544,6 +1544,7 @@ dependencies = [
  "derive_more",
  "dioxus",
  "dioxus-desktop",
+ "dioxus-signals",
  "dirs",
  "extensions",
  "fluent-templates",
@@ -2541,6 +2542,7 @@ dependencies = [
  "once_cell",
  "parking_lot 0.12.2",
  "rustc-hash",
+ "serde",
  "tracing",
 ]
 

@@ -1315,7 +1315,7 @@ fn AppNav(
     let tracker = use_context::<Signal<TransferTracker>>();
     state.write_silent().scope_ids.file_transfer_icon = Some(current_scope_id().unwrap().0);
 
-    let pending_friends = state.read().friends().incoming_requests.len();
+    let pending_friends = state.read().friends(|f| f.incoming_requests.len());
     let unreads: u32 = state
         .read()
         .chats_sidebar()

@@ -47,7 +47,7 @@ pub fn Welcome() -> Element {
             Button {
                 icon: Icon::Plus,
                 aria_label: "add-friends-button".to_string(),
-                text: if state.read().friends().all.is_empty() {
+                text: if state.read().friends(|f|f.all.is_empty()) {
                         get_local_text("friends.add")
                     } else {
                         get_local_text("friends.go-to-friends")

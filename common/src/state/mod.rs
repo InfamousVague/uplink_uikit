@@ -22,6 +22,7 @@ use crate::warp_runner::WarpCmdTx;
 use crate::{language::get_local_text, warp_runner::ui_adapter};
 pub use action::Action;
 pub use chats::{Chat, Chats};
+use dioxus::signals::{Readable, Signal, Writable};
 use dioxus_desktop::tao::window::WindowId;
 pub use friends::Friends;
 pub use identity::Identity;
@@ -71,7 +72,7 @@ pub struct State {
     id: DID,
     pub route: route::Route,
     chats: chats::Chats,
-    friends: friends::Friends,
+    friends: Signal<friends::Friends>,
     #[serde(skip)]
     pub storage: storage::Storage,
     #[serde(skip)]
@@ -344,7 +345,7 @@ impl State {
 
     pub fn clear(&mut self) {
         self.chats = chats::Chats::default();
-        self.friends = friends::Friends::default();
+        *self.friends.write() = friends::Friends::default();
         self.settings = settings::Settings::default();
     }
 
@@ -410,7 +411,7 @@ impl State {
                 self.complete_request(&identity);
             }
             MultiPassEvent::FriendRemoved(identity) => {
-                self.friends.all.remove(&identity.did_key());
+                self.friends.write().all.remove(&identity.did_key());
             }
             MultiPassEvent::FriendRequestCancelled(identity) => {
                 self.cancel_request(&identity.did_key());
@@ -759,7 +760,7 @@ impl State {
             route: Route { active: "/".into() },
             storage,
             chats,
-            friends,
+            friends: Signal::new(friends),
             identities,
             initialized: true,
             ..Default::default()
@@ -873,7 +874,7 @@ impl State {
         chats: HashMap<Uuid, Chat>,
         mut identities: HashMap<DID, Identity>,
     ) {
-        self.friends = friends;
+        *self.friends.write() = friends;
         for (id, chat) in chats {
             if let Some(conv) = self.chats.all.get_mut(&id) {
                 conv.messages = chat.messages;
@@ -1343,17 +1344,20 @@ impl State {
 
 // for friends
 impl State {
-    pub fn friends(&self) -> &friends::Friends {
-        &self.friends
+    pub fn friends<F, T>(&self, f: F) -> T
+    where
+        F: FnOnce(&friends::Friends) -> T,
+    {
+        f(&self.friends.read())
     }
 
     fn block(&mut self, identity: &DID) {
         // If the identity is not already blocked, add it to the blocked list
-        self.friends.blocked.insert(identity.clone());
+        self.friends.write().blocked.insert(identity.clone());
 
         // Remove the identity from the outgoing requests list if they are present
-        self.friends.outgoing_requests.remove(identity);
-        self.friends.incoming_requests.remove(identity);
+        self.friends.write().outgoing_requests.remove(identity);
+        self.friends.write().incoming_requests.remove(identity);
 
         // still want the username to appear in the blocked list
         //self.identities.remove(&identity.did_key());
@@ -1362,23 +1366,35 @@ impl State {
         self.remove_friend(identity);
     }
     fn complete_request(&mut self, identity: &Identity) {
-        self.friends.outgoing_requests.remove(&identity.did_key());
-        self.friends.incoming_requests.remove(&identity.did_key());
-        self.friends.all.insert(identity.did_key());
+        self.friends
+            .write()
+            .outgoing_requests
+            .remove(&identity.did_key());
+        self.friends
+            .write()
+            .incoming_requests
+            .remove(&identity.did_key());
+        self.friends.write().all.insert(identity.did_key());
         // should already be in self.identities
         self.identities.insert(identity.did_key(), identity.clone());
     }
     fn cancel_request(&mut self, identity: &DID) {
-        self.friends.outgoing_requests.remove(identity);
-        self.friends.incoming_requests.remove(identity);
+        self.friends.write().outgoing_requests.remove(identity);
+        self.friends.write().incoming_requests.remove(identity);
     }
     fn new_incoming_request(&mut self, identity: &Identity) {
-        self.friends.incoming_requests.insert(identity.did_key());
+        self.friends
+            .write()
+            .incoming_requests
+            .insert(identity.did_key());
         self.identities.insert(identity.did_key(), identity.clone());
     }
 
     fn new_outgoing_request(&mut self, identity: &Identity) {
-        self.friends.outgoing_requests.insert(identity.did_key());
+        self.friends
+            .write()
+            .outgoing_requests
+            .insert(identity.did_key());
         self.identities.insert(identity.did_key(), identity.clone());
     }
     pub fn get_friends_by_first_letter(
@@ -1413,11 +1429,11 @@ impl State {
         friends_by_first_letter
     }
     pub fn has_friend_with_did(&self, did: &DID) -> bool {
-        self.friends.all.contains(did)
+        self.friends.read().all.contains(did)
     }
     fn remove_friend(&mut self, did: &DID) {
         // Remove the friend from the all field of the friends struct
-        self.friends.all.remove(did);
+        self.friends.write().all.remove(did);
 
         let all_chats = self.chats.all.clone();
 
@@ -1447,10 +1463,10 @@ impl State {
         self.unfavorite(direct_chat.id);
     }
     fn unblock(&mut self, identity: &DID) {
-        self.friends.blocked.remove(identity);
+        self.friends.write().blocked.remove(identity);
     }
     pub fn is_blocked(&self, did: &DID) -> bool {
-        self.friends.blocked.contains(did)
+        self.friends.read().blocked.contains(did)
     }
 }
 
@@ -1548,6 +1564,7 @@ impl State {}
 impl State {
     pub fn blocked_fr_identities(&self) -> Vec<Identity> {
         self.friends
+            .read()
             .blocked
             .iter()
             .filter_map(|did| self.identities.get(did))
@@ -1556,6 +1573,7 @@ impl State {
     }
     pub fn friend_identities(&self) -> Vec<Identity> {
         self.friends
+            .read()
             .all
             .iter()
             .filter_map(|did| self.identities.get(did))
@@ -1586,6 +1604,7 @@ impl State {
     }
     pub fn incoming_fr_identities(&self) -> Vec<Identity> {
         self.friends
+            .read()
             .incoming_requests
             .iter()
             .filter_map(|did| self.identities.get(did))
@@ -1600,6 +1619,7 @@ impl State {
     }
     pub fn outgoing_fr_identities(&self) -> Vec<Identity> {
         self.friends
+            .read()
             .outgoing_requests
             .iter()
             .filter_map(|did| self.identities.get(did))

@@ -161,7 +161,7 @@ fn render_route<T>(_props: T, route: FriendRoute) -> Element {
 
 fn get_topbar(mut route: Signal<FriendRoute>) -> Element {
     let mut state = use_context::<Signal<State>>();
-    let pending_friends = state.read().friends().incoming_requests.len();
+    let pending_friends = state.read().friends(|f| f.incoming_requests.len());
 
     rsx!(Topbar {
         with_back_button: state.read().ui.is_minimal_view() && state.read().ui.sidebar_hidden,
