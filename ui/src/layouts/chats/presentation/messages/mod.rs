@@ -256,7 +256,7 @@ fn render_message_group(props: MessageGroupProps) -> Element {
         .map(|x| x.message.inner.date())
         .unwrap_or_default();
     let sender = state.read().get_identity(&group.sender).unwrap_or_default();
-    let blocked = group.remote && state.read().is_blocked(&sender.did_key());
+    let blocked = group.remote && state.peek().is_blocked(&sender.did_key());
     let mut show_blocked = use_signal(|| false);
 
     let blocked_element = if blocked {
@@ -309,7 +309,7 @@ fn render_message_group(props: MessageGroupProps) -> Element {
     } else {
         sender.username()
     };
-    let active_language = &state.read().settings.read().language_id();
+    let active_language = &state.peek().settings.read().language_id();
 
     let mut sender_status = sender.identity_status().into();
     if !group.remote && sender_status == Status::Offline {

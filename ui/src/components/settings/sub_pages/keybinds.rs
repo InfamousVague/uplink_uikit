@@ -150,7 +150,7 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
         keybind_class.push_str(" recording");
     }
 
-    if is_recording() && !state.read().settings.peek().is_recording_new_keybind {
+    if is_recording() && !state.peek().settings.peek().is_recording_new_keybind {
         state.write().settings.write().is_recording_new_keybind = true;
     }
 
@@ -259,7 +259,7 @@ pub fn KeybindSection(props: KeybindSectionProps) -> Element {
 #[allow(non_snake_case)]
 pub fn KeybindSettings() -> Element {
     let mut state = use_context::<Signal<State>>();
-    let bindings = state.read().settings.read().keybinds.clone();
+    let bindings = state.peek().settings.read().keybinds.clone();
 
     use_component_lifecycle(
         move || {

@@ -117,7 +117,7 @@ pub struct Shortcut {
 impl Shortcut {
     pub fn get_system_shortcut(state: &Signal<State>, global_shortcut: GlobalShortcut) -> bool {
         state
-            .read()
+            .peek()
             .settings
             .read()
             .keybinds

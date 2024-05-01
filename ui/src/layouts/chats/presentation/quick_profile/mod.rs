@@ -92,15 +92,15 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
     });
 
     let is_self = state.read().get_own_identity().did_key().eq(did);
-    let is_friend = state.read().has_friend_with_did(did);
+    let is_friend = state.peek().has_friend_with_did(did);
     let in_vc = state
         .read()
         .get_active_chat()
         .map(|call| call.participants.contains(did))
         .unwrap_or_default();
-    let blocked = state.read().is_blocked(did);
+    let blocked = state.peek().is_blocked(did);
     let volume = state
-        .read()
+        .peek()
         .settings
         .read()
         .user_volumes

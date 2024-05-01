@@ -254,7 +254,7 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.input-device"),
                 section_description: get_local_text("settings-audio.input-device-description"),
                 Select {
-                    initial_value: state.read().settings.read().input_device.as_ref().cloned().unwrap_or("default".into()),
+                    initial_value: state.peek().settings.read().input_device.as_ref().cloned().unwrap_or("default".into()),
                     options: input_devices.read().clone(),
                     onselect: move |device| {
                         ch.send(AudioCmd::SetInputDevice(device))
@@ -291,7 +291,7 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.output-device"),
                 section_description: get_local_text("settings-audio.output-device-description"),
                 Select {
-                    initial_value: state.read().settings.read().output_device.as_ref().cloned().unwrap_or("default".into()),
+                    initial_value: state.peek().settings.read().output_device.as_ref().cloned().unwrap_or("default".into()),
                     options: output_devices.read().clone(),
                     onselect: move |device| {
                         ch.send(AudioCmd::SetOutputDevice(device));

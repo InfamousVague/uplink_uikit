@@ -18,14 +18,14 @@ use crate::utils::get_font_sizes::FONT_SIZE_OPTIONS;
 #[allow(non_snake_case)]
 pub fn GeneralSettings() -> Element {
     let mut state = use_context::<Signal<State>>();
-    let initial_lang_value = state.read().settings.read().language.clone();
+    let initial_lang_value = state.peek().settings.read().language.clone();
 
     let themes_fut = use_resource(move || async move { get_available_themes() });
     let font_fut = use_resource(move || async move { get_available_fonts() });
 
     log::trace!("General settings page rendered.");
 
-    let font_scale = state.read().settings.read().font_scale();
+    let font_scale = state.peek().settings.read().font_scale();
     let font_options = FONT_SIZE_OPTIONS.to_vec();
     let initial_font_idx = match font_options.iter().position(|r| r == &font_scale) {
         Some(idx) => idx,

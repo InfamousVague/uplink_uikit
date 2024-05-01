@@ -797,7 +797,7 @@ fn use_app_coroutines() -> Option<()> {
                     continue;
                 }
             };
-            if state.read().settings.peek().update_dismissed
+            if state.peek().settings.peek().update_dismissed
                 == Some(latest_release.tag_name.clone())
             {
                 sleep(Duration::from_secs(3600 * 24)).await;
@@ -964,7 +964,7 @@ fn get_update_icon() -> Element {
     let desktop = use_window();
     let _download_ch = use_coroutine_handle::<SoftwareDownloadCmd>();
 
-    let new_version = match state.read().settings.read().update_available.as_ref() {
+    let new_version = match state.peek().settings.read().update_available.as_ref() {
         Some(u) => u.clone(),
         None => return rsx!(""),
     };
@@ -1320,7 +1320,7 @@ fn AppNav(
     let tracker = use_context::<Signal<TransferTracker>>();
     state.write_silent().scope_ids.file_transfer_icon = Some(current_scope_id().unwrap().0);
 
-    let pending_friends = state.read().friends(|f| f.incoming_requests.len());
+    let pending_friends = state.peek().friends(|f| f.incoming_requests.len());
     let unreads: u32 = state
         .read()
         .chats_sidebar()
