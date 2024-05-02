@@ -17,13 +17,13 @@ pub fn AccessibilitySettings() -> Element {
             id: "settings-general",
             aria_label: "settings-accessibility",
             div {
-                class: format_args!("{}", if state.read().configuration.general.dyslexia_support {"open-dyslexic-activated"} else {"open-dyslexic"}),
+                class: format_args!("{}", if state.peek().configuration.read().general.dyslexia_support {"open-dyslexic-activated"} else {"open-dyslexic"}),
                 SettingSection {
                     aria_label: "open-dyslexic-section".to_string(),
                     section_label: get_local_text("settings-accessibility.dyslexia"),
                     section_description: get_local_text("settings-accessibility.dyslexia-description"),
                     Switch {
-                        active: state.read().configuration.general.dyslexia_support,
+                        active: state.peek().configuration.read().general.dyslexia_support,
                         onflipped: move |e| {
                             state.write().mutate(Action::Config(ConfigAction::SetDyslexicEnabled(e)));
                         }

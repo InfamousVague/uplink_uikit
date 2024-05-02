@@ -110,7 +110,7 @@ pub fn SlimbarLayout(props: Props) -> Element {
                     active: props.active.clone(),
                     tooltip_direction: ArrowPosition::Left,
                     onnavigate: move |_| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             common::sounds::Play(common::sounds::Sounds::Interaction);
                         }
                         if state.read().ui.is_minimal_view() {
@@ -119,7 +119,7 @@ pub fn SlimbarLayout(props: Props) -> Element {
                     },
                 },
             ),
-            {state.read().configuration.developer.experimental_features.then(|| rsx!(
+            {state.peek().configuration.read().developer.experimental_features.then(|| rsx!(
                 Button {
                     icon: Icon::Plus,
                     tooltip: rsx!(

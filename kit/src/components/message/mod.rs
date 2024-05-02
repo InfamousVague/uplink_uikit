@@ -810,7 +810,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
             rsx!(ContextMenu {
                 key: "{short_id}-{random_uuid}",
                 id: format!("{short_id}-{random_uuid}"),
-                devmode: state.read().configuration.developer.developer_mode,
+                devmode: state.peek().configuration.read().developer.developer_mode,
                 items: rsx!(
                     ContextItem {
                         icon: Icon::UserCircle,

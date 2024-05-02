@@ -41,7 +41,7 @@ pub fn Sidebar(props: Props) -> Element {
                 active: props.active.clone(),
                 tooltip_direction: ArrowPosition::Left,
                 onnavigate: move |_| {
-                    if state.read().configuration.audiovideo.interface_sounds {
+                    if state.peek().configuration.peek().audiovideo.interface_sounds {
                         common::sounds::Play(common::sounds::Sounds::Interaction);
                     }
                     if state.read().ui.is_minimal_view() {

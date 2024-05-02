@@ -38,7 +38,7 @@ pub(crate) fn use_bootstrap(identity: &multipass::identity::Identity) -> Option<
         }
 
         // TODO: This overlay needs to be fixed in windows
-        if cfg!(not(target_os = "windows")) && state().configuration.general.enable_overlay {
+        if cfg!(not(target_os = "windows")) && state().configuration.read().general.enable_overlay {
             let overlay_test = VirtualDom::new(OverlayDom);
             let window = desktop.new_window(overlay_test, make_config());
             state.write().ui.overlays.push(window);

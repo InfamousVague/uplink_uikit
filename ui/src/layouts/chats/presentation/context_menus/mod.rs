@@ -30,7 +30,7 @@ pub fn FileLocation(props: FileLocationProps) -> Element {
 
     rsx!(ContextMenu {
         id: format!("{id}"),
-        devmode: state.read().configuration.developer.developer_mode,
+        devmode: state.peek().configuration.read().developer.developer_mode,
         items: rsx!(
             ContextItem {
                 icon: Icon::Plus,

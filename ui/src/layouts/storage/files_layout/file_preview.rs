@@ -147,7 +147,7 @@ fn FilePreview(props: Props) -> Element {
         props.on_dismiss.call(());
     }
 
-    let is_developer_mode = state.read().configuration.developer.developer_mode;
+    let is_developer_mode = state.peek().configuration.read().developer.developer_mode;
 
     rsx!(
         ContextMenu {

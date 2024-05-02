@@ -367,7 +367,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                         }
                     })}
                 } else {
-                    if state.read().configuration.developer.experimental_features && in_vc {
+                    if state.peek().configuration.read().developer.experimental_features && in_vc {
                         {rsx!(
                             div {
                                 class: "range-container",

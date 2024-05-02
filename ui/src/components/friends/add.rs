@@ -195,7 +195,7 @@ pub fn AddFriend() -> Element {
                 ContextMenu {
                     key: "{context_key}",
                     id: "add-friend-input-context-menu".to_string(),
-                    devmode: state.read().configuration.developer.developer_mode,
+                    devmode: state.peek().configuration.read().developer.developer_mode,
                     children: rsx!(
                         Input {
                             placeholder: get_local_text("friends.placeholder"),

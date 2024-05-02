@@ -187,7 +187,7 @@ pub fn Sidebar(_props: SidebarProps) -> Element {
                         state::ui::Layout::Storage => UplinkRoute::FilesLayout {},
                     },
                     onnavigate: move |_| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             common::sounds::Play(common::sounds::Sounds::Interaction);
                         }
                         if state.read().ui.is_minimal_view() {
@@ -336,7 +336,7 @@ pub fn Sidebar(_props: SidebarProps) -> Element {
                         ContextMenu {
                             key: "{key}-chat",
                             id: format!("{key}-chat"),
-                            devmode: state.read().configuration.developer.developer_mode,
+                            devmode: state.peek().configuration.read().developer.developer_mode,
                             items: rsx!(
                                 ContextItem {
                                     icon: Icon::BellSlash,

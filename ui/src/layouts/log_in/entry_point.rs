@@ -290,7 +290,7 @@ pub fn Layout(page: Signal<AuthPages>, pin: Signal<String>) -> Element {
                     ContextMenu {
                         key: "{key}-menu",
                         id: "unlock-context-menu".to_string(),
-                        devmode: state.read().configuration.developer.developer_mode,
+                        devmode: state.peek().configuration.read().developer.developer_mode,
                         items: rsx!(
                             ContextItem {
                                 icon: Icon::Trash,

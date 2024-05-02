@@ -11,7 +11,7 @@ pub fn use_open_close_dev_tools() {
     }
 }
 pub fn toggle_devmode(mut state: Signal<State>) {
-    let devmode = state.read().configuration.developer.developer_mode;
+    let devmode = state.peek().configuration.peek().developer.developer_mode;
     state
         .write()
         .mutate(Action::Config(ConfigAction::SetDevModeEnabled(!devmode)));

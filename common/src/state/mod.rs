@@ -79,7 +79,7 @@ pub struct State {
     pub scope_ids: scope_ids::ScopeIds,
     pub settings: Signal<settings::Settings>,
     pub ui: ui::UI,
-    pub configuration: configuration::Configuration,
+    pub configuration: Signal<configuration::Configuration>,
     #[serde(skip)]
     identities: HashMap<DID, identity::Identity>,
     #[serde(skip)]
@@ -169,14 +169,14 @@ impl State {
                     self.ui.extensions.insert(
                         name.clone(),
                         ext,
-                        self.configuration.extensions.enable_automatically
+                        self.configuration.peek().extensions.enable_automatically
                             || name.eq("emoji_selector"),
                     );
                 }
             }
             // ===== Notifications =====
             Action::AddNotification(kind, count, forced) => self.ui.notifications.increment(
-                &self.configuration,
+                &self.configuration.peek(),
                 kind,
                 count,
                 forced || !self.ui.metadata.focused,
@@ -338,7 +338,7 @@ impl State {
                 self.ui.call_info.end_call();
             }
             // ===== Configuration =====
-            Action::Config(action) => self.configuration.mutate(action),
+            Action::Config(action) => self.configuration.write().mutate(action),
         }
 
         let _ = self.save();
@@ -390,7 +390,11 @@ impl State {
 
                 // TODO: Get state available in this scope.
                 // Dispatch notifications only when we're not already focused on the application.
-                let notifications_enabled = self.configuration.notifications.friends_notifications;
+                let notifications_enabled = self
+                    .configuration
+                    .peek()
+                    .notifications
+                    .friends_notifications;
 
                 if !self.ui.metadata.focused && notifications_enabled {
                     crate::notifications::push_notification(
@@ -486,17 +490,20 @@ impl State {
                 ));
 
                 // Dispatch notifications only when we're not already focused on the application.
-                let message_notifications_enabled =
-                    self.configuration.notifications.messages_notifications;
-                let notifications_enabled = self.configuration.notifications.enabled;
+                let message_notifications_enabled = self
+                    .configuration
+                    .peek()
+                    .notifications
+                    .messages_notifications;
+                let notifications_enabled = self.configuration.peek().notifications.enabled;
                 let should_play_sound = self.ui.current_layout != Layout::Compose
-                    && self.configuration.audiovideo.message_sounds;
+                    && self.configuration.peek().audiovideo.message_sounds;
                 let should_dispatch_notification =
                     should_play_sound && message_notifications_enabled && notifications_enabled;
 
                 // This should be called if we have notifications enabled for new messages
                 if should_dispatch_notification {
-                    let sound = if self.configuration.audiovideo.message_sounds {
+                    let sound = if self.configuration.peek().audiovideo.message_sounds {
                         Some(crate::sounds::Sounds::Notification)
                     } else {
                         None
@@ -955,7 +962,7 @@ impl State {
         let has_favs = !self.chats_favorites().is_empty();
         let is_minimal_view = self.ui.is_minimal_view();
         let sidebar_hidden = self.ui.sidebar_hidden;
-        let experimental_features = self.configuration.developer.experimental_features;
+        let experimental_features = self.configuration.read().developer.experimental_features;
 
         has_favs || is_minimal_view || sidebar_hidden || experimental_features
     }
@@ -1490,7 +1497,7 @@ impl State {
         if self.settings.read().update_available != Some(version.clone()) {
             self.settings.write().update_available = Some(version);
             self.ui.notifications.increment(
-                &self.configuration,
+                &self.configuration.peek(),
                 notifications::NotificationKind::Settings,
                 1,
                 !self.ui.metadata.focused,

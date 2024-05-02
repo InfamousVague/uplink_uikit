@@ -354,9 +354,9 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.echo-cancellation"),
                 section_description: get_local_text("settings-audio.echo-cancellation-description"),
                 Switch {
-                    active: state.read().configuration.audiovideo.echo_cancellation,
+                    active: state.peek().configuration.read().audiovideo.echo_cancellation,
                     onflipped: move |e| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             sounds::Play(sounds::Sounds::Flip);
                         }
                         ch.send(AudioCmd::SetEchoCancellation(e));
@@ -372,9 +372,9 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.interface-sounds"),
                 section_description: get_local_text("settings-audio.interface-sounds-description"),
                 Switch {
-                    active: state.read().configuration.audiovideo.interface_sounds,
+                    active: state.peek().configuration.read().audiovideo.interface_sounds,
                     onflipped: move |e| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             sounds::Play(sounds::Sounds::Flip);
                         }
                         state.write().mutate(Action::Config(ConfigAction::SetInterfaceSoundsEnabled(e)));
@@ -386,9 +386,9 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.media-sounds"),
                 section_description: get_local_text("settings-audio.media-sounds-description"),
                 Switch {
-                    active: state.read().configuration.audiovideo.media_sounds,
+                    active: state.peek().configuration.read().audiovideo.media_sounds,
                     onflipped: move |e| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                            sounds::Play(sounds::Sounds::Flip);
                         }
                         state.write().mutate(Action::Config(ConfigAction::SetMediaSoundsEnabled(e)));
@@ -400,9 +400,9 @@ pub fn AudioSettings() -> Element {
                 section_label: get_local_text("settings-audio.message-sounds"),
                 section_description: get_local_text("settings-audio.message-sounds-description"),
                 Switch {
-                    active: state.read().configuration.audiovideo.message_sounds,
+                    active: state.peek().configuration.read().audiovideo.message_sounds,
                     onflipped: move |e| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             sounds::Play(sounds::Sounds::Flip);
                         }
                         state.write().mutate(Action::Config(ConfigAction::SetMessageSoundsEnabled(e)));

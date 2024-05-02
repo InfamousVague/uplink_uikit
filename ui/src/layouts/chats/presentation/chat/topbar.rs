@@ -151,7 +151,7 @@ pub fn get_topbar_children(props: ChatProps) -> Element {
             id: "chat_topbar_context".to_string(),
             fit_parent: true,
             key: "{props.channel.id}-channel",
-            devmode: state.read().configuration.developer.developer_mode,
+            devmode: state.peek().configuration.read().developer.developer_mode,
             items: rsx!(
                 if direct_message {{rsx!(
                     ContextItem {

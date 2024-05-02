@@ -91,7 +91,7 @@ pub fn GroupUsers(props: Props) -> Element {
                 group_participants: group_participants,
                 name_prefix: friend_prefix,
                 creator: creator_id,
-                is_dev: state.read().configuration.developer.developer_mode,
+                is_dev: state.peek().configuration.read().developer.developer_mode,
                 context_data: *quickprofile_data,
             }
         }

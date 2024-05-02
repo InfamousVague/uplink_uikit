@@ -395,7 +395,7 @@ let message = use_signal(|| grouped_message.message.clone());
         rsx!(ContextMenu {
             key: "{context_key}",
             id: msg_uuid.to_string(),
-            devmode: state.read().configuration.developer.developer_mode,
+            devmode: state.peek().configuration.read().developer.developer_mode,
             children: rsx!(render_message {
                 message: grouped_message.clone(),
                 is_remote: props.is_remote,

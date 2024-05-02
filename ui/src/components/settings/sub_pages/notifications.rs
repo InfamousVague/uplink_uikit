@@ -34,9 +34,9 @@ pub fn NotificationSettings() -> Element {
                 section_label: get_local_text("settings-notifications.enabled"),
                 section_description: get_local_text("settings-notifications.enabled-description"),
                 Switch {
-                    active: state.read().configuration.notifications.enabled,
+                    active: state.peek().configuration.read().notifications.enabled,
                     onflipped: move |e| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             sounds::Play(sounds::Sounds::Flip);
                         }
                         state.write().mutate(Action::Config(ConfigAction::SetNotificationsEnabled(e)));
@@ -44,16 +44,16 @@ pub fn NotificationSettings() -> Element {
                 }
             },
             div {
-                class: format_args!("{}", if state.read().configuration.notifications.enabled { "enabled" } else { "disabled" }),
+                class: format_args!("{}", if state.peek().configuration.read().notifications.enabled { "enabled" } else { "disabled" }),
                 SettingSection {
                     aria_label: "friends-notifications-section".to_string(),
                     section_label: get_local_text("friends"),
                     section_description: get_local_text("settings-notifications.friends-description"),
                     Switch {
-                        active: state.read().configuration.notifications.enabled && state.read().configuration.notifications.friends_notifications,
-                        disabled: !state.read().configuration.notifications.enabled,
+                        active: state.peek().configuration.read().notifications.enabled && state.peek().configuration.read().notifications.friends_notifications,
+                        disabled: !state.peek().configuration.read().notifications.enabled,
                         onflipped: move |e| {
-                            if state.read().configuration.audiovideo.interface_sounds {
+                            if state.peek().configuration.peek().audiovideo.interface_sounds {
                                sounds::Play(sounds::Sounds::Flip);
                             }
                             state.write().mutate(Action::Config(ConfigAction::SetFriendsNotificationsEnabled(e)));
@@ -65,10 +65,10 @@ pub fn NotificationSettings() -> Element {
                     section_label: get_local_text("messages"),
                     section_description: get_local_text("settings-notifications.messages-description"),
                     Switch {
-                        active: state.read().configuration.notifications.enabled && state.read().configuration.notifications.messages_notifications,
-                        disabled: !state.read().configuration.notifications.enabled,
+                        active: state.peek().configuration.read().notifications.enabled && state.peek().configuration.read().notifications.messages_notifications,
+                        disabled: !state.peek().configuration.read().notifications.enabled,
                         onflipped: move |e| {
-                            if state.read().configuration.audiovideo.interface_sounds {
+                            if state.peek().configuration.peek().audiovideo.interface_sounds {
                                 sounds::Play(sounds::Sounds::Flip);
                             }
                             state.write().mutate(Action::Config(ConfigAction::SetMessagesNotificationsEnabled(e)));
@@ -80,10 +80,10 @@ pub fn NotificationSettings() -> Element {
                     section_label: get_local_text("settings"),
                     section_description: get_local_text("settings-notifications.settings-description"),
                     Switch {
-                        active: state.read().configuration.notifications.enabled && state.read().configuration.notifications.settings_notifications,
-                        disabled: !state.read().configuration.notifications.enabled,
+                        active: state.peek().configuration.read().notifications.enabled && state.peek().configuration.read().notifications.settings_notifications,
+                        disabled: !state.peek().configuration.read().notifications.enabled,
                         onflipped: move |e| {
-                            if state.read().configuration.audiovideo.interface_sounds {
+                            if state.peek().configuration.peek().audiovideo.interface_sounds {
                                 sounds::Play(sounds::Sounds::Flip);
                             }
                             state.write().mutate(Action::Config(ConfigAction::SetSettingsNotificationsEnabled(e)));

@@ -3,8 +3,8 @@ use std::str::FromStr;
 use common::icons::outline::Shape as Icon;
 use common::language::get_local_text;
 
-use common::state::State;
 use common::sounds;
+use common::state::State;
 use dioxus::prelude::*;
 use kit::{
     components::nav::Nav,
@@ -223,7 +223,7 @@ pub fn Sidebar(props: Props) -> Element {
                 crate::AppNav {
                     active: crate::UplinkRoute::SettingsLayout{},
                     onnavigate: move |_| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             common::sounds::Play(common::sounds::Sounds::Interaction);
                         }
                     }
@@ -234,7 +234,7 @@ pub fn Sidebar(props: Props) -> Element {
                 active: active_route.to,
                 bubble: true,
                 onnavigate: move |route| {
-                    if state.read().configuration.audiovideo.interface_sounds {
+                    if state.peek().configuration.peek().audiovideo.interface_sounds {
                        sounds::Play(sounds::Sounds::Interaction);
                     }
 

@@ -349,7 +349,7 @@ pub fn get_app_style(state: &State) -> String {
     // this gets rendered at the bottom. this way you don't have to scroll past all the use_futures to see what this function renders
 
     // render the Uplink app
-    let open_dyslexic = if state.configuration.general.dyslexia_support {
+    let open_dyslexic = if state.configuration.read().general.dyslexia_support {
         OPEN_DYSLEXIC
     } else {
         ""
@@ -985,7 +985,7 @@ fn get_update_icon() -> Element {
                 ContextMenu {
                     key: "{update_available_menu}",
                     id: "update-available-menu".to_string(),
-                    devmode: state.read().configuration.developer.developer_mode,
+                    devmode: state.peek().configuration.read().developer.developer_mode,
                     items: rsx!(
                         ContextItem {
                             aria_label: "update-menu-dismiss".to_string(),
@@ -1149,6 +1149,7 @@ fn AppLogger() -> Element {
         state
             .read()
             .configuration
+            .read()
             .developer
             .developer_mode
             .then(|| rsx!(DebugLogger {}))

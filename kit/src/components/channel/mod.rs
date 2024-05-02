@@ -46,7 +46,7 @@ pub fn ChannelElement(props: Props) -> Element {
         ContextMenu {
             id: format!("{}-channel", props.channel.id),
             key: "{props.channel.id}-channel",
-            devmode: state.read().configuration.developer.developer_mode,
+            devmode: state.peek().configuration.read().developer.developer_mode,
             items: rsx!(
                 ContextItem {
                     icon: Icon::PencilSquare,

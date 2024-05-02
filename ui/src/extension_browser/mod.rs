@@ -39,9 +39,9 @@ pub fn Settings() -> Element {
                 section_label: get_local_text("settings-extensions.auto-enable"),
                 section_description: get_local_text("settings-extensions.auto-enable-description"),
                 Switch {
-                    active: state.read().configuration.extensions.enable_automatically,
+                    active: state.peek().configuration.read().extensions.enable_automatically,
                     onflipped: move |value| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             sounds::Play(sounds::Sounds::Flip);
                         }
                         state.write().mutate(Action::Config(ConfigAction::SetAutoEnableExtensions(value)));
@@ -116,7 +116,7 @@ pub fn Installed() -> Element {
                         Switch {
                             active: enabled,
                             onflipped: move |value| {
-                                if state.read().configuration.audiovideo.interface_sounds {
+                                if state.peek().configuration.peek().audiovideo.interface_sounds {
                                     sounds::Play(sounds::Sounds::Flip);
                                 }
 

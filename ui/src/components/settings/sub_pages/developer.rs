@@ -65,7 +65,7 @@ pub fn DeveloperSettings() -> Element {
                 section_label: get_local_text("settings-developer.experimental-features"),
                 section_description: get_local_text("settings-developer.experimental-features-description"),
                 Switch {
-                    active: state.read().configuration.developer.experimental_features,
+                    active: state.peek().configuration.read().developer.experimental_features,
                     onflipped: move |value| {
                         state.write().mutate(Action::Config(ConfigAction::SetExperimentalFeaturesEnabled(value)));
                     },
@@ -76,9 +76,9 @@ pub fn DeveloperSettings() -> Element {
                 section_label: get_local_text("settings-developer.developer-mode"),
                 section_description: get_local_text("settings-developer.developer-mode-description"),
                 Switch {
-                    active: state.read().configuration.developer.developer_mode,
+                    active: state.peek().configuration.read().developer.developer_mode,
                     onflipped: move |value| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             sounds::Play(sounds::Sounds::Flip);
                         }
 
@@ -174,7 +174,7 @@ pub fn DeveloperSettings() -> Element {
                 Switch {
                     active: logger::get_save_to_file(),
                     onflipped: move |value| {
-                        if state.read().configuration.audiovideo.interface_sounds {
+                        if state.peek().configuration.peek().audiovideo.interface_sounds {
                             sounds::Play(sounds::Sounds::Flip);
                         }
                         logger::set_save_to_file(value);

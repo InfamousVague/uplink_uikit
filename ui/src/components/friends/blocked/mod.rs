@@ -79,7 +79,7 @@ pub fn BlockedUsers() -> Element {
                 ContextMenu {
                     id: format!("{did}-friend-listing"),
                     key: "{did}-friend-listing",
-                    devmode: state.read().configuration.developer.developer_mode,
+                    devmode: state.peek().configuration.read().developer.developer_mode,
                     items: rsx!(
                         ContextItem {
                             danger: true,
