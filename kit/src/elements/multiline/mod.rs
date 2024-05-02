@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 use crate::elements::input::Input;
 use common::icons::outline::Shape as Icon;
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 pub struct Props {
     #[props(optional)]
     _loading: Option<bool>,
@@ -22,11 +22,11 @@ pub struct Props {
     _onreturn: Option<EventHandler<String>>,
 }
 
-impl PartialEq for Props {
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-}
+// impl PartialEq for Props {
+//     fn eq(&self, _other: &Self) -> bool {
+//         true
+//     }
+// }
 
 #[allow(non_snake_case)]
 pub fn Multiline(props: Props) -> Element {

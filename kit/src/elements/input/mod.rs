@@ -52,7 +52,7 @@ pub enum SpecialCharsAction {
     Block,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, PartialEq)]
 pub struct Validation {
     pub max_length: Option<i32>,
     pub min_length: Option<i32>,
@@ -78,7 +78,7 @@ pub struct Validation {
     pub special_chars: Option<(SpecialCharsAction, Vec<char>)>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Options {
     pub with_validation: Option<Validation>,
     pub replace_spaces_underscore: bool,

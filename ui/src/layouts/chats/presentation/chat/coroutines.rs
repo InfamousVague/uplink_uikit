@@ -14,81 +14,78 @@ use uuid::Uuid;
 
 use crate::layouts::chats::data::{self, ChatBehavior, ChatData};
 
-pub fn use_handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>) {
+pub fn use_handle_warp_events(state: Signal<State>, mut chat_data: Signal<ChatData>) {
     let active_chat_id_signal = use_signal(move || {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });
-    let _ = use_resource(move || {
-        to_owned![chat_data];
-        async move {
-            let mut ch = WARP_EVENT_CH.tx.subscribe();
-            while let Ok(evt) = ch.recv().await {
-                let message_evt = match evt {
-                    WarpEvent::Message(evt) => evt,
-                    _ => continue,
-                };
-                let chat_id = match active_chat_id_signal() {
-                    Some(x) => x,
-                    None => continue,
-                };
+    let _ = use_resource(move || async move {
+        let mut ch = WARP_EVENT_CH.tx.subscribe();
+        while let Ok(evt) = ch.recv().await {
+            let message_evt = match evt {
+                WarpEvent::Message(evt) => evt,
+                _ => continue,
+            };
+            let chat_id = match active_chat_id_signal() {
+                Some(x) => x,
+                None => continue,
+            };
 
-                match message_evt {
-                    MessageEvent::Received {
-                        conversation_id,
-                        message,
+            match message_evt {
+                MessageEvent::Received {
+                    conversation_id,
+                    message,
+                }
+                | MessageEvent::Sent {
+                    conversation_id,
+                    message,
+                } => {
+                    if conversation_id != chat_id {
+                        continue;
                     }
-                    | MessageEvent::Sent {
-                        conversation_id,
-                        message,
-                    } => {
-                        if conversation_id != chat_id {
-                            continue;
-                        }
-                        if chat_data
-                            .write_silent()
-                            .new_message(conversation_id, message)
-                        {
-                            log::trace!("adding message to conversation");
-                            chat_data.write().active_chat.new_key();
-                        }
+                    if chat_data
+                        .write_silent()
+                        .new_message(conversation_id, message)
+                    {
+                        log::trace!("adding message to conversation");
+                        chat_data.write().active_chat.new_key();
                     }
-                    MessageEvent::Edited {
-                        conversation_id,
-                        message,
-                    } => {
-                        if chat_data.read().active_chat.id() != conversation_id {
-                            continue;
-                        }
-                        chat_data.write().update_message(message.inner);
+                }
+                MessageEvent::Edited {
+                    conversation_id,
+                    message,
+                } => {
+                    if chat_data.read().active_chat.id() != conversation_id {
+                        continue;
                     }
-                    MessageEvent::Deleted {
-                        conversation_id,
-                        message_id,
-                        ..
-                    } => {
-                        if chat_data.read().active_chat.id() != conversation_id {
-                            continue;
-                        }
-                        chat_data
-                            .write()
-                            .delete_message(conversation_id, message_id);
+                    chat_data.write().update_message(message.inner);
+                }
+                MessageEvent::Deleted {
+                    conversation_id,
+                    message_id,
+                    ..
+                } => {
+                    if chat_data.read().active_chat.id() != conversation_id {
+                        continue;
                     }
-                    MessageEvent::MessageReactionAdded { message }
-                    | MessageEvent::MessageReactionRemoved { message } => {
-                        if chat_data.read().active_chat.id() != message.conversation_id() {
-                            continue;
-                        }
+                    chat_data
+                        .write()
+                        .delete_message(conversation_id, message_id);
+                }
+                MessageEvent::MessageReactionAdded { message }
+                | MessageEvent::MessageReactionRemoved { message } => {
+                    if chat_data.read().active_chat.id() != message.conversation_id() {
+                        continue;
+                    }
+                    chat_data.write().update_message(message);
+                }
+                MessageEvent::MessagePinned { message }
+                | MessageEvent::MessageUnpinned { message } => {
+                    if chat_data.read().active_chat.has_message_id(message.id()) {
                         chat_data.write().update_message(message);
                     }
-                    MessageEvent::MessagePinned { message }
-                    | MessageEvent::MessageUnpinned { message } => {
-                        if chat_data.read().active_chat.has_message_id(message.id()) {
-                            chat_data.write().update_message(message);
-                        }
-                    }
-                    _ => continue,
                 }
+                _ => continue,
             }
         }
     });
@@ -145,9 +142,12 @@ pub fn use_init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> 
                 Ok((messages, behavior)) => {
                     log::debug!("init_chat_data");
                     println!("init_chat_data: {:?}", conv_id);
-                    chat_data
-                        .write()
-                        .set_active_chat(&state.read(), &conv_id, behavior, messages);
+                    chat_data.write_silent().set_active_chat(
+                        &state.read(),
+                        &conv_id,
+                        behavior,
+                        messages,
+                    );
                 }
                 Err(e) => log::error!("{e}"),
             }

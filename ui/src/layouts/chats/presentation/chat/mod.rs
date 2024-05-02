@@ -20,7 +20,7 @@ use crate::{
         presentation::{
             chat::{edit_group::EditGroup, group_settings::GroupSettings, group_users::GroupUsers},
             chatbar::get_chatbar,
-            messages::get_messages,
+            messages::GetMessages,
         },
         scripts::{DISABLE_RELOAD, SHOW_CONTEXT, USER_TAG_SCRIPT},
     },
@@ -217,7 +217,7 @@ pub fn Compose() -> Element {
                 }
             )}
         } else {
-            {rsx!(get_messages{quickprofile_data: quickprofile_data, chat_data: chat_data})}
+            {rsx!(GetMessages{quickprofile_data: quickprofile_data, chat_data: chat_data})}
         },
         get_chatbar {
             show_manage_members: show_manage_members,

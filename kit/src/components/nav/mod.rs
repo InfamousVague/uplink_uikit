@@ -12,7 +12,7 @@ use crate::{
 use common::icons::outline::Shape as Icon;
 pub type To = &'static str;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Route {
     pub to: To,
     pub icon: Icon,
@@ -39,7 +39,7 @@ impl Default for Route {
     }
 }
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 pub struct Props {
     #[props(optional)]
     onnavigate: Option<EventHandler<To>>,
@@ -49,13 +49,6 @@ pub struct Props {
     #[props(optional)]
     bubble: Option<bool>,
     pub tooltip_direction: Option<ArrowPosition>,
-}
-
-impl PartialEq for Props {
-    // TODO(LucasMarchi): Review it later
-    fn eq(&self, other: &Self) -> bool {
-        self.routes.len() == other.routes.len() && self.active == other.active
-    }
 }
 
 /// Gets the appearance for a nav button based on the active route

@@ -83,21 +83,16 @@ pub enum MessagesCommand {
 
 pub type DownloadTracker = HashMap<Uuid, HashSet<warp::constellation::file::File>>;
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 pub struct GetMessagesProps {
     quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>>,
     chat_data: Signal<ChatData>,
 }
 
-impl PartialEq for GetMessagesProps {
-    fn eq(&self, _other: &Self) -> bool {
-        false
-    }
-}
+pub fn GetMessages(props: GetMessagesProps) -> Element {
+    // log::trace!("get_messages");
+    log::info!("get_messages");
 
-#[component(no_case_check)]
-pub fn get_messages(props: GetMessagesProps) -> Element {
-    log::trace!("get_messages");
     use_context_provider(|| Signal::new(DownloadTracker::default()));
     let state = use_context::<Signal<State>>();
     let chat_data = props.chat_data;
@@ -215,19 +210,11 @@ pub struct AllMessageGroupsProps {
     on_context_menu_action: EventHandler<(Event<MouseData>, Identity)>,
 }
 
-// impl PartialEq for AllMessageGroupsProps {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.groups.len() == other.groups.len()
-//             && self.active_chat_id == other.active_chat_id
-//             && self.groups == other.groups
-//             && self.on_context_menu_action == other.on_context_menu_action
-//     }
-// }
-
 // attempting to move the contents of this function into the above rsx! macro causes an error: cannot return vale referencing
 // temporary location
 pub fn loop_over_message_groups(props: AllMessageGroupsProps) -> Element {
-    log::trace!("render message groups");
+    // log::trace!("render message groups");
+    log::info!("render message groups");
     rsx!({
         props.groups.iter().map(|_group| {
             rsx!(render_message_group {
@@ -246,12 +233,6 @@ struct MessageGroupProps {
     on_context_menu_action: EventHandler<(Event<MouseData>, Identity)>,
     pending: Option<bool>,
 }
-
-// impl PartialEq for MessageGroupProps {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.active_chat_id == other.active_chat_id && self.pending == other.pending
-//     }
-// }
 
 fn render_message_group(props: MessageGroupProps) -> Element {
     let state = use_context::<Signal<State>>();
@@ -366,15 +347,6 @@ struct MessagesProps {
     is_remote: bool,
     pending: bool,
 }
-
-// impl PartialEq for MessagesProps {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.messages.len() == other.messages.len()
-//             && self.active_chat_id == other.active_chat_id
-//             && self.is_remote == other.is_remote
-//             && self.pending == other.pending
-//     }
-// }
 
 fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
     let mut state = use_context::<Signal<State>>();
@@ -800,18 +772,12 @@ fn pending_wrapper(props: PendingWrapperProps) -> Element {
     })
 }
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 struct PendingMessagesProps {
     #[props(!optional)]
     pending_outgoing_message: Option<data::MessageGroup>,
     active: Uuid,
     on_context_menu_action: EventHandler<(Event<MouseData>, Identity)>,
-}
-
-impl PartialEq for PendingMessagesProps {
-    fn eq(&self, other: &Self) -> bool {
-        self.active == other.active
-    }
 }
 
 fn render_pending_messages(props: PendingMessagesProps) -> Element {
