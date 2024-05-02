@@ -96,7 +96,7 @@ pub fn use_handle_warp_events(state: Signal<State>, chat_data: Signal<ChatData>)
 
 // any use_future should be in the coroutines file to prevent a naming conflict with the futures crate.
 pub fn use_init_chat_data(state: Signal<State>, chat_data: Signal<ChatData>) -> Resource<()> {
-    let mut active_chat_id_signal = use_signal(move || {
+    let active_chat_id_signal = use_signal(move || {
         let active_chat_id = state.read().get_active_chat().map(|x| x.id);
         active_chat_id
     });

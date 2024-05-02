@@ -217,7 +217,7 @@ pub fn Compose() -> Element {
                 }
             )}
         } else {
-            {rsx!(get_messages{quickprofile_data: quickprofile_data})}
+            {rsx!(get_messages{quickprofile_data: quickprofile_data, chat_data: chat_data})}
         },
         get_chatbar {
             show_manage_members: show_manage_members,

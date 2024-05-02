@@ -83,14 +83,27 @@ pub enum MessagesCommand {
 
 pub type DownloadTracker = HashMap<Uuid, HashSet<warp::constellation::file::File>>;
 
+#[derive(Props, Clone)]
+pub struct GetMessagesProps {
+    quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>>,
+    chat_data: Signal<ChatData>,
+}
+
+impl PartialEq for GetMessagesProps {
+    fn eq(&self, _other: &Self) -> bool {
+        false
+    }
+}
+
 #[component(no_case_check)]
-pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>>) -> Element {
+pub fn get_messages(props: GetMessagesProps) -> Element {
     log::trace!("get_messages");
     use_context_provider(|| Signal::new(DownloadTracker::default()));
     let state = use_context::<Signal<State>>();
-    let chat_data = use_context::<Signal<ChatData>>();
+    let chat_data = props.chat_data;
     let scroll_btn = use_context::<Signal<ScrollBtn>>();
     let pending_downloads = use_context::<Signal<DownloadTracker>>();
+    let mut quickprofile_data_signal = props.quickprofile_data;
 
     let ch = coroutines::use_handle_msg_scroll(&chat_data, &scroll_btn);
     let fetch_later_ch = coroutines::use_fetch_later_ch(chat_data, scroll_btn);
@@ -102,36 +115,34 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
     let active_chat_id = chat_data.read().active_chat.id();
     // used by the intersection observer to terminate itself.
     let chat_key = chat_data.read().active_chat.key().to_string();
-    let mut chat_behavior = use_signal(|| chat_data.read().get_chat_behavior(active_chat_id));
+    let chat_behavior = chat_data.read().get_chat_behavior(active_chat_id);
 
-    let msg_container_end = if matches!(
-        chat_behavior().on_scroll_top,
-        data::ScrollBehavior::FetchMore
-    ) {
-        rsx!(div {
-            class: "fetching",
-            p {
-                Loader {
-                    spinning: true
-                },
-                {get_local_text("messages.fetching")}
-            }
-        })
-    } else {
-        rsx!(
-            div {
-                // key: "encrypted-notification-0001",
-                class: "msg-container-end",
-                aria_label: "messages-secured-alert",
+    let msg_container_end =
+        if matches!(chat_behavior.on_scroll_top, data::ScrollBehavior::FetchMore) {
+            rsx!(div {
+                class: "fetching",
                 p {
-                    IconElement {
-                        icon:  Icon::LockClosed,
+                    Loader {
+                        spinning: true
                     },
-                    {get_local_text("messages.msg-banner")}
+                    {get_local_text("messages.fetching")}
                 }
-            }
-        )
-    };
+            })
+        } else {
+            rsx!(
+                div {
+                    // key: "encrypted-notification-0001",
+                    class: "msg-container-end",
+                    aria_label: "messages-secured-alert",
+                    p {
+                        IconElement {
+                            icon:  Icon::LockClosed,
+                        },
+                        {get_local_text("messages.msg-banner")}
+                    }
+                }
+            )
+        };
 
     rsx!(
         div {
@@ -179,7 +190,7 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
                             if own {
                                 id.set_identity_status(IdentityStatus::Online);
                             };
-                            quickprofile_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
+                            quickprofile_data_signal.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
                         }
                     },
                     render_pending_messages_listener {
@@ -188,7 +199,7 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
                             if own {
                                 id.set_identity_status(IdentityStatus::Online);
                             };
-                            quickprofile_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
+                            quickprofile_data_signal.set(Some((e.page_coordinates().x, e.page_coordinates().y, id.clone(), own)));
                         }
                     }
                 )}
@@ -197,18 +208,21 @@ pub fn get_messages(quickprofile_data: Signal<Option<(f64, f64, Identity, bool)>
     )
 }
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 pub struct AllMessageGroupsProps {
     groups: Vec<data::MessageGroup>,
     active_chat_id: Uuid,
     on_context_menu_action: EventHandler<(Event<MouseData>, Identity)>,
 }
 
-impl PartialEq for AllMessageGroupsProps {
-    fn eq(&self, other: &Self) -> bool {
-        self.groups.len() == other.groups.len() && self.active_chat_id == other.active_chat_id
-    }
-}
+// impl PartialEq for AllMessageGroupsProps {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.groups.len() == other.groups.len()
+//             && self.active_chat_id == other.active_chat_id
+//             && self.groups == other.groups
+//             && self.on_context_menu_action == other.on_context_menu_action
+//     }
+// }
 
 // attempting to move the contents of this function into the above rsx! macro causes an error: cannot return vale referencing
 // temporary location
@@ -225,7 +239,7 @@ pub fn loop_over_message_groups(props: AllMessageGroupsProps) -> Element {
     })
 }
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 struct MessageGroupProps {
     group: data::MessageGroup,
     active_chat_id: Uuid,
@@ -233,11 +247,11 @@ struct MessageGroupProps {
     pending: Option<bool>,
 }
 
-impl PartialEq for MessageGroupProps {
-    fn eq(&self, other: &Self) -> bool {
-        self.active_chat_id == other.active_chat_id && self.pending == other.pending
-    }
-}
+// impl PartialEq for MessageGroupProps {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.active_chat_id == other.active_chat_id && self.pending == other.pending
+//     }
+// }
 
 fn render_message_group(props: MessageGroupProps) -> Element {
     let state = use_context::<Signal<State>>();
@@ -345,7 +359,7 @@ fn render_message_group(props: MessageGroupProps) -> Element {
     )
 }
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 struct MessagesProps {
     messages: Vec<data::MessageGroupMsg>,
     active_chat_id: Uuid,
@@ -353,14 +367,14 @@ struct MessagesProps {
     pending: bool,
 }
 
-impl PartialEq for MessagesProps {
-    fn eq(&self, other: &Self) -> bool {
-        self.messages.len() == other.messages.len()
-            && self.active_chat_id == other.active_chat_id
-            && self.is_remote == other.is_remote
-            && self.pending == other.pending
-    }
-}
+// impl PartialEq for MessagesProps {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.messages.len() == other.messages.len()
+//             && self.active_chat_id == other.active_chat_id
+//             && self.is_remote == other.is_remote
+//             && self.pending == other.pending
+//     }
+// }
 
 fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
     let mut state = use_context::<Signal<State>>();
@@ -376,12 +390,11 @@ fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
         .extensions
         .enabled_extension(emoji_selector_extension);
 
-    let messages = use_signal(|| props.messages.clone());
-    let messages_no_signal = messages();
+    let messages = props.messages.clone();
 
     let ch = use_coroutine_handle::<MessagesCommand>();
     rsx!({
-        messages_no_signal.iter().cloned().map(|grouped_message| {
+        messages.iter().cloned().map(|grouped_message| {
 let message = use_signal(|| grouped_message.message.clone());
         let sender_is_self = message().inner.sender() == state.read().did_key();
 
@@ -543,7 +556,7 @@ let message = use_signal(|| grouped_message.message.clone());
     }) // end outer cx.render
 }
 
-#[derive(Props, Clone)]
+#[derive(Props, Clone, PartialEq)]
 struct MessageProps {
     message: data::MessageGroupMsg,
     is_remote: bool,
@@ -552,14 +565,14 @@ struct MessageProps {
     pending: bool,
 }
 
-impl PartialEq for MessageProps {
-    fn eq(&self, other: &Self) -> bool {
-        self.is_remote == other.is_remote
-            && self.message_key == other.message_key
-            && self.edit_msg == other.edit_msg
-            && self.pending == other.pending
-    }
-}
+// impl PartialEq for MessageProps {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.is_remote == other.is_remote
+//             && self.message_key == other.message_key
+//             && self.edit_msg == other.edit_msg
+//             && self.pending == other.pending
+//     }
+// }
 
 fn render_message(props: MessageProps) -> Element {
     //log::trace!("render message {}", &props.message.message.key);
