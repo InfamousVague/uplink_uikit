@@ -12,7 +12,6 @@ env:
 
 jobs:
   build:
-
     runs-on:
       labels: windows-latest-8-cores
 
@@ -22,8 +21,44 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+
+      - name: Setup Certificate
+        run: |
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/certificate.p12
+        shell: bash
+
+      - name: Set variables
+        id: variables
+        run: |
+          dir
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "KEYPAIR_NAME=gt-standard-keypair" >> $GITHUB_OUTPUT
+          echo "CERTIFICATE_NAME=gt-certificate" >> $GITHUB_OUTPUT
+          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
+          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_FILE=D:\\certificate.p12" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
+          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
+          echo "C:\Program Files\DigiCert\DigiCert Keylocker Tools" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Setup Keylocker KSP on windows
+        run: |
+          curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/Keylockertools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o Keylockertools-windows-x64.msi 
+          msiexec /i Keylockertools-windows-x64.msi /quiet /qn
+          smksp_registrar.exe list 
+          smctl.exe keypair ls 
+          C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
+        shell: cmd
+
+      - name: Certificates Sync
+        run: |
+          smctl windows certsync
+        shell: cmd
+
       - name: Get rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
           target: x86_64-pc-windows-msvc
@@ -38,27 +73,21 @@ jobs:
         run: cargo install cargo-wix
 
       - name: Install FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v2
+        uses: FedericoCarboni/setup-ffmpeg@v3
         id: setup-ffmpeg
 
       - name: Build Uplink
         run: cargo build --release -F production_mode
-      
-      - name: Build Installer 
+
+      - name: Build Installer
         run: cargo wix --package uplink --no-build --nocapture
-        
-      - name: Sign Windows Installer
-        uses: dlemstra/code-sign-action@v1
-        with:
-          certificate: '${{ secrets.WINDOWS_CERTIFICATE }}'
-          password: '${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}'
-          folder: 'target/wix'
-          recursive: true
-          files: |
-            target/wix/*.msi
+
+      - name: Signing using Signtool
+        run: |
+          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "./target/wix/*.msi"
 
       - name: Github Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
