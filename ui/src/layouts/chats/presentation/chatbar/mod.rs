@@ -80,8 +80,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     let is_loading = !state_matches_active_chat || !chat_data.read().active_chat.is_initialized;
     let mut can_send = use_signal(|| state.read().active_chat_has_draft());
     let mut update_script = use_signal(String::new);
-    // HACK(Migration_0.5): Changed use_hook to use_signal
-    let upload_button_menu_uuid = use_signal(|| Uuid::new_v4().to_string());
+    let upload_button_menu_uuid = use_hook(|| CopyValue::new(Uuid::new_v4().to_string()));
     let mut show_storage_modal = use_signal(|| false);
 
     let mut suggestions = use_signal(|| SuggestionType::None);
@@ -148,8 +147,6 @@ pub fn get_chatbar(props: ChatProps) -> Element {
     // this is used to scroll to the bottom of the chat.
     let scroll_ch = coroutines::use_get_scroll_ch(&chat_data, &state);
     let msg_ch: Coroutine<MsgChInput> = coroutines::use_get_msg_ch(&state);
-    let local_typing_ch = coroutines::use_get_typing_ch();
-    let local_typing_ch2 = local_typing_ch;
     let messages_to_send = &to_send.read().messages_to_send.clone();
     if !messages_to_send.is_empty() {
         for (txt, files) in messages_to_send {
@@ -168,6 +165,8 @@ pub fn get_chatbar(props: ChatProps) -> Element {
         }
         to_send.with_mut(|s| s.messages_to_send.clear())
     }
+    let local_typing_ch = coroutines::use_get_typing_ch();
+    let local_typing_ch2 = local_typing_ch;
 
     // drives the sending of TypingIndicator
     let local_typing_ch1 = local_typing_ch;
@@ -200,16 +199,17 @@ pub fn get_chatbar(props: ChatProps) -> Element {
         }
     });
 
-    let current_chat = use_signal(|| active_chat_id);
-
-    let _ = use_resource(move || async move {
-        loop {
-            tokio::time::sleep(Duration::from_secs(STATIC_ARGS.typing_indicator_refresh)).await;
-            if !current_chat.read().is_nil() {
-                local_typing_ch1.send(TypingIndicator::Refresh(current_chat()));
+    use_future(use_reactive(
+        &active_chat_id,
+        move |current_chat| async move {
+            loop {
+                tokio::time::sleep(Duration::from_secs(STATIC_ARGS.typing_indicator_refresh)).await;
+                if !current_chat.is_nil() {
+                    local_typing_ch1.send(TypingIndicator::Refresh(current_chat));
+                }
             }
-        }
-    });
+        },
+    ));
 
     let msg_valid = move |msg: &[String]| {
         (!msg.is_empty() && msg.iter().any(|line| !line.trim().is_empty()))
@@ -494,7 +494,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
             }).unwrap_or(None)},
             with_file_upload:
                 rsx!(
-                    if update_script().contains(&upload_button_menu_uuid()) {
+                    if update_script().contains(upload_button_menu_uuid.read().as_str()) {
                         div {
                             z_index: "0",
                             top: "0",
@@ -518,7 +518,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                         onpress: move |e: Event<MouseData>| {
                             let mouse_data = e.clone();
                             let script = SHOW_CONTEXT
-                                .replace("UUID", &upload_button_menu_uuid())
+                                .replace("UUID", &upload_button_menu_uuid.read())
                                 .replace("$PAGE_X", &mouse_data.page_coordinates().x.to_string())
                                 .replace("$PAGE_Y", &mouse_data.page_coordinates().y.to_string())
                                 .replace("$SELF", "false");

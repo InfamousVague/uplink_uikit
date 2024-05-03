@@ -367,19 +367,19 @@ fn wrap_messages_in_context_menu(props: MessagesProps) -> Element {
     let ch = use_coroutine_handle::<MessagesCommand>();
     rsx!({
         messages.iter().cloned().map(|grouped_message| {
-let message = use_signal(|| grouped_message.message.clone());
-        let sender_is_self = message().inner.sender() == state.read().did_key();
+        let message = &grouped_message.message;
+        let sender_is_self = message.inner.sender() == state.read().did_key();
 
         // WARNING: these keys are required to prevent a bug with the context menu, which manifests when deleting messages.
         let is_editing = edit_msg
             .read().edit
-            .map(|id| !props.is_remote && (id == message().inner.id()))
+            .map(|id| !props.is_remote && (id == message.inner.id()))
             .unwrap_or(false);
-        let message_key = format!("{}-{:?}", &message().key, is_editing);
-        let message_id = format!("{}-{:?}", &message().inner.id(), is_editing);
+        let message_key = format!("{}-{:?}", &message.key, is_editing);
+        let message_id = format!("{}-{:?}", &message.inner.id(), is_editing);
         let context_key = format!("message-{}", &message_id);
-        let msg_uuid = message().inner.id();
-        let conversation_id = message().inner.conversation_id();
+        let msg_uuid = message.inner.id();
+        let conversation_id = message.inner.conversation_id();
 
         if props.pending {
             return rsx!(render_message {
@@ -390,7 +390,7 @@ let message = use_signal(|| grouped_message.message.clone());
                 pending: props.pending
             });
         }
-
+        let message = CopyValue::new(grouped_message.message.clone());
         // todo: add onblur event
         rsx!(ContextMenu {
             key: "{context_key}",
@@ -409,7 +409,7 @@ let message = use_signal(|| grouped_message.message.clone());
                     EmojiGroup {
                         onselect: move |emoji: String| {
                             log::trace!("reacting with emoji: {}", emoji);
-                            ch.send(MessagesCommand::React((state.read().did_key(), message().inner.clone(), emoji)));
+                            ch.send(MessagesCommand::React((state.read().did_key(), message.read().inner.clone(), emoji)));
                         },
                         apply_to: EmojiDestination::Message(conversation_id, msg_uuid),
                     }
@@ -417,10 +417,10 @@ let message = use_signal(|| grouped_message.message.clone());
                 ContextItem {
                     icon: Icon::Pin,
                     aria_label: "messages-pin".to_string(),
-                    text: if message().inner.clone().pinned() {get_local_text("messages.unpin")} else {get_local_text("messages.pin")},
+                    text: if message.read().inner.clone().pinned() {get_local_text("messages.unpin")} else {get_local_text("messages.pin")},
                     onpress: move |_| {
-                        log::trace!("pinning message: {}", message().inner.id());
-                        if state.read().reached_max_pinned(&message().inner.conversation_id()) {
+                        log::trace!("pinning message: {}", message.read().inner.id());
+                        if state.read().reached_max_pinned(&message.read().inner.conversation_id()) {
                             state.write().mutate(Action::AddToastNotification(ToastNotification::init(
                                 "".into(),
                                 get_local_text("messages.pinned-max"),
@@ -428,7 +428,7 @@ let message = use_signal(|| grouped_message.message.clone());
                                 3,
                             )));
                         } else {
-                            ch.send(MessagesCommand::Pin(message().inner.clone()));
+                            ch.send(MessagesCommand::Pin(message.read().inner.clone()));
                         }
                     }
                 },
@@ -439,7 +439,7 @@ let message = use_signal(|| grouped_message.message.clone());
                     onpress: move |_| {
                         state
                             .write()
-                            .mutate(Action::StartReplying(&props.active_chat_id, &message()));
+                            .mutate(Action::StartReplying(&props.active_chat_id, &message.read()));
                     }
                 },
                 ContextItem {
@@ -474,7 +474,7 @@ let message = use_signal(|| grouped_message.message.clone());
                     aria_label: "messages-copy".to_string(),
                     text: get_local_text("uplink.copy-text"),
                     onpress: move |_| {
-                        let text = message().inner.lines().join("\n");
+                        let text = message.read().inner.lines().join("\n");
                         match Clipboard::new() {
                             Ok(mut c) => {
                                 if let Err(e) = c.set_text(text) {
@@ -517,8 +517,8 @@ let message = use_signal(|| grouped_message.message.clone());
                     should_render: sender_is_self,
                     onpress: move |_| {
                         ch.send(MessagesCommand::DeleteMessage {
-                            conv_id: message().inner.conversation_id(),
-                            msg_id: message().inner.id(),
+                            conv_id: message.read().inner.conversation_id(),
+                            msg_id: message.read().inner.id(),
                         });
                     }
                 },
@@ -557,21 +557,23 @@ fn render_message(props: MessageProps) -> Element {
     let ch = use_coroutine_handle::<MessagesCommand>();
 
     let MessageProps {
-        message: grouped_message,
+        message: mut grouped_message,
         is_remote: _,
         message_key,
         mut edit_msg,
         pending: _,
     } = props;
-    let message = use_signal(|| grouped_message.message);
+    let is_mention = grouped_message.message.is_mention_self(&user_did);
+    let message = CopyValue::new(grouped_message.message.clone());
     let is_editing = edit_msg
         .read()
         .clone()
         .edit
-        .map(|id| !props.is_remote && (id == message().inner.id()))
+        .map(|id| !props.is_remote && (id == message.read().inner.id()))
         .unwrap_or(false);
 
-    let reactions_list: Vec<ReactionAdapter> = message()
+    let reactions_list: Vec<ReactionAdapter> = message
+        .read()
         .inner
         .reactions()
         .iter()
@@ -594,14 +596,13 @@ fn render_message(props: MessageProps) -> Element {
     let pending_uploads = grouped_message.file_progress.as_ref();
     let render_markdown = state.read().ui.should_transform_markdown_text();
     let should_transform_ascii_emojis = state.read().ui.should_transform_ascii_emojis();
-    let msg_lines = message().inner.lines().join("\n");
+    let msg_lines = message.read().inner.lines().join("\n");
 
-    let is_mention = message().is_mention_self(&user_did);
     let mut preview_file_in_the_message: Signal<(bool, Option<File>)> =
         use_signal(|| (false, None));
 
     let mut reply_user = Identity::default();
-    if let Some(info) = &message().in_reply_to {
+    if let Some(info) = &message.read().in_reply_to {
         reply_user = state.peek().get_identity(&info.2).unwrap_or_default();
     }
     let mut to_send = use_context::<Signal<MessagesToSend>>();
@@ -620,26 +621,26 @@ fn render_message(props: MessageProps) -> Element {
                         preview_file_in_the_message.set((false, None));
                     },
                     on_download: move |temp_path: Option<PathBuf>| {
-                        let conv_id = message().inner.conversation_id();
+                        let conv_id = message.read().inner.conversation_id();
                         if let Some(path) = temp_path {
                             if !path.exists() {
                                 log::info!("downloading file in temp directory: {:?}", path.clone());
                                 ch.send(MessagesCommand::DownloadAttachment {
                                     conv_id,
-                                    msg_id: message().inner.id(),
+                                    msg_id: message.read().inner.id(),
                                     file: file2.clone(),
                                     file_path_to_download: path,
                                 })
                             }
                         } else {
-                            download_file(&file2, message().inner.conversation_id(), message().inner.id(), pending_downloads, ch);
+                            download_file(&file2, message.read().inner.conversation_id(), message.read().inner.id(), pending_downloads, ch);
                         }
                     },
                     file: file.clone()
                 }
             )
             })},
-            {message().in_reply_to.as_ref().map(|(other_msg, other_msg_attachments, sender_did)| rsx!(
+            {message.read().in_reply_to.as_ref().map(|(other_msg, other_msg_attachments, sender_did)| rsx!(
             MessageReply {
                     key: "reply-{message_key}",
                     with_text: other_msg.to_string(),
@@ -672,27 +673,27 @@ fn render_message(props: MessageProps) -> Element {
                 state: state,
                 chat: chat_data.read().active_chat.id(),
                 order: if grouped_message.is_first { Order::First } else if grouped_message.is_last { Order::Last } else { Order::Middle },
-                attachments: message.read().clone()
+                attachments: message.read()
                 .inner
                 .attachments(),
-                attachments_pending_download: pending_downloads.read().get(&message().inner.conversation_id()).cloned(),
+                attachments_pending_download: pending_downloads.read().get(&message.read().inner.conversation_id()).cloned(),
                 on_click_reaction: move |emoji: String| {
-                    ch.send(MessagesCommand::React((user_did.clone(), message().inner.clone(), emoji)));
+                    ch.send(MessagesCommand::React((user_did.clone(), message.read().inner.clone(), emoji)));
                 },
                 pending: props.pending,
-                pinned: message().inner.pinned(),
+                pinned: message.read().inner.pinned(),
                 attachments_pending_uploads: pending_uploads.cloned(),
                 on_resend: move |(txt, file): (Option<String>, FileLocation)|{
                     match txt.clone() {
                         Some(_) => {
                             state
                             .write()
-                            .decrement_outgoing_messages(chat_data.read().active_chat.id(), message().inner.id());
+                            .decrement_outgoing_messages(chat_data.read().active_chat.id(), message.read().inner.id());
                         },
                         None => {
                             state
                             .write()
-                            .remove_outgoing_attachment(chat_data.read().active_chat.id(), message().inner.id(), file.clone());
+                            .remove_outgoing_attachment(chat_data.read().active_chat.id(), message.read().inner.id(), file.clone());
                         },
                     }
                     to_send.with_mut(|s|s.messages_to_send.push((txt, vec![file])));
@@ -700,7 +701,7 @@ fn render_message(props: MessageProps) -> Element {
                 on_delete: move |file| {
                     state
                     .write()
-                    .remove_outgoing_attachment(chat_data.read().active_chat.id(), message().inner.id(), file);
+                    .remove_outgoing_attachment(chat_data.read().active_chat.id(), message.read().inner.id(), file);
                 },
                 parse_markdown: render_markdown,
                 transform_ascii_emojis: should_transform_ascii_emojis,
@@ -708,17 +709,17 @@ fn render_message(props: MessageProps) -> Element {
                     if temp_dir.is_some() {
                         preview_file_in_the_message.set((true, Some(file.clone())));
                     } else {
-                        download_file(&file, message().inner.conversation_id(), message().inner.id(), pending_downloads, ch);
+                        download_file(&file, message.read().inner.conversation_id(), message.read().inner.id(), pending_downloads, ch);
                     }
                 },
                 on_edit: move |update: String| {
                     edit_msg.write().edit = None;
                     state.write().ui.ignore_focus = false;
                     let msg = update.split('\n').map(|x| x.to_string()).collect::<Vec<String>>();
-                    if  message().inner.lines() == msg || !msg.iter().any(|x| !x.trim().is_empty()) {
+                    if  message.read().inner.lines() == msg || !msg.iter().any(|x| !x.trim().is_empty()) {
                         return;
                     }
-                    ch.send(MessagesCommand::EditMessage { conv_id: message().inner.conversation_id(), msg_id: message().inner.id(), msg})
+                    ch.send(MessagesCommand::EditMessage { conv_id: message.read().inner.conversation_id(), msg_id: message.read().inner.id(), msg})
                 }
             },
             script {

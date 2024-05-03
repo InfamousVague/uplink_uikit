@@ -82,12 +82,10 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
         },
         None => false,
     };
-
-    let update_script_signal = use_signal(|| props.update_script);
-
+    let update_script = props.update_script;
     let _ = use_resource(move || async move {
-        if !update_script_signal()().is_empty() {
-            _ = eval(&update_script_signal()());
+        if !update_script().is_empty() {
+            _ = eval(&update_script());
         }
     });
 
@@ -169,8 +167,20 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                         }
 
                         let rsp = rx.await.expect("command canceled");
-                        if let Err(e) = rsp {
-                            log::error!("failed to remove friend: {}", e);
+                        match rsp {
+                            Ok(_) => {
+                                state.write().mutate(Action::AddToastNotification(
+                                    ToastNotification::init(
+                                        "".into(),
+                                        get_local_text("friends.removed"),
+                                        None,
+                                        2,
+                                    ),
+                                ));
+                            }
+                            Err(e) => {
+                                log::error!("failed to remove friend: {}", e);
+                            }
                         }
                     }
                     QuickProfileCmd::BlockFriend(did) => {
@@ -183,9 +193,20 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                         }
 
                         let rsp = rx.await.expect("command canceled");
-                        if let Err(e) = rsp {
-                            // todo: display message to user
-                            log::error!("failed to block friend: {}", e);
+                        match rsp {
+                            Ok(_) => {
+                                state.write().mutate(Action::AddToastNotification(
+                                    ToastNotification::init(
+                                        "".into(),
+                                        get_local_text("friends.blocked-action"),
+                                        None,
+                                        2,
+                                    ),
+                                ));
+                            }
+                            Err(e) => {
+                                log::error!("failed to block friend: {}", e);
+                            }
                         }
                     }
                     QuickProfileCmd::UnBlockFriend(did) => {
@@ -198,9 +219,20 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                         }
 
                         let rsp = rx.await.expect("command canceled");
-                        if let Err(e) = rsp {
-                            // todo: display message to user
-                            log::error!("failed to unblock friend: {}", e);
+                        match rsp {
+                            Ok(_) => {
+                                state.write().mutate(Action::AddToastNotification(
+                                    ToastNotification::init(
+                                        "".into(),
+                                        get_local_text("friends.unblocked"),
+                                        None,
+                                        2,
+                                    ),
+                                ));
+                            }
+                            Err(e) => {
+                                log::error!("failed to unblock friend: {}", e);
+                            }
                         }
                     }
                     QuickProfileCmd::RemoveDirectConvs(recipient) => {
@@ -289,7 +321,16 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                         }));
                         let res = rx.await.expect("failed to get response from warp_runner");
                         match res {
-                            Ok(_) => {}
+                            Ok(_) => {
+                                state.write().mutate(Action::AddToastNotification(
+                                    ToastNotification::init(
+                                        "".into(),
+                                        get_local_text("friends.request-sent"),
+                                        None,
+                                        2,
+                                    ),
+                                ));
+                            }
                             Err(e) => match e {
                                 Error::PublicKeyIsBlocked => {
                                     log::warn!("add friend failed: {}", e);

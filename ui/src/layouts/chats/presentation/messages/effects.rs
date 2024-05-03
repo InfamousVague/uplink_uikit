@@ -11,19 +11,16 @@ use dioxus::{
 use dioxus_hooks::Coroutine;
 
 pub fn use_init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
-    let _ = use_resource(move || {
+    let chat_key = chat_data.peek().active_chat.key();
+    let _ = use_resource(use_reactive(&chat_key, move |_chat_key| {
         async move {
-            if chat_data.read().active_chat.is_initialized {
-                return;
-            }
-
             // replicate behavior from before refactor
             let _ = eval(SETUP_CONTEXT_PARENT);
 
-            let chat_id = chat_data.read().active_chat.id();
-            let chat_behavior = chat_data.read().get_chat_behavior(chat_id);
+            let chat_id = chat_data.peek().active_chat.id();
+            let chat_behavior = chat_data.peek().get_chat_behavior(chat_id);
             log::debug!("use_effect for init_msg_scroll {}", chat_id,);
-            let unreads = chat_data.read().active_chat.unreads();
+            let unreads = chat_data.peek().active_chat.unreads();
             chat_data.write_silent().active_chat.messages.loaded.clear();
 
             let scroll_script = match chat_behavior.view_init.scroll_to {
@@ -34,14 +31,14 @@ pub fn use_init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
                         chat_data.write_silent().active_chat.clear_unreads();
                     }
                     let msg_idx = chat_data
-                        .read()
+                        .peek()
                         .active_chat
                         .messages
                         .all
                         .len()
                         .saturating_sub(unreads + 1);
                     let msg_id = chat_data
-                        .read()
+                        .peek()
                         .active_chat
                         .messages
                         .all
@@ -72,5 +69,5 @@ pub fn use_init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
             // println!("Sending command to CoRoutine");
             ch.send(());
         }
-    });
+    }));
 }

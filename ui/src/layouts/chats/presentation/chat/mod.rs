@@ -65,6 +65,7 @@ pub fn Compose() -> Element {
     // We handle it here since user tags are not dioxus components
     use_effect(move || {
         to_owned![state, quickprofile_data];
+        chat_data.read(); // Rerun when chat_data updates
         spawn(async move {
             let mut eval_result = eval(USER_TAG_SCRIPT);
             loop {
@@ -89,6 +90,7 @@ pub fn Compose() -> Element {
 
     use_effect(move || {
         to_owned![quick_profile_uuid, update_script, identity_profile];
+        quickprofile_data.read();
         spawn(async move {
             if let Some((x, y, id, right)) = quickprofile_data.peek().as_ref() {
                 let script = SHOW_CONTEXT

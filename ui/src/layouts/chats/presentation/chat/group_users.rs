@@ -161,21 +161,22 @@ pub struct FriendProps {
     context_data: Signal<Option<(f64, f64, Identity, bool)>>,
 }
 fn render_friend(props: FriendProps) -> Element {
-    let friend = use_signal(|| props.friend.clone());
+    let friend = props.friend.clone();
+    let friend2 = props.friend.clone();
     let mut context_data = props.context_data;
     rsx!(
         div {
             class: "friend-container",
             aria_label: "Friend Container",
             oncontextmenu: move |e| {
-                context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, friend().to_owned(), true)));
+                context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, friend.to_owned(), true)));
             },
             UserImage {
                 platform: Platform::from(props.friend.platform()),
                 status: Status::from(props.friend.identity_status()),
                 image: props.friend.profile_picture(),
                 oncontextmenu: move |e: Event<MouseData>| {
-                    context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, friend().to_owned(), true)));
+                    context_data.set(Some((e.page_coordinates().x, e.page_coordinates().y, friend2.to_owned(), true)));
                 }
             },
             div {
@@ -183,7 +184,7 @@ fn render_friend(props: FriendProps) -> Element {
                 p {
                     class: "ellipsis-overflow",
                     aria_label: "friend-username",
-                    {friend().username()},
+                    {props.friend.username()},
                 },
             },
             if props.is_creator {

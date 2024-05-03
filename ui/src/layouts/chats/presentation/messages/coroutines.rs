@@ -48,13 +48,13 @@ pub fn use_handle_msg_scroll(
                 // this is basically a goto
                 'CONFIGURE_EVAL: loop {
                     // if there are no messages to render, don't bother with the javascript.
-                    if chat_data.read().active_chat.messages.top().is_none() {
+                    if chat_data.peek().active_chat.messages.top().is_none() {
                         break 'CONFIGURE_EVAL;
                     }
 
-                    let conv_id = chat_data.read().active_chat.id();
-                    let conv_key = chat_data.read().active_chat.key();
-                    let behavior = chat_data.read().get_chat_behavior(conv_id);
+                    let conv_id = chat_data.peek().active_chat.id();
+                    let conv_key = chat_data.peek().active_chat.key();
+                    let behavior = chat_data.peek().get_chat_behavior(conv_id);
 
                     // init the scroll button
                     let eval_result = eval(scripts::READ_SCROLL);
@@ -71,6 +71,8 @@ pub fn use_handle_msg_scroll(
                         } else if scroll >= -100 && scroll_btn.read().get(conv_id) {
                             scroll_btn.write().clear(conv_id);
                         }
+                    } else {
+                        log::error!("failed to init scroll button");
                     }
 
                     chat_data
@@ -123,7 +125,7 @@ pub fn use_handle_msg_scroll(
 
                     // not sure if it's safe to call eval.recv() in a select! statement. turning it into something
                     // which should definitely work for that.
-                    let _key = chat_data.read().active_chat.key();
+                    let _key = chat_data.peek().active_chat.key();
                     let eval_stream = async_stream::stream! {
                         let mut should_break = false;
                         while !should_break {
@@ -142,7 +144,6 @@ pub fn use_handle_msg_scroll(
                                             log::warn!("received js event from wrong conversation");
                                             continue;
                                         }
-
                                         should_break = matches!(msg, JsMsg::Top{ .. } | JsMsg::Bottom { .. });
                                         yield msg;
                                     },
@@ -181,18 +182,18 @@ pub fn use_handle_msg_scroll(
                             res = eval_stream.next() => match res {
                                 Some(msg) => match msg {
                                     JsMsg::Add { msg_id, .. } => {
-                                        let loaded1 = chat_data.read().is_loaded(conv_id);
+                                        let loaded1 = chat_data.peek().is_loaded(conv_id);
                                         chat_data.write_silent().add_message_to_view(conv_id, msg_id);
-                                        let loaded2 = chat_data.read().is_loaded(conv_id);
+                                        let loaded2 = chat_data.peek().is_loaded(conv_id);
 
                                         if !loaded1 && loaded2 {
                                             chat_data.write().active_chat.is_initialized = true;
                                         }
                                     },
                                     JsMsg::Remove { msg_id, .. } => {
-                                        let loaded1 = chat_data.read().is_loaded(conv_id);
+                                        let loaded1 = chat_data.peek().is_loaded(conv_id);
                                         chat_data.write_silent().remove_message_from_view(conv_id, msg_id);
-                                        let loaded2 = chat_data.read().is_loaded(conv_id);
+                                        let loaded2 = chat_data.peek().is_loaded(conv_id);
 
                                         if !loaded1 && loaded2 {
                                             chat_data.write().active_chat.is_initialized = true;
@@ -207,11 +208,11 @@ pub fn use_handle_msg_scroll(
                                             continue 'HANDLE_EVAL;
                                         }
 
-                                        let msg = match chat_data.read().get_top_of_view(conv_id) {
+                                        let msg = match chat_data.peek().get_top_of_view(conv_id) {
                                             Some(x) => x,
                                             None => {
                                                 log::error!("no messages at top of view");
-                                                let mut behavior = chat_data.read().get_chat_behavior(conv_id);
+                                                let mut behavior = chat_data.peek().get_chat_behavior(conv_id);
                                                 behavior.on_scroll_top = data::ScrollBehavior::DoNothing;
                                                 chat_data.write_silent().set_chat_behavior(conv_id, behavior);
                                                 continue 'HANDLE_EVAL;
@@ -244,7 +245,7 @@ pub fn use_handle_msg_scroll(
                                             Ok(FetchMessagesResponse{ messages, has_more, most_recent }) => {
                                                 let new_messages = messages.len();
                                                 chat_data.write().insert_messages(conv_id, messages);
-                                                let mut behavior = chat_data.read().get_chat_behavior(conv_id);
+                                                let mut behavior = chat_data.peek().get_chat_behavior(conv_id);
                                                 behavior.on_scroll_top = if has_more { data::ScrollBehavior::FetchMore } else { data::ScrollBehavior::DoNothing };
                                                 if new_messages > 0 {
                                                     behavior.on_scroll_end = data::ScrollBehavior::FetchMore;
@@ -272,7 +273,7 @@ pub fn use_handle_msg_scroll(
                                             continue 'HANDLE_EVAL;
                                         }
 
-                                        let msg = match chat_data.read().get_bottom_of_view(conv_id) {
+                                        let msg = match chat_data.peek().get_bottom_of_view(conv_id) {
                                             Some(x) => x,
                                             None => {
                                                 log::error!("no messages at bottom of view");
@@ -308,7 +309,7 @@ pub fn use_handle_msg_scroll(
                                                 let new_messages = messages.len();
                                                 chat_data.write().insert_messages(conv_id, messages);
                                                 chat_data.write().active_chat.new_key();
-                                                let mut behavior = chat_data.read().get_chat_behavior(conv_id);
+                                                let mut behavior = chat_data.peek().get_chat_behavior(conv_id);
                                                 behavior.most_recent_msg_id = most_recent;
                                                 if !has_more {
                                                     // remove extra messages from the list and return to ScrollInit::MostRecent
@@ -355,7 +356,7 @@ pub fn use_fetch_later_ch(
         async move {
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
             while let Some(conv_id) = rx.next().await {
-                let opt = chat_data.read().get_bottom_of_view(conv_id);
+                let opt = chat_data.peek().get_bottom_of_view(conv_id);
                 let msg = match opt {
                     Some(x) => x,
                     None => {
@@ -399,7 +400,7 @@ pub fn use_fetch_later_ch(
                         let new_messages = messages.len();
                         chat_data.write().insert_messages(conv_id, messages);
                         chat_data.write().active_chat.new_key();
-                        let mut behavior = chat_data.read().get_chat_behavior(conv_id);
+                        let mut behavior = chat_data.peek().get_chat_behavior(conv_id);
                         behavior.most_recent_msg_id = most_recent;
                         if !has_more {
                             // remove extra messages from the list and return to ScrollInit::MostRecent
@@ -436,8 +437,8 @@ pub fn use_handle_warp_commands(
     state: &Signal<State>,
     pending_downloads: &Signal<DownloadTracker>,
 ) -> Coroutine<MessagesCommand> {
-    let download_streams = use_download_stream_handler();
     let file_tracker = use_context::<Signal<TransferTracker>>();
+    let download_streams = use_download_stream_handler();
 
     use_coroutine(|mut rx: UnboundedReceiver<MessagesCommand>| {
         to_owned![state, file_tracker, pending_downloads, download_streams];
