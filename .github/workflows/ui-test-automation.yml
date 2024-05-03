@@ -46,7 +46,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install Rust 💿
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
           components: rustfmt, clippy
@@ -220,7 +220,7 @@ jobs:
           path: ./warp
 
       - name: Install Rust 💿
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
           components: rustfmt, clippy
@@ -352,7 +352,7 @@ jobs:
           path: ./warp
 
       - name: Install Rust 💿
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
           components: rustfmt, clippy
@@ -486,7 +486,7 @@ jobs:
           path: ./warp
 
       - name: Install Rust 💿
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
           components: rustfmt, clippy
