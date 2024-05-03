@@ -126,7 +126,7 @@ pub struct IdentityProps {
 pub fn IdentityHeader(props: IdentityProps) -> Element {
     let state = use_context::<Signal<State>>();
     let sender = state
-        .read()
+        .peek()
         .get_identity(&props.sender_did)
         .unwrap_or_default();
     let image = sender.profile_picture();

@@ -65,7 +65,7 @@ pub fn search_friends(props: SearchProps) -> Element {
                 let start = username.to_lowercase().find(&search_typed_chars.to_lowercase()).unwrap_or(0);
                 let end = start + search_typed_chars.len();
                 let blocked_friends: Vec<DID> = state
-                    .read()
+                    .peek()
                     .blocked_fr_identities()
                     .iter()
                     .map(|f| f.did_key())
@@ -139,7 +139,7 @@ pub fn search_friends(props: SearchProps) -> Element {
             }
             {chats.iter().cloned().map(|chat| {
                 let id = chat.id;
-                let participants = state.read().chat_participants(&chat);
+                let participants = state.peek().chat_participants(&chat);
                 let participants2 = participants.clone();
 
                 let other_participants_names = State::join_usernames(&participants);

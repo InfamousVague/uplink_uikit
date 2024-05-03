@@ -622,7 +622,7 @@ fn use_app_coroutines() -> Option<()> {
         let channel = PROFILE_CHANNEL_LISTENER.rx.clone();
         let mut ch = channel.lock().await;
         while let Some(action) = ch.recv().await {
-            let mut id = state.read().get_own_identity();
+            let mut id = state.peek().get_own_identity();
             let did = action.did;
             if did.eq(&id.did_key()) {
                 if let Some(picture) = action.picture.as_ref() {

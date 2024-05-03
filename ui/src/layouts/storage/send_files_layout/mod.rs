@@ -130,7 +130,7 @@ fn ChatsToSelect(props: ChatsToSelectProps) -> Element {
             }
         }
         {state.read().chats_sidebar().iter().cloned().map(|chat| {
-            let participants = state.read().chat_participants(&chat);
+            let participants = state.peek().chat_participants(&chat);
             let other_participants =  state.read().remove_self(&participants);
             let user: state::Identity = other_participants.first().cloned().unwrap_or_default();
             let platform = user.platform().into();

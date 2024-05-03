@@ -63,7 +63,7 @@ pub fn Friends() -> Element {
         reset_filter.set(false);
     }
     let filter = friend_filter().to_lowercase();
-    let friends_all = state.read().friend_identities();
+    let friends_all = state.peek().friend_identities();
     let friends_list = HashMap::from_iter(
         friends_all
             .iter()
@@ -477,7 +477,7 @@ pub fn ShareFriendsModal(props: FriendProps) -> Element {
             })},
             {chats.iter().map(|chat| {
                 let id = chat.id;
-                let participants = state.read().chat_participants(chat);
+                let participants = state.peek().chat_participants(chat);
                 let other_participants =  state.read().remove_self(&participants);
                 let user: Identity = other_participants.first().cloned().unwrap_or_default();
                 let platform = user.platform().into();

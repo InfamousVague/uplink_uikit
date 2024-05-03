@@ -327,10 +327,10 @@ fn ActiveCallControl(props: ActiveCallProps) -> Element {
     }
 
     let call = active_call.call.clone();
-    let participants = state.read().get_identities_from_call(&call);
+    let participants = state.peek().get_identities_from_call(&call);
     let other_participants = state.read().remove_self(&participants);
     let participants_name = State::join_usernames(&other_participants);
-    let self_id = build_user_from_identity(&state.read().get_own_identity());
+    let self_id = build_user_from_identity(&state.peek().get_own_identity());
 
     let other_participants_in_call = use_signal(|| other_participants.clone());
 
@@ -584,7 +584,7 @@ fn PendingCallDialog(props: PendingCallProps) -> Element {
         to_owned![alive];
         spawn(async move { PlayUntil(ContinuousSound::RingTone, alive.read().clone()) });
     });
-    let mut participants = state.read().get_identities_from_call(&call);
+    let mut participants = state.peek().get_identities_from_call(&call);
     participants = state.read().remove_self(&participants);
     let usernames = match state.read().get_chat_by_id(call.id) {
         Some(c) => match c.conversation_name {

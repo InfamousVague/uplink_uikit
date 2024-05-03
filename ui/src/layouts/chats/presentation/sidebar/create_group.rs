@@ -48,7 +48,7 @@ pub fn CreateGroup(props: Props) -> Element {
     let mut group_name = use_signal(|| Some(String::new()));
     let friends_list = HashMap::from_iter(
         state
-            .read()
+            .peek()
             .friend_identities()
             .iter()
             .map(|id| (id.did_key(), id.clone())),

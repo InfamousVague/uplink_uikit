@@ -56,13 +56,13 @@ pub fn EditGroup() -> Element {
 
     let friends_list: HashMap<DID, Identity> = HashMap::from_iter(
         state
-            .read()
+            .peek()
             .friend_identities()
             .iter()
             .map(|id| (id.did_key(), id.clone())),
     );
 
-    let mut group_members = state.read().get_identities(
+    let mut group_members = state.peek().get_identities(
         &friends_did_already_in_group
             .clone()
             .into_iter()

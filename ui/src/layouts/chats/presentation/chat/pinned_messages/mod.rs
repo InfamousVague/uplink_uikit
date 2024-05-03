@@ -150,7 +150,7 @@ pub fn PinnedMessages(props: Props) -> Element {
                 })}
             } else {
                 {rsx!({pinned_messages.iter().map(|message|{
-                    let sender = state.read().get_identity(&message.sender());
+                    let sender = state.peek().get_identity(&message.sender());
                     let time = message.date().format(&get_local_text("uplink.date-time-format")).to_string();
                     let conversation_id = message.conversation_id();
                     let message_id = message.id();

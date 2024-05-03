@@ -143,7 +143,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                 .collect()
         })
         .unwrap_or_default();
-    let users_typing = state.read().get_identities(&users_typing);
+    let users_typing = state.peek().get_identities(&users_typing);
 
     // this is used to scroll to the bottom of the chat.
     let scroll_ch = coroutines::use_get_scroll_ch(&chat_data, &state);
@@ -227,7 +227,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
         .map(|chat| {
             chat.participants
                 .iter()
-                .filter_map(|did| state.read().get_identity(did))
+                .filter_map(|did| state.peek().get_identity(did))
                 .collect()
         })
         .unwrap_or_default();
@@ -462,7 +462,7 @@ pub fn get_chatbar(props: ChatProps) -> Element {
                         {chat_data.read().active_chat.replying_to().as_ref().map(|msg| {
                             let our_did = state.read().did_key();
                             let msg_owner = if state.read().did_key() == msg.sender() {
-                                state.read().get_identity(&state.read().did_key())
+                                state.peek().get_identity(&state.read().did_key())
                             } else {
                                 chat_data.read().active_chat.other_participants().iter().find(|x| x.did_key() == msg.sender()).cloned()
                             };

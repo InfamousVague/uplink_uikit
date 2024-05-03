@@ -25,7 +25,7 @@ use tracing::log;
 #[allow(non_snake_case)]
 pub fn OutgoingRequests() -> Element {
     let mut state = use_context::<Signal<State>>();
-    let friends_list = state.read().outgoing_fr_identities();
+    let friends_list = state.peek().outgoing_fr_identities();
     let remove_in_progress: Signal<HashSet<DID>> = use_signal(HashSet::new);
 
     let ch = use_coroutine(|mut rx: UnboundedReceiver<DID>| {

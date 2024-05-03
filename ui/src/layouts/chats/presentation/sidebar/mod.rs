@@ -163,7 +163,7 @@ pub fn Sidebar(_props: SidebarProps) -> Element {
                                 *search_friends_is_focused.write_silent() = false;
                             } else {
                                 let (mut friends_entries, friends_identities) = state.read().search_identities(&v);
-                                let (chats_entries, chats) = state.read().search_group_chats(&v);
+                                let (chats_entries, chats) = state.peek().search_group_chats(&v);
                                 friends_entries.extend(chats_entries);
                                 // todo: sort this somehow
                                 search_results.set(friends_entries);
@@ -275,7 +275,7 @@ pub fn Sidebar(_props: SidebarProps) -> Element {
                 ))},
                 {sidebar_chats.iter().cloned().map(|chat| {
                     let users_typing = chat.typing_indicator.iter().any(|(k, _)| *k != state.read().did_key());
-                    let participants = state.read().chat_participants(&chat);
+                    let participants = state.peek().chat_participants(&chat);
                     let other_participants =  state.read().remove_self(&participants);
                     let user: state::Identity = other_participants.first().cloned().unwrap_or_default();
                     let platform = user.platform().into();

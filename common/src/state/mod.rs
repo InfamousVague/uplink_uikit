@@ -81,7 +81,7 @@ pub struct State {
     pub ui: ui::UI,
     pub configuration: Signal<configuration::Configuration>,
     #[serde(skip)]
-    identities: HashMap<DID, identity::Identity>,
+    identities: Signal<HashMap<DID, identity::Identity>>,
     #[serde(skip)]
     pub initialized: bool,
     #[serde(skip)]
@@ -112,7 +112,7 @@ impl Clone for State {
             scope_ids: Default::default(),
             ui: Default::default(),
             configuration: self.configuration.clone(),
-            identities: HashMap::new(),
+            identities: Signal::new(HashMap::new()),
             initialized: self.initialized,
             warp_cmd_tx: None,
         }
@@ -422,12 +422,12 @@ impl State {
                 self.cancel_request(&identity.did_key());
             }
             MultiPassEvent::FriendOnline(identity) => {
-                if let Some(ident) = self.identities.get_mut(&identity.did_key()) {
+                if let Some(ident) = self.identities.write().get_mut(&identity.did_key()) {
                     ident.set_identity_status(identity.identity_status());
                 }
             }
             MultiPassEvent::FriendOffline(identity) => {
-                if let Some(ident) = self.identities.get_mut(&identity.did_key()) {
+                if let Some(ident) = self.identities.write().get_mut(&identity.did_key()) {
                     ident.set_identity_status(IdentityStatus::Offline);
                 }
             }
@@ -448,7 +448,7 @@ impl State {
             RayGunEvent::ConversationCreated(chat) => {
                 if !self.chats.in_sidebar.contains(&chat.inner.id) {
                     self.chats.in_sidebar.insert(0, chat.inner.id);
-                    self.identities.extend(
+                    self.identities.write().extend(
                         chat.identities
                             .iter()
                             .map(|ident| (ident.did_key(), ident.clone())),
@@ -475,7 +475,7 @@ impl State {
                 let own = self.get_own_identity().did_key();
                 let ping = message.is_mention_self(&own);
                 self.update_identity_status_hack(&message.inner.sender());
-                let id = self.identities.get(&message.inner.sender()).cloned();
+                let id = self.identities.peek().get(&message.inner.sender()).cloned();
                 // todo: don't load all the messages by default. if the user scrolled up, for example, this incoming message may not need to be fetched yet.
                 self.add_msg_to_chat(conversation_id, message);
 
@@ -641,7 +641,7 @@ impl State {
                 conversation,
                 identity,
             } => {
-                self.identities.insert(identity.did_key(), identity);
+                self.identities.write().insert(identity.did_key(), identity);
                 if let Some(chat) = self.chats.all.get_mut(&conversation.id()) {
                     chat.participants = HashSet::from_iter(conversation.recipients());
                 }
@@ -769,7 +769,7 @@ impl State {
             storage,
             chats,
             friends: Signal::new(friends),
-            identities,
+            identities: Signal::new(identities),
             initialized: true,
             ..Default::default()
         }
@@ -896,7 +896,7 @@ impl State {
                 self.chats.all.insert(id, chat);
             }
         }
-        self.identities.extend(identities.drain());
+        self.identities.write().extend(identities.drain());
 
         if self.chats.readd_sidebars {
             self.chats.readd_sidebars = false;
@@ -950,9 +950,10 @@ impl State {
             .collect()
     }
     pub fn chat_participants(&self, chat: &Chat) -> Vec<Identity> {
+        let identities = self.identities.read();
         chat.participants
             .iter()
-            .filter_map(|did| self.identities.get(did))
+            .filter_map(|did| identities.get(did))
             .cloned()
             .collect()
     }
@@ -1385,7 +1386,9 @@ impl State {
             .remove(&identity.did_key());
         self.friends.write().all.insert(identity.did_key());
         // should already be in self.identities
-        self.identities.insert(identity.did_key(), identity.clone());
+        self.identities
+            .write()
+            .insert(identity.did_key(), identity.clone());
     }
     fn cancel_request(&mut self, identity: &DID) {
         self.friends.write().outgoing_requests.remove(identity);
@@ -1396,7 +1399,9 @@ impl State {
             .write()
             .incoming_requests
             .insert(identity.did_key());
-        self.identities.insert(identity.did_key(), identity.clone());
+        self.identities
+            .write()
+            .insert(identity.did_key(), identity.clone());
     }
 
     fn new_outgoing_request(&mut self, identity: &Identity) {
@@ -1404,7 +1409,9 @@ impl State {
             .write()
             .outgoing_requests
             .insert(identity.did_key());
-        self.identities.insert(identity.did_key(), identity.clone());
+        self.identities
+            .write()
+            .insert(identity.did_key(), identity.clone());
     }
     pub fn get_friends_by_first_letter(
         friends: HashMap<DID, Identity>,
@@ -1572,51 +1579,57 @@ impl State {}
 // for identities
 impl State {
     pub fn blocked_fr_identities(&self) -> Vec<Identity> {
+        let identities = self.identities.read();
         self.friends
             .read()
             .blocked
             .iter()
-            .filter_map(|did| self.identities.get(did))
+            .filter_map(|did| identities.get(did))
             .cloned()
             .collect()
     }
     pub fn friend_identities(&self) -> Vec<Identity> {
+        let identities = self.identities.read();
         self.friends
             .read()
             .all
             .iter()
-            .filter_map(|did| self.identities.get(did))
+            .filter_map(|did| identities.get(did))
             .cloned()
             .collect()
     }
     pub fn get_identities_from_call(&self, call: &Call) -> Vec<Identity> {
+        let identities = self.identities.read();
         call.participants_joined
             .keys()
-            .filter_map(|id| self.identities.get(id))
+            .filter_map(|id| identities.get(id))
             .cloned()
             .collect()
     }
     pub fn get_identities(&self, ids: &[DID]) -> Vec<Identity> {
+        let identities = self.identities.read();
         ids.iter()
-            .filter_map(|id| self.identities.get(id))
+            .filter_map(|id| identities.get(id))
             .cloned()
             .collect()
     }
     pub fn get_identity(&self, did: &DID) -> Option<Identity> {
-        self.identities.get(did).cloned()
+        self.identities.read().get(did).cloned()
     }
     pub fn get_own_identity(&self) -> Identity {
         self.identities
+            .read()
             .get(&self.did_key())
             .cloned()
             .unwrap_or_default()
     }
     pub fn incoming_fr_identities(&self) -> Vec<Identity> {
+        let identities = self.identities.read();
         self.friends
             .read()
             .incoming_requests
             .iter()
-            .filter_map(|did| self.identities.get(did))
+            .filter_map(|did| identities.get(did))
             .cloned()
             .collect()
     }
@@ -1627,18 +1640,19 @@ impl State {
         identity.did_key().to_string() == self.did_key().to_string()
     }
     pub fn outgoing_fr_identities(&self) -> Vec<Identity> {
+        let identities = self.identities.read();
         self.friends
             .read()
             .outgoing_requests
             .iter()
-            .filter_map(|did| self.identities.get(did))
+            .filter_map(|did| identities.get(did))
             .cloned()
             .collect()
     }
     pub fn set_own_identity(&mut self, identity: Identity) {
         self.id = identity.did_key();
         self.ui.cached_username = Some(identity.username());
-        self.identities.insert(identity.did_key(), identity);
+        self.identities.write().insert(identity.did_key(), identity);
     }
     pub fn search_identities(
         &self,
@@ -1646,6 +1660,7 @@ impl State {
     ) -> (Vec<identity_search_result::Entry>, Vec<Identity>) {
         let entries = self
             .identities
+            .read()
             .values()
             .filter(|id| {
                 let un = id.username();
@@ -1661,6 +1676,7 @@ impl State {
 
         let identities = self
             .identities
+            .read()
             .values()
             .filter(|id| {
                 let un = id.username();
@@ -1682,10 +1698,11 @@ impl State {
         name_prefix: &str,
     ) -> (Vec<identity_search_result::Entry>, Vec<Chat>) {
         let get_display_name = |chat: &Chat| -> String {
+            let identities = self.identities.read();
             let names: Vec<_> = chat
                 .participants
                 .iter()
-                .filter_map(|id| self.identities.get(id))
+                .filter_map(|id| identities.get(id))
                 .map(|x| x.username())
                 .collect();
 
@@ -1706,10 +1723,11 @@ impl State {
             .iter()
             .filter(|(_, v)| v.conversation_type == ConversationType::Group)
             .filter(|(_k, v)| {
+                let identities = self.identities.read();
                 let names: Vec<_> = v
                     .participants
                     .iter()
-                    .filter_map(|id| self.identities.get(id))
+                    .filter_map(|id| identities.get(id))
                     .map(|x| x.username())
                     .collect();
 
@@ -1737,10 +1755,11 @@ impl State {
             .iter()
             .filter(|(_, v)| v.conversation_type == ConversationType::Group)
             .filter(|(_k, v)| {
+                let identities = self.identities.read();
                 let names: Vec<_> = v
                     .participants
                     .iter()
-                    .filter_map(|id| self.identities.get(id))
+                    .filter_map(|id| identities.get(id))
                     .map(|x| x.username())
                     .collect();
 
@@ -1757,13 +1776,13 @@ impl State {
         (chats_entries, chats)
     }
     pub fn update_identity(&mut self, id: DID, ident: identity::Identity) {
-        if let Some(friend) = self.identities.get_mut(&id) {
+        if let Some(friend) = self.identities.write().get_mut(&id) {
             *friend = ident;
         }
     }
 
     pub fn update_identity_with(&mut self, id: DID, mut ident: impl FnMut(&mut Identity)) {
-        if let Some(friend) = self.identities.get_mut(&id) {
+        if let Some(friend) = self.identities.write().get_mut(&id) {
             ident(friend);
         }
     }
@@ -1771,7 +1790,7 @@ impl State {
     // this function checks if the friend is offline and if so, sets them to online. This may be incorrect, but should
     // be corrected when the identity list is periodically updated
     pub fn update_identity_status_hack(&mut self, id: &DID) {
-        if let Some(ident) = self.identities.get_mut(id) {
+        if let Some(ident) = self.identities.write().get_mut(id) {
             if ident.identity_status() == IdentityStatus::Offline {
                 ident.set_identity_status(IdentityStatus::Online);
             }
@@ -1780,6 +1799,7 @@ impl State {
 
     pub fn profile_picture(&self) -> String {
         self.identities
+            .read()
             .get(&self.did_key())
             .map(|x| x.profile_picture())
             .unwrap_or_default()
@@ -1787,6 +1807,7 @@ impl State {
 
     pub fn profile_banner(&self) -> String {
         self.identities
+            .read()
             .get(&self.did_key())
             .map(|x| x.profile_banner())
             .unwrap_or_default()
@@ -1799,7 +1820,8 @@ impl State {
             .join(", ")
     }
     pub fn mock_own_platform(&mut self, platform: Platform) {
-        if let Some(ident) = self.identities.get_mut(&self.did_key()) {
+        let own_did = self.did_key();
+        if let Some(ident) = self.identities.write().get_mut(&own_did) {
             ident.set_platform(platform);
         }
     }
@@ -1812,11 +1834,13 @@ impl State {
     }
     pub fn status_message(&self) -> Option<String> {
         self.identities
+            .read()
             .get(&self.did_key())
             .and_then(|x| x.status_message())
     }
     pub fn username(&self) -> String {
         self.identities
+            .read()
             .get(&self.did_key())
             .map(|x| x.username())
             .unwrap_or_default()

@@ -99,7 +99,7 @@ pub fn AddFriend() -> Element {
         my_id.set(None);
     }
 
-    let identity = state.read().get_own_identity();
+    let identity = state.peek().get_own_identity();
     let short_id = identity.short_id();
     let did_key = identity.did_key();
     let username = identity.username();
@@ -227,7 +227,7 @@ pub fn AddFriend() -> Element {
                                     }
                                 } else {
                                     add_in_progress.set(true);
-                                    ch.send((friend_input().to_string(), state.read().outgoing_fr_identities()));
+                                    ch.send((friend_input().to_string(), state.peek().outgoing_fr_identities()));
                                 }
                             },
                             onchange: move |(s, is_valid)| {
@@ -290,7 +290,7 @@ pub fn AddFriend() -> Element {
                             }
                         } else {
                             add_in_progress.set(true);
-                            ch.send((friend_input().to_string(), state.read().outgoing_fr_identities()));
+                            ch.send((friend_input().to_string(), state.peek().outgoing_fr_identities()));
                         }
                     },
                     aria_label: "Add Someone Button".to_string()

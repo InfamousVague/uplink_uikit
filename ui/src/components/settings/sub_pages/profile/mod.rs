@@ -52,7 +52,7 @@ pub fn ProfileSettings() -> Element {
     let mut state = use_context::<Signal<State>>();
     let mut first_render = use_signal(|| true);
 
-    let identity = state.read().get_own_identity();
+    let identity = state.peek().get_own_identity();
     let user_status = identity.status_message().unwrap_or_default();
     let online_status = identity.identity_status();
     let identity_status_values = [
@@ -189,7 +189,7 @@ pub fn ProfileSettings() -> Element {
     if let Some(ident) = should_update() {
         log::trace!("Updating ProfileSettings");
         let mut ident = ident.clone();
-        let current = state.read().get_own_identity();
+        let current = state.peek().get_own_identity();
         ident.set_profile_banner(&current.profile_banner());
         ident.set_profile_picture(&current.profile_picture());
         state.write().set_own_identity(ident);

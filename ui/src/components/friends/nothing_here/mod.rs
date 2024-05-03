@@ -12,8 +12,8 @@ pub struct Props {
 pub fn NothingHere(props: Props) -> Element {
     let state = use_context::<Signal<State>>();
     let pending_friends =
-        state.read().incoming_fr_identities().len() + state.read().outgoing_fr_identities().len();
-    let blocked_friends = state.read().blocked_fr_identities().len();
+        state.peek().incoming_fr_identities().len() + state.peek().outgoing_fr_identities().len();
+    let blocked_friends = state.peek().blocked_fr_identities().len();
     let show_warning = match props.friends_tab.as_str() {
         "Pending" => pending_friends == 0,
         "Blocked" => blocked_friends == 0,

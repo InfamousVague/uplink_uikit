@@ -42,7 +42,7 @@ pub fn GroupUsers(props: Props) -> Element {
     }
 
     let participant_dids = Vec::from_iter(active_chat.participants.iter().cloned());
-    let group_participants = state.read().get_identities(&participant_dids);
+    let group_participants = state.peek().get_identities(&participant_dids);
     let hash_map = HashMap::from_iter(
         group_participants
             .iter()

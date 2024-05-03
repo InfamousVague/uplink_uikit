@@ -52,7 +52,7 @@ pub fn SlimbarLayout(props: Props) -> Element {
                             let favorites_chat = chat.clone();
                             let remove_favorite = chat.clone();
                             let chat_id = chat.id;
-                            let participants = state.read().chat_participants(&chat);
+                            let participants = state.peek().chat_participants(&chat);
                             let other_participants: Vec<_> = state.read().remove_self(&participants);
                             let participants_name = match chat.conversation_name {
                                 Some(name) => name,

@@ -785,17 +785,17 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
     match identity() {
         Some(identity) => {
             let disabled = state
-                .read()
+                .peek()
                 .outgoing_fr_identities()
                 .iter()
                 .any(|req| req.did_key().eq(&identity.did_key()))
                 || state
-                    .read()
+                    .peek()
                     .get_own_identity()
                     .did_key()
                     .eq(&identity.did_key())
                 || state
-                    .read()
+                    .peek()
                     .friend_identities()
                     .iter()
                     .any(|req| req.did_key().eq(&identity.did_key()));
@@ -899,7 +899,7 @@ pub fn IdentityMessage(props: IdentityMessageProps) -> Element {
                         disabled: disabled,
                         with_title: false,
                         onpress: move |_| {
-                            ch.send(IdentityCmd::SentFriendRequest(did_key2.to_string(), state.read().outgoing_fr_identities()));
+                            ch.send(IdentityCmd::SentFriendRequest(did_key2.to_string(), state.peek().outgoing_fr_identities()));
                         },
                         icon: if disabled {
                             Icon::Check

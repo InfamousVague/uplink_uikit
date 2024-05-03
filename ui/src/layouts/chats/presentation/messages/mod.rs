@@ -181,7 +181,7 @@ pub fn GetMessages(props: GetMessagesProps) -> Element {
                         groups: data::create_message_groups(chat_data.read().active_chat.my_id(), chat_data.read().active_chat.other_participants(), chat_data.read().active_chat.messages()),
                         active_chat_id: chat_data.read().active_chat.id(),
                         on_context_menu_action: move |(e, mut id): (Event<MouseData>, Identity)| {
-                            let own = state.read().get_own_identity().did_key().eq(&id.did_key());
+                            let own = state.peek().get_own_identity().did_key().eq(&id.did_key());
                             if own {
                                 id.set_identity_status(IdentityStatus::Online);
                             };
@@ -190,7 +190,7 @@ pub fn GetMessages(props: GetMessagesProps) -> Element {
                     },
                     render_pending_messages_listener {
                         on_context_menu_action: move |(e, mut id): (Event<MouseData>, Identity)| {
-                            let own = state.read().get_own_identity().did_key().eq(&id.did_key());
+                            let own = state.peek().get_own_identity().did_key().eq(&id.did_key());
                             if own {
                                 id.set_identity_status(IdentityStatus::Online);
                             };
@@ -250,7 +250,7 @@ fn render_message_group(props: MessageGroupProps) -> Element {
         .as_ref()
         .map(|x| x.message.inner.date())
         .unwrap_or_default();
-    let sender = state.read().get_identity(&group.sender).unwrap_or_default();
+    let sender = state.peek().get_identity(&group.sender).unwrap_or_default();
     let blocked = group.remote && state.peek().is_blocked(&sender.did_key());
     let mut show_blocked = use_signal(|| false);
 
@@ -578,7 +578,7 @@ fn render_message(props: MessageProps) -> Element {
         .map(|(emoji, users)| {
             let user_names: Vec<String> = users
                 .iter()
-                .filter_map(|id| state.read().get_identity(id).map(|x| x.username()))
+                .filter_map(|id| state.peek().get_identity(id).map(|x| x.username()))
                 .collect();
             ReactionAdapter {
                 emoji: emoji.into(),
@@ -602,7 +602,7 @@ fn render_message(props: MessageProps) -> Element {
 
     let mut reply_user = Identity::default();
     if let Some(info) = &message().in_reply_to {
-        reply_user = state.read().get_identity(&info.2).unwrap_or_default();
+        reply_user = state.peek().get_identity(&info.2).unwrap_or_default();
     }
     let mut to_send = use_context::<Signal<MessagesToSend>>();
 

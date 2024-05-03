@@ -63,7 +63,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
     let mut share_did = use_signal(|| None);
 
     let identity = state
-        .read()
+        .peek()
         .get_identity(&props.did_key)
         .unwrap_or_default();
     let remove_identity = identity.clone();
@@ -91,7 +91,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
         }
     });
 
-    let is_self = state.read().get_own_identity().did_key().eq(did);
+    let is_self = state.peek().get_own_identity().did_key().eq(did);
     let is_friend = state.peek().has_friend_with_did(did);
     let in_vc = state
         .read()
@@ -416,7 +416,7 @@ pub fn QuickProfileContext(props: QuickProfileProps) -> Element {
                             }*/
                         )}
                     } else {
-                        {let outgoing = state.read().outgoing_fr_identities();
+                        {let outgoing = state.peek().outgoing_fr_identities();
                         let disabled = outgoing.contains(&identity);
                         rsx!(
                             ContextItem {
