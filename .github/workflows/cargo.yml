@@ -28,7 +28,7 @@ jobs:
 
       - name: Add linter failing label if cargo workflow fails
         if: failure()
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
@@ -37,7 +37,7 @@ jobs:
 
       - name: Remove label if exists and job is successful
         if: success()
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
