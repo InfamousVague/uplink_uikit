@@ -537,7 +537,7 @@ jobs:
           cp -r C:\Program` Files\uplink\extensions\emoji_selector.dll $home/.uplink/extensions
 
       - name: Setup FFMPEG to record screen
-        uses: FedericoCarboni/setup-ffmpeg@v2
+        uses: FedericoCarboni/setup-ffmpeg@v3
         id: setup-ffmpeg
 
       - name: Delete Cache Folder if exists - Windows
