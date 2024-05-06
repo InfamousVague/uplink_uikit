@@ -24,7 +24,7 @@ jobs:
 
       - name: Setup Certificate
         run: |
-          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/certificate.p12
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > C:\certificate.p12
         shell: bash
 
       - name: Set variables
@@ -36,7 +36,7 @@ jobs:
           echo "CERTIFICATE_NAME=gt-certificate" >> $GITHUB_OUTPUT
           echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
           echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_FILE=D:\\certificate.p12" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_FILE=C:\\certificate.p12" >> "$GITHUB_ENV"
           echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
           echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
           echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
@@ -85,6 +85,9 @@ jobs:
       - name: Signing using Signtool
         run: |
           signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "./target/wix/*.msi"
+
+      - name: Delete cert file
+        run: Remove-Item -Force C:\certificate.p12
 
       - name: Github Release
         uses: softprops/action-gh-release@v2
