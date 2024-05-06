@@ -12,8 +12,8 @@ use dioxus_hooks::Coroutine;
 
 pub fn use_init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
     let chat_key = chat_data.peek().active_chat.key();
-    let _ = use_resource(use_reactive(&chat_key, move |_chat_key| {
-        async move {
+    use_effect(use_reactive(&chat_key, move |_chat_key| {
+        spawn(async move {
             // replicate behavior from before refactor
             let _ = eval(SETUP_CONTEXT_PARENT);
 
@@ -68,6 +68,6 @@ pub fn use_init_msg_scroll(mut chat_data: Signal<ChatData>, ch: Coroutine<()>) {
             }
             // println!("Sending command to CoRoutine");
             ch.send(());
-        }
+        });
     }));
 }
