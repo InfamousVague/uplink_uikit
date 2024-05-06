@@ -362,10 +362,11 @@ pub fn InputRich(props: Props) -> Element {
 
     use_effect(move || {
         log::trace!("initializing markdown editor");
+        let value = value.replace('"', "\\\"").replace('\n', "\\n");
         let rich_editor: String = include_str!("./rich_editor_handler.js")
             .replace("$EDITOR_ID", &sig_id.peek())
             .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
-            .replace("$INIT", &value.replace('"', "\\\"").replace('\n', "\\n"));
+            .replace("$INIT", &value);
         spawn(async move {
             let mut eval_result = eval(&rich_editor);
             loop {
@@ -409,6 +410,13 @@ pub fn InputRich(props: Props) -> Element {
                             log::error!("failed to deserialize message: {}: {}", val, e);
                         }
                     }
+                } else {
+                    log::trace!("editor broke. reinit editor");
+                    let rich_editor: String = include_str!("./rich_editor_handler.js")
+                        .replace("$EDITOR_ID", &sig_id.peek())
+                        .replace("$AUTOFOCUS", &(!props.ignore_focus).to_string())
+                        .replace("$INIT", &value.replace('"', "\\\"").replace('\n', "\\n"));
+                    eval_result = eval(&rich_editor);
                 }
             }
         });
