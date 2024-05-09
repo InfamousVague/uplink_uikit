@@ -84,7 +84,7 @@ pub async fn run(mut warp: Warp, notify: Arc<Notify>) {
 
 async fn get_raygun_stream(rg: &mut Messaging) -> RayGunEventStream {
     loop {
-        match rg.subscribe().await {
+        match rg.raygun_subscribe().await {
             Ok(stream) => break stream,
             Err(warp::error::Error::MultiPassExtensionUnavailable)
             | Err(warp::error::Error::RayGunExtensionUnavailable) => {
@@ -100,7 +100,7 @@ async fn get_raygun_stream(rg: &mut Messaging) -> RayGunEventStream {
 
 async fn get_multipass_stream(account: &mut Account) -> MultiPassEventStream {
     loop {
-        match account.subscribe().await {
+        match account.multipass_subscribe().await {
             Ok(stream) => break stream,
             Err(e) => match e {
                 //Note: Used as a precaution for future checks
