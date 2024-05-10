@@ -46,10 +46,9 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install Rust 💿
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
-          override: true
           components: rustfmt, clippy
 
       - name: Run cargo build shuttle on Warp 🚀
@@ -59,13 +58,13 @@ jobs:
         run: ./target/release/shuttle --keyfile key.bin --listen-addr /ip4/127.0.0.1/tcp/4444 > peerID.txt &
 
       - name: Upload Artifact Peer ID data⬆️
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: peerID
           path: peerID.txt
 
       - name: Upload Artifact Key File data⬆️
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: keyfile
           path: key.bin
@@ -78,7 +77,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Peer ID file 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: peerID
           path: ./warp
@@ -116,7 +115,7 @@ jobs:
           shasum -a 256 Uplink-Mac-Universal.zip > Uplink-Mac-Universal.zip.sha256.txt
 
       - name: Upload Artifact ⬆️
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
         with:
@@ -128,7 +127,7 @@ jobs:
 
       - name: Add label if any of build or test jobs failed
         if: failure()
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
@@ -145,7 +144,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Peer ID file 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: peerID
           path: ./warp
@@ -177,14 +176,14 @@ jobs:
         run: cargo wix --package uplink --no-build --nocapture
 
       - name: Upload Executable ⬆️
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Uplink-Windows
           path: target/wix/*.msi
 
       - name: Add label if any of build or test jobs failed
         if: failure()
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
@@ -215,26 +214,25 @@ jobs:
           brew install cairo pango
 
       - name: Download Key file 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: keyfile
           path: ./warp
 
       - name: Install Rust 💿
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
-          override: true
           components: rustfmt, clippy
 
       - name: Setup Node.js 🔨
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "npm"
 
       - name: Cache NPM dependencies 🔨
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-mac
         with:
           path: node_modules
@@ -248,7 +246,7 @@ jobs:
         run: sudo spctl --master-disable
 
       - name: Download the MacOS app 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: app-macos
           path: ./apps
@@ -289,27 +287,27 @@ jobs:
 
       - name: Upload Test Report - MacOS CI
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-report-macos-ci
           path: ./test-report/*.xml
 
       - name: Upload Allure Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-allure-macos-ci
           path: ./allure-results/
 
       - name: Upload Screenshots for MacOS 📷
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: appium-screenshots-MacOS
           path: ./test-results
 
       - name: Upload Appium Log for MacOS 📷
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: appium-log-macos
@@ -317,7 +315,7 @@ jobs:
 
       - name: Add label if any of test jobs failed
         if: failure()
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
@@ -348,26 +346,25 @@ jobs:
           brew install cairo pango
 
       - name: Download Key file 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: keyfile
           path: ./warp
 
       - name: Install Rust 💿
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
-          override: true
           components: rustfmt, clippy
 
       - name: Setup Node.js 🔨
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "npm"
 
       - name: Cache NPM dependencies 🔨
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-mac
         with:
           path: node_modules
@@ -381,7 +378,7 @@ jobs:
         run: sudo spctl --master-disable
 
       - name: Download the MacOS app 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: app-macos
           path: ./apps
@@ -421,34 +418,34 @@ jobs:
 
       - name: Upload Test Report - MacOS Chats
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-report-macos-chats
           path: ./test-report/*.xml
 
       - name: Upload Allure Test Results for MacOS Chats
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-allure-macos-chats
           path: ./allure-results/
 
       - name: Upload Screenshots for MacOS Chats 📷
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: appium-screenshots-MacOS-chats
           path: ./test-results
 
       - name: Upload Appium Log for MacOS Chats 📷
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: appium-log-macos-chats
           path: ./appium.log
 
       - name: Upload Uplink Logs if test fails 📷
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: uplink-logs
@@ -458,7 +455,7 @@ jobs:
 
       - name: Add label if any of test jobs failed
         if: failure()
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
@@ -483,16 +480,15 @@ jobs:
           path: "./warp"
 
       - name: Download Key file 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: keyfile
           path: ./warp
 
       - name: Install Rust 💿
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
-          override: true
           components: rustfmt, clippy
 
       - name: Change resolution on Windows Runner
@@ -500,13 +496,13 @@ jobs:
         shell: powershell
 
       - name: Setup Node.js 🔨
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "npm"
 
       - name: Cache NPM dependencies 🔨
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-mac
         with:
           path: node_modules
@@ -517,7 +513,7 @@ jobs:
         run: npm ci
 
       - name: Download the Windows app 🗳️
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: Uplink-Windows
           path: ./apps
@@ -541,7 +537,7 @@ jobs:
           cp -r C:\Program` Files\uplink\extensions\emoji_selector.dll $home/.uplink/extensions
 
       - name: Setup FFMPEG to record screen
-        uses: FedericoCarboni/setup-ffmpeg@v2
+        uses: FedericoCarboni/setup-ffmpeg@v3
         id: setup-ffmpeg
 
       - name: Delete Cache Folder if exists - Windows
@@ -563,27 +559,27 @@ jobs:
 
       - name: Upload Test Report - Windows CI
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-report-windows-ci
           path: ./test-report/*.xml
 
       - name: Upload Allure Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-allure-windows-ci
           path: ./allure-results/
 
       - name: Upload Screenshots for Windows 📷
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: appium-screenshots-windows
           path: ./test-results
 
       - name: Upload Appium Log for Windows 📷
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: appium-log-windows
@@ -591,7 +587,7 @@ jobs:
 
       - name: Add label if any of test jobs failed
         if: failure()
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
@@ -617,46 +613,46 @@ jobs:
 
     steps:
       - name: Download Test Report for MacOS CI
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: test-report-macos-ci
           path: artifacts
 
       - name: Download Test Report for MacOS Chats
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: test-report-macos-chats
           path: artifacts
 
       - name: Download Test Report for Windows CI
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: test-report-windows-ci
           path: artifacts
 
       - name: Download Allure Results for MacOS CI
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: test-allure-macos-ci
           path: testing-uplink/allure
 
       - name: Download Allure Results for Windows CI
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: test-allure-windows-ci
           path: testing-uplink/allure
 
       - name: Download Allure Results for MacOS Chats
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: test-allure-macos-chats
           path: testing-uplink/allure
 
       - name: Publish Test Results Summary
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: success()
         with:
-          junit_files: "artifacts/**/*.xml"
+          files: "artifacts/**/*.xml"
           ignore_runs: true
           job_summary: false
           compare_to_earlier_commit: false
@@ -684,7 +680,7 @@ jobs:
 
       - name: Deploy report to Github Pages
         if: success()
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           external_repository: Satellite-im/test-reports
@@ -732,7 +728,7 @@ jobs:
             uplink-logs
 
       - name: Remove label if all test jobs succeeded
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
