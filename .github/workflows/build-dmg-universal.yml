@@ -17,10 +17,9 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.75.0
-          override: true
           components: rustfmt, clippy
       - name: Install Dependencies
         continue-on-error: true
@@ -74,7 +73,7 @@ jobs:
         run: |
           shasum -a 256 Uplink-Mac-Universal.zip > Uplink-Mac-Universal.zip.sha256.txt
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
         with:

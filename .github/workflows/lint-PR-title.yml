@@ -30,7 +30,7 @@ jobs:
 
       - name: Add invalid PR title label if regex is not matching
         if: ${{ steps.regex-match.outputs.match == '' }}
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |
@@ -39,7 +39,7 @@ jobs:
 
       - name: Remove label if regex is matching
         if: ${{ steps.regex-match.outputs.match != '' }}
-        uses: buildsville/add-remove-label@v2.0.0
+        uses: buildsville/add-remove-label@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           labels: |

@@ -384,19 +384,22 @@ async fn warp_initialization(tesseract: Tesseract) -> Result<manager::Warp, warp
     let path = &STATIC_ARGS.warp_path;
     let mut config = Config::production(path);
 
+    *config.save_phrase_mut() = true; // TODO: This should be bound to a setting within Uplink so that the user can choose not to reveal the phrase for increased security.``
+    *config.bootstrap_mut() = Bootstrap::None;
+
+    let ipfs_setting = config.ipfs_setting_mut();
+    ipfs_setting.disable_quic = STATIC_ARGS.disable_quic;
+    ipfs_setting.portmapping = true;
+    ipfs_setting.agent_version = Some(format!("uplink/{}", env!("CARGO_PKG_VERSION")));
+
+    let store_setting = config.store_setting_mut();
     // Discovery is disabled by default for now but may offload manual discovery through a separate service
     // in the near future
-    config.store_setting.discovery = Discovery::from(&STATIC_ARGS.discovery);
-
-    config.save_phrase = true; // TODO: This should be bound to a setting within Uplink so that the user can choose not to reveal the phrase for increased security.``
-    config.bootstrap = Bootstrap::None;
-    config.ipfs_setting.disable_quic = !STATIC_ARGS.enable_quic;
-    config.ipfs_setting.portmapping = true;
-    config.ipfs_setting.agent_version = Some(format!("uplink/{}", env!("CARGO_PKG_VERSION")));
-    config.store_setting.emit_online_event = true;
-    config.store_setting.share_platform = true;
-    config.store_setting.update_events = UpdateEvents::Enabled;
-    config.store_setting.default_profile_picture = Some(Arc::new(|identity| {
+    store_setting.discovery = Discovery::from(&STATIC_ARGS.discovery);
+    store_setting.emit_online_event = true;
+    store_setting.share_platform = true;
+    store_setting.update_events = UpdateEvents::Enabled;
+    store_setting.default_profile_picture = Some(Arc::new(|identity| {
         let mut content = plot_icon::generate_png(identity.did_key().to_string().as_bytes(), 512)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
@@ -407,13 +410,13 @@ async fn warp_initialization(tesseract: Tesseract) -> Result<manager::Warp, warp
             FileType::Mime("image/png".parse().expect("Correct mime")),
         ))
     }));
-    config.thumbnail_size = (500, 500);
+    *config.thumbnail_size_mut() = (500, 500);
 
     let (multipass, raygun, constellation) = WarpIpfsBuilder::default()
         .set_tesseract(tesseract.clone())
         .set_config(config)
         .finalize()
-        .await?;
+        .await;
 
     let blink = warp_blink_wrtc::BlinkImpl::new(multipass.clone()).await?;
 
