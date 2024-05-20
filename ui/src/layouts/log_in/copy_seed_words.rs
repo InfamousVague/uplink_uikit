@@ -3,12 +3,13 @@ use std::time::Duration;
 use arboard::Clipboard;
 use common::{icons, language::get_local_text, state::State};
 use dioxus::prelude::*;
-use dioxus_desktop::{use_window, LogicalSize};
+use dioxus_desktop::use_window;
 use kit::elements::{button::Button, label::Label, Appearance};
 use tokio::time::sleep;
 
 use super::AuthPages;
 use crate::get_app_style;
+use crate::layouts::log_in::update_window_size;
 use common::state::configuration::Configuration;
 use common::{
     sounds,
@@ -26,10 +27,7 @@ pub fn Layout(cx: Scope, page: UseState<AuthPages>, username: String, pin: Strin
     let window = use_window(cx);
 
     if !matches!(&*page.current(), AuthPages::Success(_)) {
-        window.set_inner_size(LogicalSize {
-            width: 500.0,
-            height: 480.0,
-        });
+        update_window_size(window, 500.0, 500.0);
     }
 
     let words = use_future(cx, (), |_| async move {
