@@ -24,7 +24,7 @@ opt-level = 3
 codegen-units = 1
 
 [workspace.package]
-version = "1.0.4"
+version = "1.0.5"
 rust-version = "1.75"
 
 [workspace.dependencies]
