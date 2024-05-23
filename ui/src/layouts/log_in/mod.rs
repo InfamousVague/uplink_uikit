@@ -6,7 +6,7 @@ mod entry_point;
 mod recover_account;
 
 use dioxus::prelude::*;
-use dioxus_desktop::{use_window, LogicalSize};
+use dioxus_desktop::{use_window, DesktopService, LogicalSize};
 use kit::components::topbar_controls::TopbarControls;
 use kit::STYLE as UIKIT_STYLES;
 use warp::multipass;
@@ -35,17 +35,13 @@ pub fn AuthGuard(cx: Scope, page: UseState<AuthPages>) -> Element {
 
     let pin = use_ref(cx, String::new);
     let user_name = use_ref(cx, String::new);
-    let desktop = use_window(cx);
     let theme = "";
 
     // make the window smaller while the user authenticates
     let window = use_window(cx);
 
     if !matches!(&*page.current(), AuthPages::Success(_)) {
-        window.set_inner_size(LogicalSize {
-            width: 500.0,
-            height: 350.0,
-        });
+        update_window_size(window, 500.0, 350.0);
     }
 
     cx.render(rsx! (
@@ -57,7 +53,7 @@ pub fn AuthGuard(cx: Scope, page: UseState<AuthPages>) -> Element {
                 id: "lockscreen-controls",
                 div {
                     class: "draggable-topbar",
-                    onmousedown: move |_| { desktop.drag(); },
+                    onmousedown: move |_| { window.drag(); },
                 },
                 TopbarControls {},
             },
@@ -72,4 +68,11 @@ pub fn AuthGuard(cx: Scope, page: UseState<AuthPages>) -> Element {
             }
         }
     ))
+}
+
+// Sets both inner and min size for logins
+pub fn update_window_size(window: &DesktopService, width: f64, height: f64) {
+    let size = LogicalSize { width, height };
+    window.set_min_inner_size(Some(size));
+    window.set_inner_size(size);
 }

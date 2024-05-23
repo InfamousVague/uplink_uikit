@@ -1,7 +1,7 @@
 use common::icons::outline::Shape as Icon;
 use common::language::get_local_text;
 use dioxus::prelude::*;
-use dioxus_desktop::{use_window, LogicalSize};
+use dioxus_desktop::use_window;
 use kit::elements::label::Label;
 use kit::elements::{
     button::Button,
@@ -9,6 +9,7 @@ use kit::elements::{
 };
 use tracing::log;
 
+use crate::layouts::log_in::update_window_size;
 use crate::AuthPages;
 
 pub const MIN_USERNAME_LEN: i32 = 4;
@@ -20,10 +21,7 @@ pub fn Layout(cx: Scope, page: UseState<AuthPages>, user_name: UseRef<String>) -
     let window = use_window(cx);
 
     if !matches!(&*page.current(), AuthPages::Success(_)) {
-        window.set_inner_size(LogicalSize {
-            width: 500.0,
-            height: 250.0,
-        });
+        update_window_size(window, 500.0, 250.0);
     }
 
     //let error = use_state(cx, String::new);
